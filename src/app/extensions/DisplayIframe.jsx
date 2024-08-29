@@ -87,7 +87,7 @@ const Extension = ({ context, actions, runServerless }) => {
         const currentRefreshToken = userData.refreshToken; 
     
         setUserRefresh(userData.refreshToken);
-        console.log("Initial refresh token:", JSON.stringify(userrefreshtoken));
+        console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
     
         if (!templateLink && currentRefreshToken) {
             console.log("Template link is null, fetching a new one...");
