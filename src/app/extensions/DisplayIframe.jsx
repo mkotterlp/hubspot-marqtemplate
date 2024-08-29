@@ -77,25 +77,28 @@ const Extension = ({ context, actions, runServerless }) => {
 
       console.log('createusertable:', JSON.stringify(createusertable));
   
-      if (createusertable && createusertable.response && createusertable.response.body) {
-        const userData = JSON.parse(createusertable.response.body).values || {};
+      if (createusertable?.response?.body) {
+        const responseBody = JSON.parse(createusertable.response.body);
+        const userData = responseBody.row?.values || {};  // Access values directly from row
+    
         console.log('Parsed userData:', JSON.stringify(userData));
-
-        setUserRefresh(userData.refreshToken);  // Ensure the refresh token is set
+    
+        setUserRefresh(userData.refreshToken);
         let templateLink = userData.templatesfeed;
-
+    
         if (!templateLink && userrefreshtoken) {
             console.log("Template link is null, fetching a new one...");
-
-
+    
             const fetchResult = await runServerless({
-              name: 'fetchTemplates',
-              parameters: { 
-                userID: userid,
-                refreshToken: userrefreshtoken 
-              }
+                name: 'fetchTemplates',
+                parameters: { 
+                    userID: userid,
+                    refreshToken: userrefreshtoken 
+                }
             });
-
+    
+            console.log('fetchResult:', JSON.stringify(fetchResult));
+    
             if (fetchResult.statusCode === 200) {
                 const fetchedData = JSON.parse(fetchResult.body);
                 templateLink = fetchedData.templates_url;
@@ -105,13 +108,15 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.error("Failed to fetch new template link:", fetchResult.body);
             }
         }
-
+    
         setTemplateLink(templateLink);
-        console.log("Template Link:", JSON.stringify(templateLink));
+        console.log("Final Template Link:", JSON.stringify(templateLink));
         console.log("User table response:", JSON.stringify(userData));
-      } else {
+    } else {
         console.error("Failed to create or fetch user table.");
-      }
+        console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
+    }
+    
   
       // Fetch config data
       const configDataResponse = await runServerless({
