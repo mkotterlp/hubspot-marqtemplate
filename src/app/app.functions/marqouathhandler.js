@@ -14,6 +14,8 @@ exports.main = async (context) => {
             throw new Error('UserID parameter is missing.');
         }
 
+        console.log(`UserID being queried: ${userID}`);
+
         // Fetch all tables
         const tablesResponse = await hubspotClient.cms.hubdb.tablesApi.getAllTables();
         if (!tablesResponse || !tablesResponse.results) {
@@ -32,7 +34,6 @@ exports.main = async (context) => {
                     { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },  
                     { name: 'templatesfeed', label: 'Templates', type: 'TEXT' },
                     { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' }
-
                 ],
             });
             tableId = tableCreationResponse.id;
@@ -50,25 +51,39 @@ exports.main = async (context) => {
             throw new Error('Failed to fetch rows from the table');
         }
 
+        console.log(`Rows fetched from user_data table: ${JSON.stringify(rowsResponse.results, null, 2)}`);
+
         // Check if the user already exists
         let existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
 
-        
+        if (existingUserRow) {
+            console.log(`User ${userID} found. Updating the existing row.`);
+            const rowValues = {
+                userID: userID,
+                marqUserID: context.parameters.marqUserID || "",  
+                templatesfeed: context.parameters.templatesfeed || "",  
+                refreshToken: context.parameters.refreshToken || "" 
+            };
+
+            const updateRowResponse = await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
+            existingUserRow = updateRowResponse;
+            console.log(`User ${userID} updated in the table.`);
+        } else {
             console.log(`User ${userID} not found. Creating a new row.`);
             const rowValues = {
                 userID: userID,
-                marqUserID: context.parameters.marqUserID || "",  // Assuming marqUserID is passed in parameters
-                templatesfeed: context.parameters.templatesfeed || "",  // Assuming marqUserID is passed in parameters
-                refreshToken: context.parameters.refreshToken || "" // Assuming refreshToken is passed in parameters
+                marqUserID: context.parameters.marqUserID || "",  
+                templatesfeed: context.parameters.templatesfeed || "",  
+                refreshToken: context.parameters.refreshToken || "" 
             };
 
-            const createRowResponse = await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-            existingUserRow = createRowResponse;  // Use the newly created row
+            const createRowResponse = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
+            existingUserRow = createRowResponse;
             console.log(`User ${userID} added to the table.`);
-        
+        }
 
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
-        console.log('Table user_data published after creating new rows.');
+        console.log('Table user_data published after updating/creating rows.');
 
         return {
             body: JSON.stringify(existingUserRow),
