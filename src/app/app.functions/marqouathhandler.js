@@ -45,29 +45,42 @@ exports.main = async (context) => {
             try {
                 await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
                 console.log(`User ${userID} updated successfully.`);
+
+                // Return the updated row data
+                return {
+                    statusCode: 200,
+                    body: JSON.stringify({ success: true, row: { id: existingUserRow.id, values: rowValues } })
+                };
             } catch (error) {
                 if (error.code === 404 || error.message.includes('OBJECT_NOT_FOUND')) {
                     console.error(`Row not found during update, attempting to create a new row: ${error.message}`);
-                    await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
+                    const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
                     console.log(`New row created for user ${userID}.`);
+
+                    // Return the newly created row data
+                    return {
+                        statusCode: 200,
+                        body: JSON.stringify({ success: true, row: { id: newRow.id, values: rowValues } })
+                    };
                 } else {
                     throw error;
                 }
             }
         } else {
             console.log(`User ${userID} not found. Creating a new row.`);
-            await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
+            const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             console.log(`User ${userID} added to the table.`);
+
+            // Return the newly created row data
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: true, row: { id: newRow.id, values: rowValues } })
+            };
         }
 
         // Publish the table after making changes
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
         console.log('Table user_data published after updating/creating rows.');
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ success: true })
-        };
     } catch (error) {
         console.error('Error:', error);
         return {
