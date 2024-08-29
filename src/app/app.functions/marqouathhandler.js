@@ -40,11 +40,24 @@ exports.main = async (context) => {
         };
 
         if (existingUserRow) {
-            console.log(`User ${userID} found. Updating the existing row.`);
-            await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
+            console.log(`User ${userID} found. Attempting to update the existing row.`);
+
+            try {
+                await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
+                console.log(`User ${userID} updated successfully.`);
+            } catch (error) {
+                if (error.code === 404 || error.message.includes('OBJECT_NOT_FOUND')) {
+                    console.error(`Row not found during update, attempting to create a new row: ${error.message}`);
+                    await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
+                    console.log(`New row created for user ${userID}.`);
+                } else {
+                    throw error;
+                }
+            }
         } else {
             console.log(`User ${userID} not found. Creating a new row.`);
             await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
+            console.log(`User ${userID} added to the table.`);
         }
 
         // Publish the table after making changes
