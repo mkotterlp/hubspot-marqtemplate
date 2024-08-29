@@ -74,9 +74,13 @@ const Extension = ({ context, actions, runServerless }) => {
         name: 'marqouathhandler',
         parameters: { userID: userid }
       });
+
+      console.log('createusertable:', JSON.stringify(createusertable));
   
-      if (createusertable?.response?.body) {
+      if (createusertable && createusertable.response && createusertable.response.body) {
         const userData = JSON.parse(createusertable.response.body).values || {};
+        console.log('Parsed userData:', JSON.stringify(userData));
+
         setUserRefresh(userData.refreshToken);  // Ensure the refresh token is set
         let templateLink = userData.templatesfeed;
 
