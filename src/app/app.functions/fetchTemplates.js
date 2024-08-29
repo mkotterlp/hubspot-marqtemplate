@@ -5,7 +5,7 @@ const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
 const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
 async function getTemplates(refreshToken) {
-    const baseUrl = "https://marq-salesforce.fastgenapp.com/get-templates3";
+    const baseUrl = "https://marqembed.fastgenapp.com/get-templates3";
     const params = new URLSearchParams({
         refresh_token: refreshToken,
         clientid: clientId,
