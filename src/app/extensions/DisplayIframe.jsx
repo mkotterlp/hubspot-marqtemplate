@@ -82,21 +82,21 @@ const Extension = ({ context, actions, runServerless }) => {
         const userData = responseBody.row?.values || {};  // Access values directly from row
     
         console.log('Parsed userData:', JSON.stringify(userData));
+
+        let templateLink = userData.templatesfeed;
+        const currentRefreshToken = userData.refreshToken; 
     
         setUserRefresh(userData.refreshToken);
         console.log("Initial refresh token:", JSON.stringify(userrefreshtoken));
-
-        let templateLink = userData.templatesfeed;
-        let userrefreshtoken = userData.refreshToken;
     
-        if (!templateLink && userrefreshtoken) {
+        if (!templateLink && currentRefreshToken) {
             console.log("Template link is null, fetching a new one...");
     
             const fetchResult = await runServerless({
                 name: 'fetchTemplates',
                 parameters: { 
                     userID: userid,
-                    refreshToken: userrefreshtoken 
+                    refreshToken: currentRefreshToken 
                 }
             });
     
