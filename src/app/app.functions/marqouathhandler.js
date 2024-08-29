@@ -46,6 +46,9 @@ exports.main = async (context) => {
                 await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
                 console.log(`User ${userID} updated successfully.`);
 
+                console.log(`Returning updated row data for User ${userID}`);
+
+
                 // Return the updated row data
                 return {
                     statusCode: 200,
@@ -56,6 +59,9 @@ exports.main = async (context) => {
                     console.error(`Row not found during update, attempting to create a new row: ${error.message}`);
                     const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
                     console.log(`New row created for user ${userID}.`);
+
+                    console.log(`Returning new row data for User ${userID}`);
+
 
                     // Return the newly created row data
                     return {
@@ -70,6 +76,9 @@ exports.main = async (context) => {
             console.log(`User ${userID} not found. Creating a new row.`);
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             console.log(`User ${userID} added to the table.`);
+
+            console.log(`Returning updated row data for User ${userID}`);
+
 
             // Return the newly created row data
             return {
