@@ -78,7 +78,31 @@ const Extension = ({ context, actions, runServerless }) => {
       if (createusertable?.response?.body) {
         const userData = JSON.parse(createusertable.response.body).values || {};
         setUserRefresh(userData.refreshToken);  // Ensure the refresh token is set
-        setTemplateLink(userData.templatesfeed);
+        let templateLink = userData.templatesfeed;
+
+        if (!templateLink) {
+            console.log("Template link is null, fetching a new one...");
+
+            const context = {
+                parameters: {
+                    userID: userData.userID,
+                    refreshToken: userData.refreshToken,
+                }
+            };
+
+            const fetchResult = await fetchTemplates(context);
+
+            if (fetchResult.statusCode === 200) {
+                const fetchedData = JSON.parse(fetchResult.body);
+                templateLink = fetchedData.templates_url;
+                setUserRefresh(fetchedData.new_refresh_token);
+                console.log("Fetched new template link:", templateLink);
+            } else {
+                console.error("Failed to fetch new template link:", fetchResult.body);
+            }
+        }
+
+        setTemplateLink(templateLink);
         console.log("Template Link:", JSON.stringify(templateLink));
         console.log("User table response:", JSON.stringify(userData));
       } else {
