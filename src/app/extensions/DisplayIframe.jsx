@@ -79,8 +79,8 @@ const Extension = ({ context, actions, runServerless }) => {
         const userData = JSON.parse(createusertable.response.body).values || {};
         setUserRefresh(userData.refreshToken);  // Ensure the refresh token is set
         setTemplateLink(userData.templatesfeed);
-        console.log("Template Link:", templateLink);
-        console.log("User table response:", userData);
+        console.log("Template Link:", JSON.stringify(templateLink));
+        console.log("User table response:", JSON.stringify(userData));
       } else {
         console.error("Failed to create or fetch user table.");
       }
