@@ -3,6 +3,9 @@
     "getApiKey": {
       "file": "getApiKey.js"
     },
+    "fetchTemplates": {
+      "file": "fetchTemplates.js"
+    },
     "objectType": {
       "file": "objectType.js"
     },
@@ -38,9 +41,6 @@
     },
     "marqouathhandler": {
       "file": "marqouathhandler.js"
-    },
-    "tokenExchange": {
-      "file": "tokenExchange.js"
     }
   }
 }
