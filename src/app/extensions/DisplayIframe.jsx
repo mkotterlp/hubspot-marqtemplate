@@ -87,6 +87,7 @@ const Extension = ({ context, actions, runServerless }) => {
         console.log("Initial refresh token:", JSON.stringify(userrefreshtoken));
 
         let templateLink = userData.templatesfeed;
+        let userrefreshtoken = userData.refreshToken;
     
         if (!templateLink && userrefreshtoken) {
             console.log("Template link is null, fetching a new one...");
@@ -171,7 +172,9 @@ const Extension = ({ context, actions, runServerless }) => {
         // Fetch templates
         const templatesResponse = await runServerless({
           name: 'fetchJsonData',
-          parameters: {}
+          parameters: {
+            templateLink: templateLink || ''
+          }
         });
   
         if (templatesResponse?.response?.body) {

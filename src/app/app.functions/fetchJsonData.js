@@ -2,9 +2,20 @@ const axios = require('axios');
 
 exports.main = async (context) => {
   try {
+    const templateLink = context.parameters?.templateLink || "";
+
+    if (!templateLink) {
+      throw new Error("Template link is missing.");
+    }
+
     // Fetch the JSON data from the external URL
-    const response = await axios.get('https://marqsocial.web.app/jsons/0628a996-e1e3-41f0-a3ec-1aa10621f389.json');
+    const response = await axios.get(templateLink);
     const data = response.data;
+
+    // Ensure the fetched data contains the expected structure
+    if (!data.templatesresponse) {
+      throw new Error("Invalid response structure.");
+    }
 
     // Return the fetched data in the expected format
     return {
