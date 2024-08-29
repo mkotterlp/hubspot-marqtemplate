@@ -90,7 +90,13 @@ const Extension = ({ context, actions, runServerless }) => {
                 }
             };
 
-            const fetchResult = await fetchTemplates(context);
+            const fetchResult = await runServerless({
+              name: 'fetchTemplates',
+              parameters: { 
+                userID: userData.userID,
+                refreshToken: userData.refreshToken 
+              }
+            });
 
             if (fetchResult.statusCode === 200) {
                 const fetchedData = JSON.parse(fetchResult.body);
