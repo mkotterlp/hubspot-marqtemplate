@@ -80,21 +80,15 @@ const Extension = ({ context, actions, runServerless }) => {
         setUserRefresh(userData.refreshToken);  // Ensure the refresh token is set
         let templateLink = userData.templatesfeed;
 
-        if (!templateLink) {
+        if (!templateLink && userrefreshtoken) {
             console.log("Template link is null, fetching a new one...");
 
-            const context = {
-                parameters: {
-                    userID: userData.userID,
-                    refreshToken: userData.refreshToken,
-                }
-            };
 
             const fetchResult = await runServerless({
               name: 'fetchTemplates',
               parameters: { 
-                userID: userData.userID,
-                refreshToken: userData.refreshToken 
+                userID: userid,
+                refreshToken: userrefreshtoken 
               }
             });
 
