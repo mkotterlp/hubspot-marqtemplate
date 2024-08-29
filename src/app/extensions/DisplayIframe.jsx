@@ -9,6 +9,7 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
   const [userrefreshtoken, setUserRefresh] = useState('');
+  const [showTemplates, setShowTemplates] = useState(false);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
@@ -678,7 +679,13 @@ const deleteRecord = async (recordId, objectType) => {
   };
   
   
-  
+  useEffect(() => {
+  if (userrefreshtoken && templateLink) {
+    setShowTemplates(true);
+  } else {
+    setShowTemplates(false);
+  }
+}, [userrefreshtoken, templateLink]);
 
   useEffect(() => {
     fetchObjectType();
@@ -1028,7 +1035,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   }
 }
 
-if (!userrefreshtoken) {
+if (!showTemplates) {
   return (
     <Button
     href={authurl} 
