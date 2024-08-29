@@ -12,6 +12,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
+  const [templateLink, setTemplateLink] = useState(null);
   const [authurl, setauth] = useState('');
   const [templates, setTemplates] = useState([]);
   const [fulltemplatelist, setfullTemplates] = useState([]);
@@ -77,6 +78,8 @@ const Extension = ({ context, actions, runServerless }) => {
       if (createusertable?.response?.body) {
         const userData = JSON.parse(createusertable.response.body).values || {};
         setUserRefresh(userData.refreshToken);  // Ensure the refresh token is set
+        setTemplateLink(userData.templatesfeed);
+        console.log("Template Link:", templateLink);
         console.log("User table response:", userData);
       } else {
         console.error("Failed to create or fetch user table.");
