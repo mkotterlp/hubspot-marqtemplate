@@ -32,53 +32,28 @@ exports.main = async (context) => {
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
         const existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
 
-        const rowValues = {
-            userID,
-            marqUserID,
-            templatesfeed,
-            refreshToken
-        };
-
         if (existingUserRow) {
-            console.log(`User ${userID} found. Attempting to update the existing row.`);
+            console.log(`User ${userID} found. Returning existing row data.`);
 
-            try {
-                await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-                console.log(`User ${userID} updated successfully.`);
-
-                console.log(`Returning updated row data for User ${userID}`);
-
-
-                // Return the updated row data
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify({ success: true, row: { id: existingUserRow.id, values: rowValues } })
-                };
-            } catch (error) {
-                if (error.code === 404 || error.message.includes('OBJECT_NOT_FOUND')) {
-                    console.error(`Row not found during update, attempting to create a new row: ${error.message}`);
-                    const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
-                    console.log(`New row created for user ${userID}.`);
-
-                    console.log(`Returning new row data for User ${userID}`);
-
-
-                    // Return the newly created row data
-                    return {
-                        statusCode: 200,
-                        body: JSON.stringify({ success: true, row: { id: newRow.id, values: rowValues } })
-                    };
-                } else {
-                    throw error;
-                }
-            }
+            // Return the existing row data without updating it
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: true, row: { id: existingUserRow.id, values: existingUserRow.values } })
+            };
         } else {
             console.log(`User ${userID} not found. Creating a new row.`);
+
+            const rowValues = {
+                userID,
+                marqUserID,
+                templatesfeed,
+                refreshToken
+            };
+
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             console.log(`User ${userID} added to the table.`);
 
-            console.log(`Returning updated row data for User ${userID}`);
-
+            console.log(`Returning new row data for User ${userID}`);
 
             // Return the newly created row data
             return {
@@ -87,7 +62,7 @@ exports.main = async (context) => {
             };
         }
 
-        // Publish the table after making changes
+        // Publish the table after making changes (only relevant if rows were created or updated)
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
         console.log('Table user_data published after updating/creating rows.');
     } catch (error) {
