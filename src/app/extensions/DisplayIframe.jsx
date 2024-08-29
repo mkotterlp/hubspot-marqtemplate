@@ -84,6 +84,8 @@ const Extension = ({ context, actions, runServerless }) => {
         console.log('Parsed userData:', JSON.stringify(userData));
     
         setUserRefresh(userData.refreshToken);
+        console.log("Initial refresh token:", JSON.stringify(userrefreshtoken));
+
         let templateLink = userData.templatesfeed;
     
         if (!templateLink && userrefreshtoken) {
@@ -103,6 +105,7 @@ const Extension = ({ context, actions, runServerless }) => {
                 const fetchedData = JSON.parse(fetchResult.body);
                 templateLink = fetchedData.templates_url;
                 setUserRefresh(fetchedData.new_refresh_token);
+                console.log("Refresh token after fetching templates:", JSON.stringify(userrefreshtoken));
                 console.log("Fetched new template link:", templateLink);
             } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
