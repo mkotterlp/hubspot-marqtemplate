@@ -1,0 +1,48 @@
+{
+  "appFunctions": {
+    "getApiKey": {
+      "file": "getApiKey.js"
+    },
+    "objectType": {
+      "file": "objectType.js"
+    },
+    "hubdbHelper": {
+      "file": "hubdbHelper.js"
+    },
+    "fetchProjects": {
+      "file": "fetchProjects.js"
+    },
+    "fetchProjectDetails": {
+      "file": "fetchProjectDetails.js"
+    },
+    "fetchobjecttypeid": {
+      "file": "fetchobjecttypeid.js"
+    },
+    "fetchStage": {
+      "file": "fetchStage.js"
+    },
+    "getObjectProperties": {
+      "file": "getObjectProperties.js"
+    },
+    "deleteRecord": {
+      "file": "deleteRecord.js"
+    },
+    "generateEmailContent": {
+      "file": "generateEmailContent.js"
+    },
+    "fetchJsonData": {
+      "file": "fetchJsonData.js"
+    },
+    "createProject": {
+      "file": "createProject.js"
+    },
+    "marqouathhandler": {
+      "file": "marqouathhandler.js"
+    },
+    "tokenExchange": {
+      "file": "tokenExchange.js"
+    }
+  }
+}
+
+

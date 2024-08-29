@@ -1,0 +1,21 @@
+Make sure nodejs is intalled and then this command will work
+
+GLOABALLY
+npm install -g @hubspot/cli 
+
+LOCALLY
+npm install @hubspot/cli 
+
+hs init OR hs init --account=<account# From Hubspot URL Goes Here>
+
+ hs project create    
+
+ cd <filename>
+ npm install
+ hs project dev 
+
+
+
+hs project upload
+
+

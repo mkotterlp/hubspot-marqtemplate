@@ -1,0 +1,27 @@
+{
+  "type": "crm-card",
+  "data": {
+    "title": "Marq",
+    "location": "crm.record.tab",
+    "module": {
+      "file": "DisplayIframe.jsx"
+    },
+    "objectTypes": [
+      {
+        "name": "contacts"
+      },
+      {
+        "name": "companies"
+      },
+      {
+        "name": "deals"
+      },
+      {
+        "name": "tickets"
+      },
+      {
+        "name": "p_marq_account"
+      }
+    ]
+  }
+}
