@@ -1,60 +1,109 @@
-const hubspot = require('@hubspot/api-client');
 const axios = require('axios');
+const hubspot = require('@hubspot/api-client');
+
+const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+
+async function getTemplates(refreshToken) {
+    const baseUrl = "https://marqembed.fastgenapp.com/get-templates3";
+    const params = new URLSearchParams({
+        refresh_token: refreshToken,
+        clientid: clientId,
+        clientsecret: clientSecret
+    });
+    const endpoint = `${baseUrl}?${params.toString()}`;
+
+    try {
+        const response = await axios.get(endpoint);
+        console.log("HTTP status code:", response.status);
+        console.log("HTTP response body:", response.data);
+
+        if (response.status === 200 && response.data.success) {
+            const templatesJsonUrl = response.data.templatesjsonurl;
+            const newRefreshToken = response.data.newRefreshToken;
+            return { templatesJsonUrl, newRefreshToken };
+        } else {
+            console.error("Failed to fetch templates:", response.data);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching templates:", error);
+        return null;
+    }
+}
+
+async function updateHubDbTable(hubspotClient, userID, newRefreshToken, templatesJsonUrl) {
+    // Fetch all tables
+    const tablesResponse = await hubspotClient.cms.hubdb.tablesApi.getAllTables();
+    if (!tablesResponse || !tablesResponse.results) {
+        throw new Error('Failed to fetch tables');
+    }
+
+    let userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
+    if (!userTable) {
+        throw new Error('Table user_data not found.');
+    }
+
+    const tableId = userTable.id;
+    console.log('Table user_data found with ID:', tableId);
+
+    console.log('Fetching rows from user_data table');
+    const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
+    if (!rowsResponse || !rowsResponse.results) {
+        throw new Error('Failed to fetch rows from the table');
+    }
+
+    // Check if the user already exists
+    let existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
+    if (!existingUserRow) {
+        throw new Error(`User ${userID} not found in the table.`);
+    }
+
+    // Update the user's row with the new values
+    const rowValues = {
+        refreshToken: newRefreshToken,
+        templatesfeed: templatesJsonUrl
+    };
+
+    await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
+    console.log(`User ${userID} updated in the table with new refresh token and templates URL.`);
+
+    await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+    console.log('Table user_data published after updating the row.');
+}
 
 exports.main = async (context) => {
     const hubspotClient = new hubspot.Client({
         accessToken: process.env['PRIVATE_APP_ACCESS_TOKEN'],
     });
 
-    const marqUserId = context.parameters?.marqUserId;
+    const userID = String(context.parameters?.userID);
     const refreshToken = context.parameters?.refreshToken;
-    const userId = context.parameters?.userId;
-    const apiKey = context.parameters?.apiKey;
-    const accessToken = context.parameters?.accessToken;
 
-    if (!marqUserId || !refreshToken || !userId || !apiKey || !accessToken) {
-        console.log("Missing required parameters: marqUserId, refreshToken, userId, apiKey, or accessToken");
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ message: "Missing required parameters." })
-        };
+    if (!userID || !refreshToken) {
+        console.error("Error: Missing required parameters.");
+        return { statusCode: 400, body: JSON.stringify({ error: 'userID and refreshToken are required but were not provided' }) };
+    }
+
+    const templatesData = await getTemplates(refreshToken);
+
+    if (!templatesData) {
+        console.error("Error: Unable to fetch templates data");
+        return { statusCode: 500, body: JSON.stringify({ error: 'Failed to fetch templates data' }) };
     }
 
     try {
-        // Define the request body for the update
-        const requestBody = {
-            marquserid: marqUserId,
-            refreshToken: refreshToken,
-            userid: userId,
-            accessToken: accessToken,
-            apikey: apiKey,
-        };
-
-        // Make the PATCH request to update the Marq User Data table
-        const updateResponse = await axios.patch('https://marqembed.fastgenapp.com/update-hbTable', requestBody);
-
-        if (updateResponse.status === 200) {
-            console.log("Marq User Data table updated successfully:", updateResponse.data);
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    message: "User token updated successfully",
-                    result: updateResponse.data
-                })
-            };
-        } else {
-            console.error("Failed to update Marq User Data table:", updateResponse.data);
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ message: "Failed to update Marq User Data table", error: updateResponse.data })
-            };
-        }
-
+        await updateHubDbTable(hubspotClient, userID, templatesData.newRefreshToken, templatesData.templatesJsonUrl);
     } catch (error) {
-        console.error("Error in updating Marq User Data table:", error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "Failed to update Marq User Data table", error: error.message })
-        };
+        console.error("Error updating HubDB table:", error);
+        return { statusCode: 500, body: JSON.stringify({ error: 'Failed to update HubDB table with new data' }) };
     }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            templates_url: templatesData.templatesJsonUrl,
+            new_refresh_token: templatesData.newRefreshToken
+        })
+    };
 };
