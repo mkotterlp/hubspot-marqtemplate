@@ -590,6 +590,7 @@ const deleteRecord = async (recordId, objectType) => {
   
       const userId = context.user.id;
       const contactId = context.crm.objectId;
+      const marquserid = userData.marquserId;
   
       const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
       const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
@@ -652,6 +653,46 @@ const deleteRecord = async (recordId, objectType) => {
       const templateOptions = `template_library=brand&category_filter=${filters.join('%1D')}`;
       console.log("templateOptions:", templateOptions);
   
+      // Step 1: Call serverless function to create a project and get new refresh token
+      const createProjectResponse = await runServerless({
+        name: 'createProject',
+        parameters: {
+          templateId: template.id,
+          userId: userId,
+          contactId: contactId,
+          apiKey: apiKey,
+        }
+      });
+  
+      if (createProjectResponse.error || !createProjectResponse.success) {
+        console.error('Error creating project:', createProjectResponse.error);
+        return;
+      }
+  
+      const { documentid, new_refresh_token, project_info } = createProjectResponse;
+  
+      console.log('Project created successfully:', project_info);
+  
+      // Step 2: Call serverless function to update Marq User Data table with new refresh token
+      const updateTokenResponse = await runServerless({
+        name: 'updateUserToken',
+        parameters: {
+          marquserid: marquserid,  
+          refreshToken: new_refresh_token,
+          userid: userId,
+          accessToken: context.get('accessToken'),  // Replace with the actual access token
+          apikey: apiKey
+        }
+      });
+  
+      if (updateTokenResponse.error) {
+        console.error('Error updating user token:', updateTokenResponse.error);
+        return;
+      }
+  
+      console.log('User token updated successfully:', updateTokenResponse.message);
+  
+      // Step 3: Construct the iframe URL using the project ID
       let iframeSrc;
       if (configType === "multiple") {
         const returnUrl = `https://app.marq.com/documents/external?callback&${templateOptions}&embeddedOptions=${encodedOptions}`;
@@ -659,11 +700,12 @@ const deleteRecord = async (recordId, objectType) => {
         const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl) + '#/templates';
       } else {
-        const baseInnerUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+        const baseInnerUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}&projectid=${documentid}`;
         const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
       }
   
+      // Step 4: Open the iframe modal with the generated URL
       setIframeUrl(iframeSrc);
       actions.openIframeModal({
         uri: iframeSrc,
@@ -674,9 +716,108 @@ const deleteRecord = async (recordId, objectType) => {
       setIframeOpen(true);
     } catch (error) {
       console.error('Error in handleClick:', error);
-      // Optionally, handle the error or provide feedback to the user
     }
   };
+  
+
+
+
+
+  // const handleClick = async (template) => {
+  //   try {
+  //     const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
+  //       ? context.crm.properties[configData.value]
+  //       : null;
+  
+  //     const userId = context.user.id;
+  //     const contactId = context.crm.objectId;
+  
+  //     const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
+  //     const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
+  //     const showTabs = configData.showTabs?.map(tab => tab.name) || ["templates"];
+  //     const configType = configData.configType?.name || "single";
+  //     const dataSetType = configData.dataSetType?.name || "custom";
+  //     const dataSetId = configData.dataSetId || `HB.${objectType}`;
+  //     const key = configData.key || "id";
+  
+  //     const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+  //       enabledFeatures,
+  //       fileTypes,
+  //       showTabs
+  //     })));
+  
+  //     let importData = '';
+  //     if (dataSetType === 'property listing') {
+  //       importData = `propertyId=${dynamicValue || context.crm.objectId}`;
+  //     } else if (dataSetType === 'custom') {
+  //       importData = `dataSetId=${dataSetId}&key=${key}&value=${dynamicValue || context.crm.objectId}`;
+  //     }
+  
+  //     const hasImportData = dataSetType !== 'none' && importData;
+  
+  //     // Prepare and format the category_filter
+  //     let categoryFilter = configData.textboxFilters || '';
+  //     categoryFilter = categoryFilter.replace(/%20/g, '+');
+  //     console.log("categoryFilter:", categoryFilter);
+  
+  //     // Build templateOptions string dynamically
+  //     const fieldsArray = configData.textboxFields?.split(',').map(field => field.trim()) || [];
+  //     const filtersArray = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
+  
+  //     if (fieldsArray.length !== filtersArray.length) {
+  //       console.error("textboxFields and textboxFilters arrays length mismatch");
+  //       return;
+  //     }
+  
+  //     let filters = [];
+  
+  //     fieldsArray.forEach((field, index) => {
+  //       try {
+  //         if (context.crm.properties[field]) { // Check if the field exists in the properties
+  //           const fieldValue = context.crm.properties[field];
+  //           const formattedFilter = filtersArray[index].replace(/ /g, '+');
+  //           const formattedValue = fieldValue.replace(/ /g, '+');
+  //           filters.push(`${formattedFilter}%1E${formattedValue}`);
+  
+  //           if (index > 0) {
+  //             filters.push(`${formattedFilter}%1EAll`);
+  //           }
+  //         } else {
+  //           console.warn(`Property ${field} does not exist in the properties.`);
+  //         }
+  //       } catch (error) {
+  //         console.error(`Error processing field ${field}:`, error);
+  //       }
+  //     });
+  
+  //     const templateOptions = `template_library=brand&category_filter=${filters.join('%1D')}`;
+  //     console.log("templateOptions:", templateOptions);
+  
+  //     let iframeSrc;
+  //     if (configType === "multiple") {
+  //       const returnUrl = `https://app.marq.com/documents/external?callback&${templateOptions}&embeddedOptions=${encodedOptions}`;
+  //       const baseInnerUrl = `https://app.marq.com/documents/iframe?returnUrl=${encodeURIComponent(returnUrl)}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}`;
+  //       const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+  //       iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl) + '#/templates';
+  //     } else {
+  //       const baseInnerUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+  //       const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+  //       iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+  //     }
+  
+  //     setIframeUrl(iframeSrc);
+  //     actions.openIframeModal({
+  //       uri: iframeSrc,
+  //       height: 1500,
+  //       width: 1500,
+  //       title: "Marq",
+  //     });
+  //     setIframeOpen(true);
+  //   } catch (error) {
+  //     console.error('Error in handleClick:', error);
+  //     // Optionally, handle the error or provide feedback to the user
+  //   }
+  // };
   
   
   useEffect(() => {

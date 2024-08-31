@@ -41,7 +41,13 @@
     },
     "marqouathhandler": {
       "file": "marqouathhandler.js"
+    },
+    "updateUserToken": {
+      "file": "updateUserToken.js"
     }
+
+
+    
   }
 }
 
