@@ -785,12 +785,12 @@ const deleteRecord = async (recordId, objectType) => {
   
   
   useEffect(() => {
-  if (userrefreshtoken && templateLink) {
+  if (userrefreshtoken) {
     setShowTemplates(true);
   } else {
     setShowTemplates(false);
   }
-}, [userrefreshtoken, templateLink]);
+}, [userrefreshtoken]);
 
   useEffect(() => {
     fetchObjectType();
