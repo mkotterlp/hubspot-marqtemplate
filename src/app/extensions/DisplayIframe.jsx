@@ -85,6 +85,7 @@ const Extension = ({ context, actions, runServerless }) => {
         console.log('Parsed userData:', JSON.stringify(userData));
 
         let templateLink = userData.templatesfeed;
+        let marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
     
         setUserRefresh(userData.refreshToken);
@@ -97,6 +98,7 @@ const Extension = ({ context, actions, runServerless }) => {
                 name: 'fetchTemplates',
                 parameters: { 
                     userID: userid,
+                    marquserid: marquserid,
                     refreshToken: currentRefreshToken 
                 }
             });

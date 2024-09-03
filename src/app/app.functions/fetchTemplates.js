@@ -4,10 +4,11 @@ const hubspot = require('@hubspot/api-client');
 const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
 const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
-async function getTemplates(refreshToken) {
+async function getTemplates(refreshToken, marquserid) {
     const baseUrl = "https://marqembed.fastgenapp.com/get-templates3";
     const params = new URLSearchParams({
         refresh_token: refreshToken,
+        marquserid: marquserid,
         clientid: clientId,
         clientsecret: clientSecret
     });
@@ -79,13 +80,14 @@ exports.main = async (context) => {
 
     const userID = String(context.parameters?.userID);
     const refreshToken = context.parameters?.refreshToken;
+    const marquserid = context.parameters?.marquserid;
 
-    if (!userID || !refreshToken) {
+    if (!userID || !refreshToken || !marquserid) {
         console.error("Error: Missing required parameters.");
         return { statusCode: 400, body: JSON.stringify({ error: 'userID and refreshToken are required but were not provided' }) };
     }
 
-    const templatesData = await getTemplates(refreshToken);
+    const templatesData = await getTemplates(refreshToken, marquserid);
 
     if (!templatesData) {
         console.error("Error: Unable to fetch templates data");
