@@ -1156,7 +1156,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
     );
   }
 
-  if (!userrefreshtoken) {
+  if (!currentRefreshToken) {
     return (
       <Button
       href={authurl} 
