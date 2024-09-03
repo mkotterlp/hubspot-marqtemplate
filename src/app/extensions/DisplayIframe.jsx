@@ -1156,9 +1156,8 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
     );
   }
 
-  if (!userrefreshtoken) {
-    return (
-      <Button
+  {!userrefreshtoken && (
+    <Button
       href={authurl} 
       variant="primary"
       size="med"
@@ -1166,8 +1165,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
     >
       Connect to Marq
     </Button>
-    );
-  }
+  )}
 
   return (
     <>
