@@ -786,15 +786,6 @@ const deleteRecord = async (recordId, objectType) => {
   // };
   
   
-  useEffect(() => {
-  if (userrefresh) {
-    setShowTemplates(true);
-    console.log('User refresh found', userrefresh)
-  } else {
-    setShowTemplates(false);
-    console.log('User refresh not found', userrefresh)
-  }
-}, [userrefresh]);
 
   useEffect(() => {
     fetchObjectType();
@@ -1144,7 +1135,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   }
 }
 
-if (!showTemplates) {
+if (!userrefresh) {
   return (
     <Button
     href={authurl} 
