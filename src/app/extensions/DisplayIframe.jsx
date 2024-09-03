@@ -87,8 +87,8 @@ const Extension = ({ context, actions, runServerless }) => {
         let templateLink = userData.templatesfeed;
         let marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
-    
         setUserRefresh(userData.refreshToken);
+
         console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
     
         if (!templateLink && currentRefreshToken) {
@@ -935,11 +935,15 @@ useEffect(() => {
 ]);
 
 useEffect(() => {
-  if (userrefreshtoken) {
+  try {
+    if (userrefreshtoken) {
       console.log("Refresh token updated:", userrefreshtoken);
-      // Add any logic here that needs to run after the token updates
+    }
+  } catch (error) {
+    console.error("Error in useEffect:", error);
   }
 }, [userrefreshtoken]);
+
 
 
 useEffect(() => {
@@ -1140,18 +1144,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   }
 }
 
-if (!userrefreshtoken) {
-  return (
-    <Button
-    href={authurl} 
-    variant="primary"
-    size="med"
-    type="button"
-  >
-    Connect to Marq
-  </Button>
-  );
-}
+
 
   if (iframeLoading || isLoading) {
     return (
@@ -1160,6 +1153,19 @@ if (!userrefreshtoken) {
         <LoadingSpinner label="Loading projects..." layout="centered" />
         </Flex>
         </Flex>
+    );
+  }
+
+  if (!userrefreshtoken) {
+    return (
+      <Button
+      href={authurl} 
+      variant="primary"
+      size="med"
+      type="button"
+    >
+      Connect to Marq
+    </Button>
     );
   }
 
