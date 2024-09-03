@@ -45,6 +45,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
   let propertiesBody = {}; 
   let configData  = {};
+  let userrefresh = '';
 
   const fetchObjectType = async () => {
     try {
@@ -87,6 +88,7 @@ const Extension = ({ context, actions, runServerless }) => {
         let templateLink = userData.templatesfeed;
         let marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
+        userrefresh = userData.refreshToken;
     
         setUserRefresh(userData.refreshToken);
         console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
@@ -785,12 +787,14 @@ const deleteRecord = async (recordId, objectType) => {
   
   
   useEffect(() => {
-  if (userrefreshtoken) {
+  if (userrefresh) {
     setShowTemplates(true);
+    console.log('User refresh found', userrefresh)
   } else {
     setShowTemplates(false);
+    console.log('User refresh not found', userrefresh)
   }
-}, [userrefreshtoken]);
+}, [userrefresh]);
 
   useEffect(() => {
     fetchObjectType();
