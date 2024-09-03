@@ -644,6 +644,29 @@ const deleteRecord = async (recordId, objectType) => {
 
                     const projectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
 
+                    // If the "Create with Marq" button is clicked, call the createProject serverless function
+                    if (template.trigger === 'createProject') {
+                      const createProjectResponse = await runServerless({
+                          name: 'createProject',
+                          parameters: {
+                              templateId: template.id,
+                              userId: context.user.id,
+                              contactId: context.crm.objectId,
+                              apiKey: apiKey
+                          }
+                      });
+
+                      if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
+                          const projectData = JSON.parse(createProjectResponse.response.body);
+                          console.log("Project created:", projectData);
+
+                          // Now use the new projectId from the created project
+                          projectId = projectData.documentid;
+                      } else {
+                          console.error("Failed to create project or empty response.");
+                      }
+                  }
+
                     // Now proceed with the iframe URL creation using projectId and other necessary details
                     let iframeSrc;
                     if (configType === "multiple") {
