@@ -45,7 +45,6 @@ const Extension = ({ context, actions, runServerless }) => {
 
   let propertiesBody = {}; 
   let configData  = {};
-  let userrefresh = '';
 
   const fetchObjectType = async () => {
     try {
@@ -88,7 +87,6 @@ const Extension = ({ context, actions, runServerless }) => {
         let templateLink = userData.templatesfeed;
         let marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
-        userrefresh = userData.refreshToken;
     
         setUserRefresh(userData.refreshToken);
         console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
@@ -936,6 +934,13 @@ useEffect(() => {
   searchTerm
 ]);
 
+useEffect(() => {
+  if (userrefreshtoken) {
+      console.log("Refresh token updated:", userrefreshtoken);
+      // Add any logic here that needs to run after the token updates
+  }
+}, [userrefreshtoken]);
+
 
 useEffect(() => {
     const handlePropertiesUpdate = (properties) => {
@@ -1135,7 +1140,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   }
 }
 
-if (!userrefresh) {
+if (!userrefreshtoken) {
   return (
     <Button
     href={authurl} 
