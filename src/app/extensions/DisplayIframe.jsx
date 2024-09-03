@@ -114,7 +114,7 @@ const Extension = ({ context, actions, runServerless }) => {
             } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
             }
-        }
+        } 
     
         setTemplateLink(templateLink);
         console.log("Final Template Link:", JSON.stringify(templateLink));
