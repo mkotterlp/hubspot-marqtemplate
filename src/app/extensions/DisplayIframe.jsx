@@ -1145,7 +1145,7 @@ if (iframeLoading || isLoading) {
 // Ensure that the rest of the JSX is returned
 return (
   <>
-    {!userrefreshtoken (
+    {!userrefreshtoken && (
       <Button
         href={authurl}
         variant="primary"
@@ -1156,7 +1156,7 @@ return (
       </Button>
     )}
 
-    {userrefreshtoken  (
+    {userrefreshtoken && (
       <Form>
         <Flex direction="row" justify={'center'} gap="small">
           <Box flex={1}>
