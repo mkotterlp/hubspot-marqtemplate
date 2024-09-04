@@ -16,6 +16,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [templateLink, setTemplateLink] = useState(null);
   const [authurl, setauth] = useState('');
   const [templates, setTemplates] = useState([]);
+  const [allTemplates, setAllTemplates] = useState([]);
   const [fulltemplatelist, setfullTemplates] = useState([]);
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState('Relevant Content');
