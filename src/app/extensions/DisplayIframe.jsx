@@ -8,7 +8,7 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
-  const [userrefreshtoken, setUserRefresh] = useState(null);
+  const [userrefreshtoken, setUserRefresh] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
@@ -114,7 +114,7 @@ const Extension = ({ context, actions, runServerless }) => {
             } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
             }
-        } 
+        }
     
         setTemplateLink(templateLink);
         console.log("Final Template Link:", JSON.stringify(templateLink));
@@ -586,86 +586,101 @@ const deleteRecord = async (recordId, objectType) => {
 
   const handleClick = async (template) => {
     try {
-      const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
-        ? context.crm.properties[configData.value]
-        : null;
-  
-      const userId = context.user.id;
-      const contactId = context.crm.objectId;
-  
-      const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
-      const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
-      const showTabs = configData.showTabs?.map(tab => tab.name) || ["templates"];
-      const configType = configData.configType?.name || "single";
-      const dataSetType = configData.dataSetType?.name || "custom";
-      const dataSetId = configData.dataSetId || `HB.${objectType}`;
-      const key = configData.key || "id";
-  
-      const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
-        enabledFeatures,
-        fileTypes,
-        showTabs
-      })));
-  
-      let importData = '';
-      if (dataSetType === 'property listing') {
-        importData = `propertyId=${dynamicValue || context.crm.objectId}`;
-      } else if (dataSetType === 'custom') {
-        importData = `dataSetId=${dataSetId}&key=${key}&value=${dynamicValue || context.crm.objectId}`;
-      }
-  
-      const hasImportData = dataSetType !== 'none' && importData;
-  
-      // Step 1: Call the createProject serverless function to get the project ID
-      const createProjectResponse = await runServerless({
-        name: 'createProject',
-        parameters: {
-          templateId: template.id,
-          userId: userId,
-          contactId: contactId,
-          apiKey: apiKey
+        const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
+            ? context.crm.properties[configData.value]
+            : null;
+
+        const userId = context.user.id;
+        const contactId = context.crm.objectId;
+
+        const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
+        const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
+        const showTabs = configData.showTabs?.map(tab => tab.name) || ["templates"];
+        const configType = configData.configType?.name || "single";
+        const dataSetType = configData.dataSetType?.name || "custom";
+        const dataSetId = configData.dataSetId || `HB.${objectType}`;
+        const key = configData.key || "id";
+
+        const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+            enabledFeatures,
+            fileTypes,
+            showTabs
+        })));
+
+        let importData = '';
+        if (dataSetType === 'property listing') {
+            importData = `propertyId=${dynamicValue || context.crm.objectId}`;
+        } else if (dataSetType === 'custom') {
+            importData = `dataSetId=${dataSetId}&key=${key}&value=${dynamicValue || context.crm.objectId}`;
         }
-      });
-  
-      if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
-        const projectData = JSON.parse(createProjectResponse.response.body);
-        console.log("Project created:", projectData);
-  
-        const projectId = projectData.documentid;
-  
-        // Step 2: Now use the projectId in the iframe URL creation
-        let iframeSrc;
-        if (configType === "multiple") {
-          const returnUrl = `https://app.marq.com/documents/external?callback&${templateOptions}&embeddedOptions=${encodedOptions}`;
-          const baseInnerUrl = `https://app.marq.com/documents/iframe?returnUrl=${encodeURIComponent(returnUrl)}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&projectid=${projectId}`;
-          const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
-          iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl) + '#/templates';
-        } else {
-          const baseInnerUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}&projectid=${projectId}`;
-          const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
-          iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
-        }
-  
-        // Step 3: Open the iframe modal with the newly created project ID
-        setIframeUrl(iframeSrc);
-        actions.openIframeModal({
-          uri: iframeSrc,
-          height: 1500,
-          width: 1500,
-          title: "Marq",
+
+        const hasImportData = dataSetType !== 'none' && importData;
+
+        // Fetch associated projects first
+        const associatedProjectsResponse = await runServerless({
+            name: 'fetchProjects',
+            parameters: {
+                fromObjectId: context.crm.objectId,
+                fromObjectType: objectType
+            }
         });
-        setIframeOpen(true);
-  
-      } else {
-        console.error("Failed to create project or empty response.");
-      }
-  
+
+        if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
+            const projectsData = JSON.parse(associatedProjectsResponse.response.body);
+            console.log("Fetched project data:", projectsData);
+
+            if (projectsData && projectsData.results && projectsData.results.length > 0) {
+                const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
+
+                // Fetch project details using the unique project IDs
+                const projectDetailsResponse = await runServerless({
+                    name: 'fetchProjectDetails',
+                    parameters: { objectIds: Array.from(uniqueProjectIds) }
+                });
+
+                if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
+                    const projectDetails = JSON.parse(projectDetailsResponse.response.body);
+                    console.log("Fetched project details:", projectDetails);
+
+                    const projectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
+
+                    // Now proceed with the iframe URL creation using projectId and other necessary details
+                    let iframeSrc;
+                    if (configType === "multiple") {
+                        const returnUrl = `https://app.marq.com/documents/external?callback&${templateOptions}&embeddedOptions=${encodedOptions}`;
+                        const baseInnerUrl = `https://app.marq.com/documents/iframe?returnUrl=${encodeURIComponent(returnUrl)}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&projectid=${projectId}`;
+                        const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+                        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl) + '#/templates';
+                    } else {
+                        const baseInnerUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}&projectid=${projectId}`;
+                        const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+                        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+                    }
+
+                    setIframeUrl(iframeSrc);
+                    actions.openIframeModal({
+                        uri: iframeSrc,
+                        height: 1500,
+                        width: 1500,
+                        title: "Marq",
+                    });
+                    setIframeOpen(true);
+
+                } else {
+                    console.error("Failed to fetch project details or empty response");
+                }
+            } else {
+                console.error("Failed to fetch associated projects: Empty results array");
+            }
+        } else {
+            console.error("Failed to fetch associated projects.");
+        }
+
     } catch (error) {
-      console.error('Error in handleClick:', error);
-      // Optionally, handle the error or provide feedback to the user
+        console.error('Error in handleClick:', error);
+        // Optionally, handle the error or provide feedback to the user
     }
-  };
-  
+};
 
   
 
@@ -1141,8 +1156,9 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
     );
   }
 
-  {!userrefreshtoken && (
-    <Button
+  if (!userrefreshtoken) {
+    return (
+      <Button
       href={authurl} 
       variant="primary"
       size="med"
@@ -1150,7 +1166,8 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
     >
       Connect to Marq
     </Button>
-  )}
+    );
+  }
 
   return (
     <>
