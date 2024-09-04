@@ -10,9 +10,6 @@ exports.main = async (context) => {
         const marqUserID = context.parameters?.marqUserID || "";
         const templatesfeed = context.parameters?.templatesfeed || "";
         const refreshToken = context.parameters?.refreshToken || "";
-        const lastTemplateSyncDate = context.parameters?.lastTemplateSyncDate 
-    ? Number(context.parameters.lastTemplateSyncDate) 
-    : null;
 
         if (!userID) {
             throw new Error('UserID parameter is missing.');
@@ -50,8 +47,7 @@ exports.main = async (context) => {
                 userID,
                 marqUserID,
                 templatesfeed,
-                refreshToken,
-                lastTemplateSyncDate
+                refreshToken
             };
 
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
