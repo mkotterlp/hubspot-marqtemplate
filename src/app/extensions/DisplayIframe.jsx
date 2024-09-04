@@ -1281,8 +1281,8 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   )}
 </>
 
-);
-};
+}
+
 
 export default Extension;
 
