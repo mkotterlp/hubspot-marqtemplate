@@ -10,6 +10,7 @@ exports.main = async (context) => {
         const marqUserID = context.parameters?.marqUserID || "";
         const templatesfeed = context.parameters?.templatesfeed || "";
         const refreshToken = context.parameters?.refreshToken || "";
+        const lastTemplateSyncDate = context.parameters?.lastTemplateSyncDate || "";
 
         if (!userID) {
             throw new Error('UserID parameter is missing.');
@@ -19,27 +20,10 @@ exports.main = async (context) => {
 
         // Fetch the user_data table
         const tablesResponse = await hubspotClient.cms.hubdb.tablesApi.getAllTables();
-        let userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
+        const userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
 
         if (!userTable) {
-            console.log('Table user_data not found. Creating the table.');
-
-            // Create the table if it doesn't exist
-            const newTable = await hubspotClient.cms.hubdb.tablesApi.createTable({
-                name: 'user_data',
-                label: 'User Data',
-                columns: [
-                    { name: 'userID', label: 'User ID', type: 'TEXT' },
-                    { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },
-                    { name: 'templatesfeed', label: 'Templates Feed', type: 'TEXT' },
-                    { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' },
-                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' }
-                ],
-                useForPages: false
-            });
-
-            userTable = newTable;
-            console.log(`Table user_data created with ID: ${newTable.id}`);
+            throw new Error('Table user_data not found.');
         }
 
         const tableId = userTable.id;
@@ -47,7 +31,7 @@ exports.main = async (context) => {
 
         // Fetch rows from the user_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
-        const existingUserRow = rowsResponse.results.find(row => String(row.values.userID) === String(userID));
+        const existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
 
         if (existingUserRow) {
             console.log(`User ${userID} found. Returning existing row data.`);
@@ -64,7 +48,8 @@ exports.main = async (context) => {
                 userID,
                 marqUserID,
                 templatesfeed,
-                refreshToken
+                refreshToken,
+                lastTemplateSyncDate
             };
 
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
