@@ -6,7 +6,9 @@ exports.main = async (context) => {
     });
 
     try {
-        const userID = String(context.parameters?.userID);
+        // const userID = String(context.parameters?.userID);
+        const userID = context.parameters?.userID || "";
+
         const marqUserID = context.parameters?.marqUserID || "";
         const templatesfeed = context.parameters?.templatesfeed || "";
         const refreshToken = context.parameters?.refreshToken || "";
