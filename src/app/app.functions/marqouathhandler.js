@@ -20,11 +20,11 @@ exports.main = async (context) => {
         // Fetch the user_data table
         const tablesResponse = await hubspotClient.cms.hubdb.tablesApi.getAllTables();
         let userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
-        let tableId;
 
         if (!userTable) {
             console.log('Table user_data not found. Creating the table.');
-        
+
+            // Create the table if it doesn't exist
             const newTable = await hubspotClient.cms.hubdb.tablesApi.createTable({
                 name: 'user_data',
                 label: 'User Data',
@@ -37,13 +37,13 @@ exports.main = async (context) => {
                 ],
                 useForPages: false
             });
-            
-            tableId = newTable.id;
-            console.log(`Table user_data created with ID: ${tableId}`);
-        } else {
-            tableId = userTable.id;
-            console.log('Table user_data found with ID:', tableId);
+
+            userTable = newTable;
+            console.log(`Table user_data created with ID: ${newTable.id}`);
         }
+
+        const tableId = userTable.id;
+        console.log('Table user_data found with ID:', tableId);
 
         // Fetch rows from the user_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
@@ -51,9 +51,6 @@ exports.main = async (context) => {
 
         if (existingUserRow) {
             console.log(`User ${userID} found. Returning existing row data.`);
-
-            // Publish the table even if no new rows are added
-            await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
 
             // Return the existing row data without updating it
             return {
@@ -73,8 +70,7 @@ exports.main = async (context) => {
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             console.log(`User ${userID} added to the table.`);
 
-            // Publish the table after adding a new row
-            await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+            console.log(`Returning new row data for User ${userID}`);
 
             // Return the newly created row data
             return {
@@ -83,6 +79,9 @@ exports.main = async (context) => {
             };
         }
 
+        // Publish the table after making changes (only relevant if rows were created or updated)
+        await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+        console.log('Table user_data published after updating/creating rows.');
     } catch (error) {
         console.error('Error:', error);
         return {
@@ -91,4 +90,3 @@ exports.main = async (context) => {
         };
     }
 };
- 
