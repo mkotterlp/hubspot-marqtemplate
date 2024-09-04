@@ -638,10 +638,12 @@ const deleteRecord = async (recordId, objectType) => {
         if (configType === "multiple") {
           const returnUrl = `https://app.marq.com/documents/external?callback&${templateOptions}&embeddedOptions=${encodedOptions}`;
           const baseInnerUrl = `https://app.marq.com/documents/iframe?returnUrl=${encodeURIComponent(returnUrl)}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&projectid=${projectId}`;
+          console.log("baseInnerUrl:", baseInnerUrl);
           const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
           iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl) + '#/templates';
         } else {
           const baseInnerUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}&projectid=${projectId}`;
+          console.log("baseInnerUrl:", baseInnerUrl);
           const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
           iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
         }
