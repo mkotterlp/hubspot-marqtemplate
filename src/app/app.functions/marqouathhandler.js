@@ -31,7 +31,7 @@ exports.main = async (context) => {
                     { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },
                     { name: 'templatesfeed', label: 'Templates Feed', type: 'TEXT' },
                     { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' },
-                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' }
+                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' } 
                 ],
                 useForPages: false
             });
