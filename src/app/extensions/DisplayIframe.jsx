@@ -876,7 +876,13 @@ const initialize = async () => {
 
     if (createusertable?.response?.body) {
       const userData = JSON.parse(createusertable.response.body).values || {};
-      setUserRefresh(userData.refreshToken);
+      setUserRefresh(prev => {
+        if (prev !== userData.refreshToken) {
+          return userData.refreshToken;
+        }
+        return prev;
+      });
+      
       console.log("User table response:", userData);
     } else {
       console.error("Failed to create or fetch user table.");
@@ -938,18 +944,13 @@ useEffect(() => {
 ]);
 
 useEffect(() => {
-  console.log("Attempting token update");
-  try {
-    if (userrefreshtoken) {
-      console.log("Refresh token updated:", userrefreshtoken);
-
-      // Trigger the template sync here
-      fetchPropertiesAndLoadConfig(objectType);
-    }
-  } catch (error) {
-    console.error("Error in useEffect:", error);
+  if (userrefreshtoken) {
+    console.log("Refresh token updated:", userrefreshtoken);
+    fetchPropertiesAndLoadConfig(objectType);
+  } else {
+    console.log("No refresh token");
   }
-}, [userrefreshtoken]);
+}, [userrefreshtoken, objectType]);
 
 
 
