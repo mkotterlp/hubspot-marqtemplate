@@ -63,7 +63,8 @@ async function updateHubDbTable(hubspotClient, userID, newRefreshToken, template
     // Update the user's row with the new values
     const rowValues = {
         refreshToken: newRefreshToken,
-        templatesfeed: templatesJsonUrl
+        templatesfeed: templatesJsonUrl,
+        lastTemplateSyncDate: new Date().toISOString()
     };
 
     await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
