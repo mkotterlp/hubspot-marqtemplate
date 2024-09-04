@@ -86,8 +86,8 @@ const Extension = ({ context, actions, runServerless }) => {
 
         let templateLink = userData.templatesfeed;
         let marquserid = userData.marqUserID;
-        setUserRefresh(userData.refreshToken);
         const currentRefreshToken = userData.refreshToken; 
+        setUserRefresh(userData.refreshToken);
         
 
         console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
@@ -111,6 +111,8 @@ const Extension = ({ context, actions, runServerless }) => {
                 templateLink = fetchedData.templates_url;
                 setUserRefresh(fetchedData.new_refresh_token);
                 console.log("Refresh token after fetching templates:", JSON.stringify(userrefreshtoken));
+                console.log("Fetched new refresh token:", fetchedData.new_refresh_token);
+
                 console.log("Fetched new template link:", templateLink);
             } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
