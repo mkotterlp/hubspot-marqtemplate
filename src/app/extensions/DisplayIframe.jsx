@@ -86,8 +86,9 @@ const Extension = ({ context, actions, runServerless }) => {
 
         let templateLink = userData.templatesfeed;
         let marquserid = userData.marqUserID;
-        const currentRefreshToken = userData.refreshToken; 
         setUserRefresh(userData.refreshToken);
+        const currentRefreshToken = userData.refreshToken; 
+        
 
         console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
     
