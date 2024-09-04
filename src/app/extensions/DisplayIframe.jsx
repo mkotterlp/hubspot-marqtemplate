@@ -71,10 +71,10 @@ const Extension = ({ context, actions, runServerless }) => {
   
       const userid = context.user.id;
   
-      const createusertable = await runServerless({
-        name: 'marqouathhandler',
-        parameters: { userID: userid }
-      });
+      // const createusertable = await runServerless({
+      //   name: 'marqouathhandler',
+      //   parameters: { userID: userid }
+      // });
 
       console.log('createusertable:', JSON.stringify(createusertable));
   
@@ -866,10 +866,10 @@ const initialize = async () => {
     setAPIkey(apiKey);
 
     // Fetch Marq user data and update refresh token if necessary
-    const createusertable = await runServerless({
-      name: 'marqouathhandler',
-      parameters: { userID: userid }
-    });
+    // const createusertable = await runServerless({
+    //   name: 'marqouathhandler',
+    //   parameters: { userID: userid }
+    // });
 
     if (createusertable?.response?.body) {
       const userData = JSON.parse(createusertable.response.body).values || {};
