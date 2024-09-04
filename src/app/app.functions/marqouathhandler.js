@@ -30,7 +30,9 @@ exports.main = async (context) => {
 
         // Fetch rows from the user_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
-        const existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
+        rowsResponse.results.forEach(row => console.log(`Row userID: ${row.values.userID}`));
+
+        const existingUserRow = rowsResponse.results.find(row => String(row.values.userID) === String(userID));
 
         if (existingUserRow) {
             console.log(`User ${userID} found. Returning existing row data.`);
