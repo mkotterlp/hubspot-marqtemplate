@@ -10,7 +10,9 @@ exports.main = async (context) => {
         const marqUserID = context.parameters?.marqUserID || "";
         const templatesfeed = context.parameters?.templatesfeed || "";
         const refreshToken = context.parameters?.refreshToken || "";
-        const lastTemplateSyncDate = context.parameters?.lastTemplateSyncDate || "";
+        const lastTemplateSyncDate = context.parameters?.lastTemplateSyncDate 
+    ? Number(context.parameters.lastTemplateSyncDate) 
+    : null;
 
         if (!userID) {
             throw new Error('UserID parameter is missing.');
