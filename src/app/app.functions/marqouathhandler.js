@@ -28,11 +28,14 @@ exports.main = async (context) => {
         const tableId = userTable.id;
         console.log('Table user_data found with ID:', tableId);
 
+        
+
         // Fetch rows from the user_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
-        rowsResponse.results.forEach(row => console.log(`Row userID: ${row.values.userID}`));
+        console.log('Full table data:', JSON.stringify(rowsResponse, null, 2));
+        rowsResponse.results.forEach(row => console.log(`Row userID: "${row.values.userID}" vs Queried userID: "${userID}"`));
 
-        const existingUserRow = rowsResponse.results.find(row => String(row.values.userID) === String(userID));
+        const existingUserRow = rowsResponse.results.find(row => String(row.values.userID).trim() === String(userID).trim());
 
         if (existingUserRow) {
             console.log(`User ${userID} found. Returning existing row data.`);
