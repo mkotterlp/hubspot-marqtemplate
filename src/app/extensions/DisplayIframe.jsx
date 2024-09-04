@@ -946,11 +946,14 @@ useEffect(() => {
 useEffect(() => {
   if (userrefreshtoken) {
     console.log("Refresh token updated:", userrefreshtoken);
+    setShowTemplates(true); // Show templates section
     fetchPropertiesAndLoadConfig(objectType);
   } else {
     console.log("No refresh token");
+    setShowTemplates(false); // Hide templates section if no token
   }
 }, [userrefreshtoken, objectType]);
+
 
 
 
@@ -1176,6 +1179,8 @@ if (!userrefreshtoken) {
   );
 }
 
+if (showTemplates) {
+
 return (
   <>
     <Form>
@@ -1296,5 +1301,6 @@ return (
 );
 
 };
+}
 
 export default Extension;
