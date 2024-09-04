@@ -22,8 +22,27 @@ exports.main = async (context) => {
         const userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
 
         if (!userTable) {
-            throw new Error('Table user_data not found.');
+            console.log('Table user_data not found. Creating the table.');
+        
+            const newTable = await hubspotClient.cms.hubdb.tablesApi.createTable({
+                name: 'user_data',
+                columns: [
+                    { name: 'userID', label: 'User ID', type: 'TEXT' },
+                    { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },
+                    { name: 'templatesfeed', label: 'Templates Feed', type: 'TEXT' },
+                    { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' },
+                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' }
+                ],
+                useForPages: false
+            });
+        
+            const tableId = newTable.id;
+            console.log(`Table user_data created with ID: ${tableId}`);
+        } else {
+            const tableId = userTable.id;
+            console.log('Table user_data found with ID:', tableId);
         }
+        
 
         const tableId = userTable.id;
         console.log('Table user_data found with ID:', tableId);
