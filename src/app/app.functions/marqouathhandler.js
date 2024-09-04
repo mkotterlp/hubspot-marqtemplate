@@ -38,10 +38,10 @@ exports.main = async (context) => {
                 useForPages: false
             });
             
-            tableId = newTable.id;  // Set the tableId from the created table
+            tableId = newTable.id;
             console.log(`Table user_data created with ID: ${tableId}`);
         } else {
-            tableId = userTable.id;  // Set the tableId from the existing table
+            tableId = userTable.id;
             console.log('Table user_data found with ID:', tableId);
         }
 
@@ -51,6 +51,9 @@ exports.main = async (context) => {
 
         if (existingUserRow) {
             console.log(`User ${userID} found. Returning existing row data.`);
+
+            // Publish the table even if no new rows are added
+            await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
 
             // Return the existing row data without updating it
             return {
@@ -70,6 +73,9 @@ exports.main = async (context) => {
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             console.log(`User ${userID} added to the table.`);
 
+            // Publish the table after adding a new row
+            await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+
             // Return the newly created row data
             return {
                 statusCode: 200,
@@ -77,9 +83,6 @@ exports.main = async (context) => {
             };
         }
 
-        // Publish the table after making changes (only relevant if rows were created or updated)
-        await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
-        console.log('Table user_data published after updating/creating rows.');
     } catch (error) {
         console.error('Error:', error);
         return {
