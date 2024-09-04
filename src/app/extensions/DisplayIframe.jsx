@@ -8,7 +8,7 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
-  const [userrefreshtoken, setUserRefresh] = useState('');
+  const [userrefreshtoken, setUserRefresh] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
