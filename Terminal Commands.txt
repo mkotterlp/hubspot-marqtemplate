@@ -18,4 +18,13 @@ hs init OR hs init --account=<account# From Hubspot URL Goes Here>
 
 hs project upload
 
+git checkout sandbox
+
+git pull origin sandbox
+
+git add .
+git commit -m "Your commit message"
+git push origin sandbox
+
+
 
