@@ -26,15 +26,17 @@ exports.main = async (context) => {
         
             const newTable = await hubspotClient.cms.hubdb.tablesApi.createTable({
                 name: 'user_data',
+                label: 'User Data',  // Adding label for the table
                 columns: [
-                    { name: 'userID', label: 'User ID', type: 'TEXT' },
-                    { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },
-                    { name: 'templatesfeed', label: 'Templates Feed', type: 'TEXT' },
-                    { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' },
-                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' } 
+                    { name: 'userID', label: 'User ID', type: 'TEXT' },  // Added proper label
+                    { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },  // Added proper label
+                    { name: 'templatesfeed', label: 'Templates Feed', type: 'TEXT' },  // Added proper label
+                    { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' },  // Added proper label
+                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' }  // Added proper label
                 ],
                 useForPages: false
             });
+            
         
             const tableId = newTable.id;
             console.log(`Table user_data created with ID: ${tableId}`);
