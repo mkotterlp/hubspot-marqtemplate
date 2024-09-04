@@ -6,9 +6,7 @@ exports.main = async (context) => {
     });
 
     try {
-        // const userID = String(context.parameters?.userID);
         const userID = context.parameters?.userID || "";
-
         const marqUserID = context.parameters?.marqUserID || "";
         const templatesfeed = context.parameters?.templatesfeed || "";
         const refreshToken = context.parameters?.refreshToken || "";
@@ -22,22 +20,41 @@ exports.main = async (context) => {
 
         // Fetch the user_data table
         const tablesResponse = await hubspotClient.cms.hubdb.tablesApi.getAllTables();
-        const userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
-
+        let userTable = tablesResponse.results.find(table => table.name.toLowerCase() === 'user_data');
+        let tableId;
+        
         if (!userTable) {
-            throw new Error('Table user_data not found.');
+            console.log('Table user_data not found. Creating the table.');
+        
+            const newTable = await hubspotClient.cms.hubdb.tablesApi.createTable({
+                name: 'user_data',
+                label: 'Marq User Data',
+                columns: [
+                    { name: 'userID', label: 'User ID', type: 'TEXT' },
+                    { name: 'marqUserID', label: 'Marq User ID', type: 'TEXT' },
+                    { name: 'templatesfeed', label: 'Templates Feed', type: 'TEXT' },
+                    { name: 'refreshToken', label: 'Refresh Token', type: 'TEXT' },
+                    { name: 'lastTemplateSyncDate', label: 'Last Template Sync Date', type: 'DATETIME' }
+                ],
+                useForPages: false
+            });
+            
+            tableId = newTable.id;  // Set the tableId from the created table
+            console.log(`Table user_data created with ID: ${tableId}`);
+        } else {
+            tableId = userTable.id;  // Set the tableId from the existing table
+            console.log('Table user_data found with ID:', tableId);
         }
-
-        const tableId = userTable.id;
-        console.log('Table user_data found with ID:', tableId);
 
         // Fetch rows from the user_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
-        const existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
+        const existingUserRow = rowsResponse.results.find(row => String(row.values.userID) === String(userID));
 
         if (existingUserRow) {
             console.log(`User ${userID} found. Returning existing row data.`);
 
+            // Publish the table
+            await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
             // Return the existing row data without updating it
             return {
                 statusCode: 200,
@@ -57,6 +74,9 @@ exports.main = async (context) => {
             const newRow = await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             console.log(`User ${userID} added to the table.`);
 
+            // Publish the table after making changes (new row added)
+            await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+
             console.log(`Returning new row data for User ${userID}`);
 
             // Return the newly created row data
@@ -65,10 +85,6 @@ exports.main = async (context) => {
                 body: JSON.stringify({ success: true, row: { id: newRow.id, values: rowValues } })
             };
         }
-
-        // Publish the table after making changes (only relevant if rows were created or updated)
-        await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
-        console.log('Table user_data published after updating/creating rows.');
     } catch (error) {
         console.error('Error:', error);
         return {
