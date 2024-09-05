@@ -2,17 +2,29 @@ const hubspot = require('@hubspot/api-client');
 const axios = require('axios');
 
 exports.main = async (context) => {
-    const hubspotClient = new hubspot.Client({
-        accessToken: process.env['PRIVATE_APP_ACCESS_TOKEN'],
-    });    
+    // Extract the parameters sent from handleClick
+    const original_refresh = context.parameters?.original_refresh;
+    const clientid = context.parameters?.clientid;
+    const clientsecret = context.parameters?.clientsecret;
+    const userid = context.parameters?.userid;
+    const recordid = context.parameters?.recordid;
+    const templateid = context.parameters?.templateid;
+    const templatetitle = context.parameters?.templatetitle;
 
-    const templateId = context.parameters?.templateId;
-    const userId = context.parameters?.userId;
-    const contactId = context.parameters?.contactId;
-    const apiKey = context.parameters?.apiKey;
+    // Log the parameters for debugging
+    console.log("Received parameters:", {
+        original_refresh,
+        clientid,
+        clientsecret,
+        userid,
+        recordid,
+        templateid,
+        templatetitle
+    });
 
-    if (!templateId || !userId || !contactId || !apiKey) {
-        console.log("Missing required parameters: templateId, userId, contactId, or apiKey");
+    // Check if all required parameters are available
+    if (!original_refresh || !clientid || !clientsecret || !userid || !recordid || !templateid || !templatetitle) {
+        console.error("Missing required parameters");
         return {
             statusCode: 400,
             body: JSON.stringify({ message: "Missing required parameters." })
@@ -20,19 +32,23 @@ exports.main = async (context) => {
     }
 
     try {
-        // Step 1: Call Marq API to create a project
+        // Step 1: Make a POST request to the Fastgen API with the parameters
         const marqResponse = await axios.post('https://marqembed.fastgenapp.com/create-project', {
-            templateId: templateId,
-            userId: userId,
-            contactId: contactId,
-            apiKey: apiKey,
+            original_refresh: original_refresh,
+            clientid: clientid,
+            clientsecret: clientsecret,
+            userid: userid,
+            recordid: recordid,
+            templateid: templateid,
+            templatetitle: templatetitle
         });
 
+        // Step 2: Check the response from the Fastgen API
         if (marqResponse.data.success) {
             const { documentid, new_refresh_token, project_info } = marqResponse.data;
             console.log("Marq project created successfully:", project_info);
 
-            // Step 2: Return the project details along with the new refresh token
+            // Step 3: Return the project details along with the new refresh token
             return {
                 statusCode: 200,
                 body: JSON.stringify({
