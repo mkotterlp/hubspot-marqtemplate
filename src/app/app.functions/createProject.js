@@ -10,7 +10,7 @@ exports.main = async (context) => {
     const recordid = String(context.parameters?.recordid); // Convert recordid to string
     const templateid = context.parameters?.templateid;
     const templatetitle = context.parameters?.templatetitle;
-
+//
     // Log the parameters for debugging
     console.log("Received parameters:", {
         refresh_token,
