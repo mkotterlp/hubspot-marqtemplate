@@ -591,14 +591,24 @@ const deleteRecord = async (recordId, objectType) => {
   const handleClick = async (template) => {
     try {
       console.log("Template clicked:", template.id, template.title);
-  
+
+      // Fetch necessary values from context and the clicked template
+      const original_refresh = context.user.refreshToken || ''; // Assuming refresh token is in context
+      const clientid = context.client?.id || ''; // Assuming client ID is in context
+      const clientsecret = context.client?.secret || ''; // Assuming client secret is in context
+      const userid = context.user?.id || ''; // Assuming user ID is in context
+      const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
+      const templateid = template?.id || ''; // Fetching template ID from the clicked template
+      const templatetitle = template?.title || ''; // Fetching template title from the clicked template
+
+      console.log("Collected parameters:", { original_refresh, clientid, clientsecret, userid, recordid, templateid, templatetitle });
+
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
         ? context.crm.properties[configData.value]
         : null;
-  
-      const userId = context.user.id;
+
       const contactId = context.crm.objectId;
-  
+
       const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
       const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
       const showTabs = configData.showTabs?.map(tab => tab.name) || ["templates"];
@@ -606,7 +616,7 @@ const deleteRecord = async (recordId, objectType) => {
       const dataSetType = configData.dataSetType?.name || "custom";
       const dataSetId = configData.dataSetId || `HB.${objectType}`;
       const key = configData.key || "id";
-  
+
       const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
         enabledFeatures,
         fileTypes,
@@ -626,11 +636,15 @@ const deleteRecord = async (recordId, objectType) => {
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
-          templateId: template.id, // Pass the template ID
-          userId: userId,          // Pass the user ID
-          contactId: contactId,    // Pass the contact ID (CRM context)
-          apiKey: apiKey           // Pass the API key
+          original_refresh: original_refresh,  // Pass original refresh token
+          clientid: clientid,                  // Pass client ID
+          clientsecret: clientsecret,          // Pass client secret
+          userid: userid,                      // Pass user ID
+          recordid: recordid,                  // Pass CRM record ID
+          templateid: templateid,              // Pass template ID
+          templatetitle: templatetitle         // Pass template title
         }
+  
       });
   
       // Step 2: Retrieve the projectId from the createProject response
