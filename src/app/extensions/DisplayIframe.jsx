@@ -594,14 +594,14 @@ const deleteRecord = async (recordId, objectType) => {
 
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-      const original_refresh = userrefreshtoken;  // Use the refresh token from state
+      const refresh_token = userrefreshtoken;  // Use the refresh token from state
 
       const marquserid = context.marquserid?.id || ''; // Assuming user ID is in context
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
 
-      console.log("Collected parameters:", { original_refresh, clientid, clientsecret, marquserid, recordid, templateid, templatetitle });
+      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserid, recordid, templateid, templatetitle });
 
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
         ? context.crm.properties[configData.value]
@@ -636,7 +636,7 @@ const deleteRecord = async (recordId, objectType) => {
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
-          original_refresh: original_refresh,  // Pass original refresh token
+          refresh_token: refresh_token,  // Pass original refresh token
           clientid: clientid,                  // Pass client ID
           clientsecret: clientsecret,          // Pass client secret
           marquserid: marquserid,                      // Pass user ID

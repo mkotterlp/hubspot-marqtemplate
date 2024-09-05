@@ -3,7 +3,7 @@ const axios = require('axios');
 
 exports.main = async (context) => {
     // Extract the parameters sent from handleClick
-    const original_refresh = context.parameters?.original_refresh;
+    const refresh_token = context.parameters?.refresh_token;
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
     const marquserid = String(context.parameters?.marquserid); // Convert userid to string
@@ -13,7 +13,7 @@ exports.main = async (context) => {
 
     // Log the parameters for debugging
     console.log("Received parameters:", {
-        original_refresh,
+        refresh_token,
         clientid,
         clientsecret,
         marquserid,
@@ -23,7 +23,7 @@ exports.main = async (context) => {
     });
 
     // Check if all required parameters are available
-    if (!original_refresh || !clientid || !clientsecret || !userid || !recordid || !templateid || !templatetitle) {
+    if (!refresh_token || !clientid || !clientsecret || !userid || !recordid || !templateid || !templatetitle) {
         console.error("Missing required parameters");
         return {
             statusCode: 400,
@@ -34,7 +34,7 @@ exports.main = async (context) => {
     try {
         // Step 1: Make a POST request to the Fastgen API with the parameters
         const marqResponse = await axios.post('https://marqembed.fastgenapp.com/create-project', {
-            original_refresh: original_refresh,
+            refresh_token: refresh_token,
             clientid: clientid,
             clientsecret: clientsecret,
             marquserid: marquserid,
