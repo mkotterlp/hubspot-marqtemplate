@@ -596,7 +596,7 @@ const deleteRecord = async (recordId, objectType) => {
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const original_refresh = userrefreshtoken;  // Use the refresh token from state
 
-      const userid = context.user?.id || ''; // Assuming user ID is in context
+      const marquserid = context.marquserid?.id || ''; // Assuming user ID is in context
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
@@ -639,7 +639,7 @@ const deleteRecord = async (recordId, objectType) => {
           original_refresh: original_refresh,  // Pass original refresh token
           clientid: clientid,                  // Pass client ID
           clientsecret: clientsecret,          // Pass client secret
-          userid: userid,                      // Pass user ID
+          marquserid: marquserid,                      // Pass user ID
           recordid: recordid,                  // Pass CRM record ID
           templateid: templateid,              // Pass template ID
           templatetitle: templatetitle         // Pass template title

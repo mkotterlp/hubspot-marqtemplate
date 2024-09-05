@@ -6,7 +6,7 @@ exports.main = async (context) => {
     const original_refresh = context.parameters?.original_refresh;
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
-    const userid = String(context.parameters?.userid); // Convert userid to string
+    const marquserid = String(context.parameters?.marquserid); // Convert userid to string
     const recordid = String(context.parameters?.recordid); // Convert recordid to string
     const templateid = context.parameters?.templateid;
     const templatetitle = context.parameters?.templatetitle;
@@ -16,7 +16,7 @@ exports.main = async (context) => {
         original_refresh,
         clientid,
         clientsecret,
-        userid,
+        marquserid,
         recordid,
         templateid,
         templatetitle
@@ -37,7 +37,7 @@ exports.main = async (context) => {
             original_refresh: original_refresh,
             clientid: clientid,
             clientsecret: clientsecret,
-            userid: userid,
+            marquserid: marquserid,
             recordid: recordid,
             templateid: templateid,
             templatetitle: templatetitle
