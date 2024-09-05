@@ -6,7 +6,7 @@ exports.main = async (context) => {
     const refresh_token = context.parameters?.refresh_token;
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
-    const marquserid = String(context.parameters?.marquserid); // Convert userid to string
+    const marquserId = String(context.parameters?.marquserId); // Convert userid to string
     const recordid = String(context.parameters?.recordid); // Convert recordid to string
     const templateid = context.parameters?.templateid;
     const templatetitle = context.parameters?.templatetitle;
@@ -16,14 +16,14 @@ exports.main = async (context) => {
         refresh_token,
         clientid,
         clientsecret,
-        marquserid,
+        marquserId,
         recordid,
         templateid,
         templatetitle
     });
 
     // Check if all required parameters are available
-    if (!refresh_token || !clientid || !clientsecret || !userid || !recordid || !templateid || !templatetitle) {
+    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle) {
         console.error("Missing required parameters");
         return {
             statusCode: 400,
@@ -37,7 +37,7 @@ exports.main = async (context) => {
             refresh_token: refresh_token,
             clientid: clientid,
             clientsecret: clientsecret,
-            marquserid: marquserid,
+            marquserId: marquserId,
             recordid: recordid,
             templateid: templateid,
             templatetitle: templatetitle

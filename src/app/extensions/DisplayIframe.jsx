@@ -9,6 +9,8 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
   const [userrefreshtoken, setUserRefresh] = useState(null);
+  const [marquserid, setMarquserid] = useState('');
+
   const [showTemplates, setShowTemplates] = useState(false);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
@@ -89,6 +91,8 @@ const Extension = ({ context, actions, runServerless }) => {
         let marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
         setUserRefresh(userData.refreshToken);
+        setMarquserid(marqUserID);
+
         
 
         console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
@@ -596,12 +600,12 @@ const deleteRecord = async (recordId, objectType) => {
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const refresh_token = userrefreshtoken;  // Use the refresh token from state
 
-      const marquserid = context.marquserid?.id || ''; // Assuming user ID is in context
+      const marquserId = marquserid; // Assuming user ID is in context
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
 
-      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserid, recordid, templateid, templatetitle });
+      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle });
 
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
         ? context.crm.properties[configData.value]
@@ -639,7 +643,7 @@ const deleteRecord = async (recordId, objectType) => {
           refresh_token: refresh_token,  // Pass original refresh token
           clientid: clientid,                  // Pass client ID
           clientsecret: clientsecret,          // Pass client secret
-          marquserid: marquserid,                      // Pass user ID
+          marquserId: marquserId,                      // Pass user ID
           recordid: recordid,                  // Pass CRM record ID
           templateid: templateid,              // Pass template ID
           templatetitle: templatetitle         // Pass template title
