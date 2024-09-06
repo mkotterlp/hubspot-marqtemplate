@@ -119,7 +119,7 @@ const Extension = ({ context, actions, runServerless }) => {
           // Fetch templates if template link is missing
           if (!templateLink) {
             console.log("Template link is null, fetching a new one...");
-  
+            setIsLoading(true);
             try {
               const fetchResult = await runServerless({
                 name: 'fetchTemplates',
