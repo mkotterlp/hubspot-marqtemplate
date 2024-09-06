@@ -909,7 +909,7 @@ const deleteRecord = async (recordId, objectType) => {
         if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
           console.log("Refresh token found:", currentRefreshToken);
           setIsPolling(false); // Stop polling
-          setShowTemplates(true);
+          fetchPropertiesAndLoadConfig(objectType);
         } else {
           console.log("Refresh token not found yet, continuing to poll...");
           setShowTemplates(false);

@@ -7,8 +7,8 @@ exports.main = async (context) => {
     const templatesJsonUrl = context.parameters?.templatesJsonUrl;
 
     // Check if all required parameters are provided
-    if (!userID || !refreshToken || !templatesJsonUrl) {
-        console.error("Error: Missing required parameters.");
+    if (!userID) {
+        console.error("Error: Missing UserID.");
         return {
             statusCode: 400,
             body: JSON.stringify({ error: 'userID, refreshToken, and templatesJsonUrl are required but were not provided' }),
