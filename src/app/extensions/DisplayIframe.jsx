@@ -130,29 +130,43 @@ const Extension = ({ context, actions, runServerless }) => {
               // Log the full response object
               console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
               
-              if (fetchResult && fetchResult.response && fetchResult.response.statusCode === 200) {
-                // Check for success within the body
-                const fetchedData = JSON.parse(fetchResult.response.body);
-                
-                if (fetchedData.templatesjsonurl && fetchedData.newRefreshToken) {
-                  // If templatesjsonurl and newRefreshToken are present, log them
-                  templateLink = fetchedData.templatesjsonurl;
-                  currentRefreshToken = fetchedData.newRefreshToken;
-                  
-                  console.log("Success! Fetched new template link:", templateLink);
-                  console.log("Success! Fetched new refresh token:", currentRefreshToken);
+              if (fetchResult && fetchResult.response) {
+                const statusCode = fetchResult.response.statusCode;
+              
+                if (statusCode === 200 && fetchResult.response.body) {
+                  try {
+                    const fetchedData = JSON.parse(fetchResult.response.body);
+                    
+                    // Check if the required data is present
+                    if (fetchedData.templatesjsonurl && fetchedData.newRefreshToken) {
+                      templateLink = fetchedData.templatesjsonurl;
+                      currentRefreshToken = fetchedData.newRefreshToken;
+              
+                      console.log("Success! Fetched new template link:", templateLink);
+                      console.log("Success! Fetched new refresh token:", currentRefreshToken);
+                    } else {
+                      console.error("Error: Missing expected data in response body.", fetchedData);
+                      templateLink = '';
+                      currentRefreshToken = '';
+                    }
+                  } catch (jsonError) {
+                    console.error("Error parsing JSON response:", jsonError, fetchResult.response.body);
+                    templateLink = '';
+                    currentRefreshToken = '';
+                  }
                 } else {
-                  console.error("Error: Missing expected data in response body.", fetchedData);
+                  // Handle non-200 status codes
+                  console.error("Failed to fetch new template link. Status Code:", statusCode, "Response body:", fetchResult.response.body);
                   templateLink = '';
                   currentRefreshToken = '';
                 }
-              }  else {
+              } else {
+                // Handle missing response
+                console.error("Error: fetchResult or response is undefined or malformed.", fetchResult);
                 templateLink = '';
                 currentRefreshToken = '';
-              
-                // Log the error body for non-200 status codes
-                console.error("Failed to fetch new template link. Response body:", JSON.stringify(fetchResult.body, null, 2));
               }
+              
               
               
 
