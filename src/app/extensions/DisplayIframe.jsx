@@ -266,6 +266,14 @@ const Extension = ({ context, actions, runServerless }) => {
             }
           } else {
             console.error("Error: Missing template link to fetch templates.");
+
+            if (currentRefreshToken) {
+              console.log('Refresh token', currentRefreshToken)
+              setShowTemplates(true);
+            } else {
+              console.log('Missing refresh token', currentRefreshToken)
+              setShowTemplates(false);
+            }
           }
         } else {
           console.error("Failed to load config data:", configDataResponse);
