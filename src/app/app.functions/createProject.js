@@ -25,6 +25,8 @@ exports.main = async (context) => {
     // Check if all required parameters are available
     if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle) {
         console.error("Missing required parameters");
+        console.log(`refresh_token: ${refresh_token}, clientid: ${clientid}, clientsecret: ${clientsecret}, marquserId: ${marquserId}, recordid: ${recordid}, templateid: ${templateid}, templatetitle: ${templatetitle}`);
+
         return {
             statusCode: 400,
             body: JSON.stringify({ message: "Missing required parameters." })
