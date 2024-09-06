@@ -91,6 +91,7 @@ const Extension = ({ context, actions, runServerless }) => {
         const marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
         setUserRefresh(userData.refreshToken);
+        fetchRefreshToken();
         setMarquserid(marquserid);
 
         
@@ -1012,7 +1013,7 @@ useEffect(() => {
   };
 
   fetchRefreshToken();
-}, []);
+}, [context.user.id, runServerless]);
 
 
 
