@@ -1297,7 +1297,7 @@ if (!isLoading && !templateLink) {
   return (
     <EmptyState title="Failed to load templates" layout="vertical">
       <Text>We couldn't load the templates. Please try reloading.</Text>
-      <Button variant="primary" onClick={reloadTemplates}>
+      <Button variant="primary" onClick={fetchPropertiesAndLoadConfig}>
         Reload Templates
       </Button>
     </EmptyState>
