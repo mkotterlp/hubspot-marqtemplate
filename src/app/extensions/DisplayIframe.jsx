@@ -140,12 +140,6 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.log("Fetched new template link:", templateLink);
                 console.log("Fetched new refresh token:", currentRefreshToken);
 
-                if (currentRefreshToken) {
-                  setShowTemplates(true);
-                } else {
-                  setShowTemplates(false);
-                }
-  
                   try {
                     setIsLoading(true);
                     const updateResult = await runServerless({
@@ -168,6 +162,13 @@ const Extension = ({ context, actions, runServerless }) => {
               } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
               }
+
+              if (currentRefreshToken) {
+                setShowTemplates(true);
+              } else {
+                setShowTemplates(false);
+              }
+
             } catch (fetchError) {
               console.error("Error occurred while fetching new template link:", fetchError);
             }
