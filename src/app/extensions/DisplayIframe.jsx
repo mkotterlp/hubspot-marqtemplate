@@ -855,9 +855,13 @@ const deleteRecord = async (recordId, objectType) => {
   
       if (createusertable?.response?.body) {
         console.log("Received response from serverless function:", createusertable);
-        const userData = JSON.parse(createusertable.response.body).values || {};
+  
+        // Access row and values properly
+        const responseBody = JSON.parse(createusertable.response.body);
+        const userData = responseBody?.row?.values || {};
+        
         console.log("userData:", userData);
-
+  
         const currentRefreshToken = userData.refreshToken;
         console.log("currentRefreshToken:", currentRefreshToken);
   
@@ -865,10 +869,10 @@ const deleteRecord = async (recordId, objectType) => {
           console.log("Refresh token found:", currentRefreshToken);
           setUserRefresh(currentRefreshToken); // Store the refresh token in state
           setIsPolling(false); // Stop polling
-          setShowTemplates(true)
+          setShowTemplates(true);
         } else {
           console.log("Refresh token not found yet, continuing to poll...");
-          setShowTemplates(false)
+          setShowTemplates(false);
         }
       } else {
         console.log("No response body from serverless function.");
@@ -877,6 +881,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.error("Error while polling for refresh token:", error);
     }
   };
+  
   
   
   useEffect(() => {
