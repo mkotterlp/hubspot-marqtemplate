@@ -986,23 +986,28 @@ useEffect(() => {
 
 
 useEffect(() => {
-  const savedToken = localStorage.getItem('refreshToken');
-  if (savedToken) {
-    setUserRefresh(savedToken);
-  }
+  // Fetch refresh token from user table
+  const fetchRefreshToken = async () => {
+    try {
+      const userId = context.user.id; // Get user ID from context
+      const createusertable = await runServerless({
+        name: 'marqouathhandler', // Serverless function to get the token
+        parameters: { userID: userId }
+      });
+
+      if (createusertable?.response?.body) {
+        const userData = JSON.parse(createusertable.response.body).values || {};  // Access values directly
+        const currentRefreshToken = userData.refreshToken;
+        setUserRefresh(currentRefreshToken); // Store the refresh token in state
+        console.log("Fetched Refresh Token:", currentRefreshToken);
+      }
+    } catch (error) {
+      console.error("Failed to fetch refresh token:", error);
+    }
+  };
+
+  fetchRefreshToken();
 }, []);
-
-useEffect(() => {
-  if (userrefreshtoken) {
-    localStorage.setItem('refreshToken', userrefreshtoken);
-    setShowTemplates(true);
-    console.log("Refresh token updated:", userrefreshtoken);
-  } else {
-    console.log("No refresh token");
-    setShowTemplates(false);
-  }
-}, [userrefreshtoken]);
-
 
 
 
