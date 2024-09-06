@@ -11,7 +11,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [userrefreshtoken, setUserRefresh] = useState(null);
   const [marquserid, setMarquserid] = useState('');
 
-  const [showTemplates, setShowTemplates] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
@@ -67,30 +67,7 @@ const Extension = ({ context, actions, runServerless }) => {
     }
   };
 
-    // Fetch refresh token from user table
-    const fetchRefreshToken = async () => {
-      try {
-        const userId = context.user.id; // Get user ID from context
-        const createusertable = await runServerless({
-          name: 'marqouathhandler', // Serverless function to get the token
-          parameters: { userID: userId }
-        });
-  
-        if (createusertable?.response?.body) {
-          const userData = JSON.parse(createusertable.response.body).values || {};  // Access values directly
-          const currentRefreshToken = userData.refreshToken;
-          setUserRefresh(currentRefreshToken); // Store the refresh token in state
-          console.log("Fetched Refresh Token:", currentRefreshToken);
-          if (currentRefreshToken) {
-            setShowTemplates(true)
-          } else {
-            setShowTemplates(false)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch refresh token:", error);
-      }
-    };
+
 
  
   const fetchPropertiesAndLoadConfig = async (objectType) => {
@@ -116,12 +93,15 @@ const Extension = ({ context, actions, runServerless }) => {
         const marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
         setUserRefresh(userData.refreshToken);
-        fetchRefreshToken();
+        if (currentRefreshToken) {
+          setShowTemplates(true)
+        } else {
+          setShowTemplates(false)
+        }
         setMarquserid(marquserid);
 
         
 
-        console.log("Initial refresh token:", JSON.stringify(currentRefreshToken));
     
         if (!templateLink && currentRefreshToken) {
             console.log("Template link is null, fetching a new one...");
@@ -1011,9 +991,6 @@ useEffect(() => {
 
 
 
-useEffect(() => {
-  fetchRefreshToken();
-}, [context.user.id, runServerless]);
 
 
 
