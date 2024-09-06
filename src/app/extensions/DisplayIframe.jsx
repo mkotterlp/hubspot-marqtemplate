@@ -676,12 +676,11 @@ const deleteRecord = async (recordId, objectType) => {
 
   const handleClick = async (template) => {
     try {
-      // console.log("Template clicked:", template.id, template.title);
+      console.log("Template clicked:", template.id, template.title);
 
+      const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-      const refresh_token = currentRefreshToken;  // Use the refresh token from state
-
       const marquserId = marquserid; // Assuming user ID is in context
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
