@@ -104,6 +104,8 @@ const Extension = ({ context, actions, runServerless }) => {
           templateLink = userData.templatesfeed;
           const marquserid = userData.marqUserID;
           currentRefreshToken = userData.refreshToken;
+
+          console.log("Fetched User Data:", JSON.stringify(userData));
   
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
@@ -686,7 +688,6 @@ const deleteRecord = async (recordId, objectType) => {
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
-      const datasetid = context.crm.objectId || ''; // Assuming dataset ID is in context
 
       console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, datasetid });
 
