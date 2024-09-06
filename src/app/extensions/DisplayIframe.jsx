@@ -144,7 +144,7 @@ const Extension = ({ context, actions, runServerless }) => {
               try {
                 setIsLoading(true);
                 const updateResult = await runServerless({
-                  name: 'updateHubDbTable',
+                  name: 'updateUserTable',
                   parameters: {
                     userID: userid,
                     refreshToken: currentRefreshToken,
@@ -268,8 +268,8 @@ const Extension = ({ context, actions, runServerless }) => {
               setIsLoading(false);
               actions.addAlert({
                 title: "Error with template sync",
-                variant: "error",
-                message: `There was an error fetching templates. Please try connecting to Marq again.'}`
+                variant: "danger",
+                message: `There was an error fetching templates. Please try connecting to Marq again.}`
               });
             }
           }
