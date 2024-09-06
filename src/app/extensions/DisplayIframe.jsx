@@ -772,7 +772,7 @@ const deleteRecord = async (recordId, objectType) => {
               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
               let iframeSrc;
 
-                const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}&projectid=${associatedProjectId || projectId}`;
+                const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
                 const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
                 iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
               
