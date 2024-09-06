@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { RadioButton, Icon, Flex, Box, Heading, Image, Input, Dropdown, Link, Button, ButtonRow, Table, Form, TableHead, TableHeader, TableCell, TableBody, TableRow, Text, Divider, EmptyState, LoadingSpinner, hubspot } from "@hubspot/ui-extensions";
+import { Alert, RadioButton, Icon, Flex, Box, Heading, Image, Input, Dropdown, Link, Button, ButtonRow, Table, Form, TableHead, TableHeader, TableCell, TableBody, TableRow, Text, Divider, EmptyState, LoadingSpinner, hubspot } from "@hubspot/ui-extensions";
 import { CrmActionButton, CrmActionLink, CrmCardActions, CrmAssociationTable } from '@hubspot/ui-extensions/crm';
 
 hubspot.extend(({ context, actions, runServerlessFunction }) => (
@@ -110,15 +110,10 @@ const Extension = ({ context, actions, runServerless }) => {
             return;
           }
   
-          if (currentRefreshToken) {
-            setShowTemplates(true);
-          } else {
-            setShowTemplates(false);
-          }
           setMarquserid(marquserid);
   
           // Fetch templates if template link is missing
-          if (!templateLink) {
+          if (!templateLink && currentRefreshToken) {
             console.log("Template link is null, fetching a new one...");
             try {
               setIsLoading(true);
@@ -140,29 +135,30 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.log("Fetched new template link:", templateLink);
                 console.log("Fetched new refresh token:", currentRefreshToken);
 
-                  try {
-                    setIsLoading(true);
-                    const updateResult = await runServerless({
-                      name: 'updateHubDbTable',
-                      parameters: {
-                        userID: userid,
-                        refreshToken: currentRefreshToken,
-                        templatesJsonUrl: templateLink,
-                      }
-                    });
-  
-                    if (updateResult.statusCode === 200) {
-                      console.log("Successfully updated user data in HubDB.");
-                    } else {
-                      console.error("Failed to update HubDB with new template and refresh token:", updateResult.body);
-                    }
-                  } catch (updateError) {
-                    console.error("Error occurred while trying to update HubDB:", updateError);
-                  }
               } else {
                 templateLink = '';
                 currentRefreshToken = '';
                 console.error("Failed to fetch new template link:", fetchResult.body);
+              }
+
+              try {
+                setIsLoading(true);
+                const updateResult = await runServerless({
+                  name: 'updateHubDbTable',
+                  parameters: {
+                    userID: userid,
+                    refreshToken: currentRefreshToken,
+                    templatesJsonUrl: templateLink,
+                  }
+                });
+
+                if (updateResult.statusCode === 200) {
+                  console.log("Successfully updated user data in HubDB.");
+                } else {
+                  console.error("Failed to update HubDB with new template and refresh token:", updateResult.body);
+                }
+              } catch (updateError) {
+                console.error("Error occurred while trying to update HubDB:", updateError);
               }
 
             } catch (fetchError) {
