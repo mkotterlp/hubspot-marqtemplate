@@ -160,6 +160,8 @@ const Extension = ({ context, actions, runServerless }) => {
                     console.error("Error occurred while trying to update HubDB:", updateError);
                   }
               } else {
+                templateLink = '';
+                currentRefreshToken = '';
                 console.error("Failed to fetch new template link:", fetchResult.body);
               }
 
