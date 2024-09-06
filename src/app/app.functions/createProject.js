@@ -10,6 +10,8 @@ exports.main = async (context) => {
     const recordid = context.parameters?.recordid; // Convert recordid to string
     const templateid = context.parameters?.templateid;
     const templatetitle = context.parameters?.templatetitle;
+    const marqaccountid = context.parameters?.marqaccountid;
+    const datasetid = context.parameters?.datasetid;
 //
     // Log the parameters for debugging
     console.log("Received parameters:", {
@@ -19,13 +21,14 @@ exports.main = async (context) => {
         marquserId,
         recordid,
         templateid,
-        templatetitle
+        templatetitle,
+        marqaccountid,
+        datasetid
     });
 
     // Check if all required parameters are available
     if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle) {
         console.error("Missing required parameters");
-        console.log(`refresh_token: ${refresh_token}, clientid: ${clientid}, clientsecret: ${clientsecret}, marquserId: ${marquserId}, recordid: ${recordid}, templateid: ${templateid}, templatetitle: ${templatetitle}`);
 
         return {
             statusCode: 400,
@@ -42,7 +45,9 @@ exports.main = async (context) => {
             marquserId: marquserId,
             recordid: recordid,
             templateid: templateid,
-            templatetitle: templatetitle
+            templatetitle: templatetitle,
+            marqaccountid: marqaccountid,
+            dataSetId: datasetid
         });
 
         // Step 2: Check the response from the Fastgen API
