@@ -89,6 +89,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
       // Fetch user data from the 'marqouathhandler' serverless function
       try {
+        setIsLoading(true);
         const createusertable = await runServerless({
           name: 'marqouathhandler',
           parameters: { userID: userid }
@@ -119,8 +120,8 @@ const Extension = ({ context, actions, runServerless }) => {
           // Fetch templates if template link is missing
           if (!templateLink) {
             console.log("Template link is null, fetching a new one...");
-            setIsLoading(true);
             try {
+              setIsLoading(true);
               const fetchResult = await runServerless({
                 name: 'fetchTemplates',
                 parameters: { 
@@ -138,10 +139,15 @@ const Extension = ({ context, actions, runServerless }) => {
                 // Log fetched data
                 console.log("Fetched new template link:", templateLink);
                 console.log("Fetched new refresh token:", currentRefreshToken);
+
+                if (currentRefreshToken) {
+                  setShowTemplates(true);
+                } else {
+                  setShowTemplates(false);
+                }
   
-                // Update HubDB table with new template and refresh token
-                if (templateLink && currentRefreshToken) {
                   try {
+                    setIsLoading(true);
                     const updateResult = await runServerless({
                       name: 'updateHubDbTable',
                       parameters: {
@@ -159,9 +165,6 @@ const Extension = ({ context, actions, runServerless }) => {
                   } catch (updateError) {
                     console.error("Error occurred while trying to update HubDB:", updateError);
                   }
-                } else {
-                  console.error("Error: Missing template link or refresh token to update HubDB.");
-                }
               } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
               }
@@ -188,6 +191,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
       // Fetch config data from 'hubdbHelper'
       try {
+        setIsLoading(true);
         const configDataResponse = await runServerless({
           name: 'hubdbHelper',
           parameters: { objectType }
@@ -227,6 +231,7 @@ const Extension = ({ context, actions, runServerless }) => {
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
             try {
+              setIsLoading(true);
               const templatesResponse = await runServerless({
                 name: 'fetchJsonData',
                 parameters: { templateLink }
