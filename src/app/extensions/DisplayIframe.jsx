@@ -1000,6 +1000,11 @@ useEffect(() => {
         const currentRefreshToken = userData.refreshToken;
         setUserRefresh(currentRefreshToken); // Store the refresh token in state
         console.log("Fetched Refresh Token:", currentRefreshToken);
+        if (currentRefreshToken) {
+          setShowTemplates(true)
+        } else {
+          setShowTemplates(false)
+        }
       }
     } catch (error) {
       console.error("Failed to fetch refresh token:", error);
