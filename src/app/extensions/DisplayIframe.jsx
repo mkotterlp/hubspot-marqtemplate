@@ -130,22 +130,23 @@ const Extension = ({ context, actions, runServerless }) => {
               // Log the full response object
               console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
               
-              if (fetchResult.statusCode === 200) {
-                // Log the raw body before parsing
-                console.log("Raw body from fetchResult:", JSON.stringify(fetchResult.body, null, 2));
-              
-                const fetchedData = JSON.parse(fetchResult.body);
-              
-                // Log the parsed fetched data
-                console.log("Parsed fetched data:", JSON.stringify(fetchedData, null, 2));
-              
-                // Assign values and log them
-                templateLink = fetchedData.templatesjsonurl; 
-                currentRefreshToken = fetchedData.newRefreshToken; 
-              
-                console.log("Fetched new template link:", templateLink);
-                console.log("Fetched new refresh token:", currentRefreshToken);
-              } else {
+              if (fetchResult && fetchResult.response && fetchResult.response.statusCode === 200) {
+                // Check for success within the body
+                const fetchedData = JSON.parse(fetchResult.response.body);
+                
+                if (fetchedData.templatesjsonurl && fetchedData.newRefreshToken) {
+                  // If templatesjsonurl and newRefreshToken are present, log them
+                  templateLink = fetchedData.templatesjsonurl;
+                  currentRefreshToken = fetchedData.newRefreshToken;
+                  
+                  console.log("Success! Fetched new template link:", templateLink);
+                  console.log("Success! Fetched new refresh token:", currentRefreshToken);
+                } else {
+                  console.error("Error: Missing expected data in response body.", fetchedData);
+                  templateLink = '';
+                  currentRefreshToken = '';
+                }
+              }  else {
                 templateLink = '';
                 currentRefreshToken = '';
               
@@ -896,6 +897,7 @@ const deleteRecord = async (recordId, objectType) => {
   // };
   
   const startPollingForRefreshToken = () => {
+    isLoading(true);
     setIsPolling(true); // Start polling when the button is clicked
   };
   
