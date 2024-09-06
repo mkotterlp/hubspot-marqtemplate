@@ -10,6 +10,8 @@ const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
   const [userrefreshtoken, setUserRefresh] = useState(null);
   const [marquserid, setMarquserid] = useState('');
+  const [isPolling, setIsPolling] = useState(false);
+
 
   const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
@@ -48,6 +50,8 @@ const Extension = ({ context, actions, runServerless }) => {
 
   let propertiesBody = {}; 
   let configData  = {};
+
+  
 
   const fetchObjectType = async () => {
     try {
@@ -836,6 +840,42 @@ const deleteRecord = async (recordId, objectType) => {
   //   }
   // };
   
+  const startPollingForRefreshToken = () => {
+    setIsPolling(true); // Start polling when the button is clicked
+  };
+  
+  const pollForRefreshToken = async () => {
+    try {
+      const userId = context.user.id;
+      const createusertable = await runServerless({
+        name: 'marqouathhandler',
+        parameters: { userID: userId }
+      });
+  
+      if (createusertable?.response?.body) {
+        const userData = JSON.parse(createusertable.response.body).values || {};
+        const currentRefreshToken = userData.refreshToken;
+  
+        if (currentRefreshToken) {
+          setUserRefresh(currentRefreshToken); // Store the refresh token in state
+          setIsPolling(false); // Stop polling
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch refresh token:", error);
+    }
+  };
+  
+  // Polling logic inside useEffect
+  useEffect(() => {
+    let pollInterval;
+  
+    if (isPolling) {
+      pollInterval = setInterval(pollForRefreshToken, 5000); // Poll every 5 seconds
+    }
+  
+    return () => clearInterval(pollInterval); // Clean up interval when component unmounts or polling stops
+  }, [isPolling]);
   
 
   useEffect(() => {
@@ -1203,18 +1243,7 @@ if (iframeLoading || isLoading) {
   );
 }
 
-if (!userrefreshtoken) {
-  return (
-    <Button
-      href={authurl}
-      variant="primary"
-      size="med"
-      type="button"
-    >
-      Connect to Marq
-    </Button>
-  );
-}
+
 
 if (showTemplates) {
 
@@ -1337,7 +1366,19 @@ return (
   </>
 );
 
-};
+} else {
+  return (
+    <Button
+      href={authurl}
+      variant="primary"
+      size="med"
+      type="button"
+      onClick={startPollingForRefreshToken}
+    >
+      Connect to Marq
+    </Button>
+  );
+}
 }
 
 export default Extension;
