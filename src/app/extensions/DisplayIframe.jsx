@@ -50,6 +50,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let configData  = {};
   let templateLink;
   let currentRefreshToken;
+  let lastTemplateSyncDate;
 
   
 
@@ -99,6 +100,8 @@ const Extension = ({ context, actions, runServerless }) => {
           const responseBody = JSON.parse(createusertable.response.body);
           const userData = responseBody.row?.values || {}; // Access values directly from row
   
+          lastTemplateSyncDate = userData.lastTemplateSyncDate;
+          console.log('lastTemplateSyncDate', lastTemplateSyncDate);
           templateLink = userData.templatesfeed;
           const marquserid = userData.marqUserID;
           currentRefreshToken = userData.refreshToken;
@@ -180,12 +183,6 @@ const Extension = ({ context, actions, runServerless }) => {
                     templatesJsonUrl: templateLink,
                   }
                 });
-
-                if (updateResult.statusCode === 200) {
-                  console.log("Successfully updated user data in HubDB.");
-                } else {
-                  console.error("Failed to update HubDB with new template and refresh token:", updateResult.body);
-                }
               } catch (updateError) {
                 console.error("Error occurred while trying to update HubDB:", updateError);
               }
