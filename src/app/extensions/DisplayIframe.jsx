@@ -141,7 +141,7 @@ const Extension = ({ context, actions, runServerless }) => {
         console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
     }
     
-  
+    setIsLoading(true);
       // Fetch config data
       const configDataResponse = await runServerless({
         name: 'hubdbHelper',
