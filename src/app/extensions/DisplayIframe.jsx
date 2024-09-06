@@ -856,9 +856,12 @@ const deleteRecord = async (recordId, objectType) => {
       if (createusertable?.response?.body) {
         console.log("Received response from serverless function:", createusertable);
         const userData = JSON.parse(createusertable.response.body).values || {};
+        console.log("userData:", userData);
+
         const currentRefreshToken = userData.refreshToken;
+        console.log("currentRefreshToken:", currentRefreshToken);
   
-        if (currentRefreshToken) {
+        if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
           console.log("Refresh token found:", currentRefreshToken);
           setUserRefresh(currentRefreshToken); // Store the refresh token in state
           setIsPolling(false); // Stop polling
