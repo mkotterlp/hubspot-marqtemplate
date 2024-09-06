@@ -134,7 +134,6 @@ const Extension = ({ context, actions, runServerless }) => {
             }
         }
     
-        setTemplateLink(templateLink);
         console.log("Fetched Template Link:", JSON.stringify(templateLink));
         // console.log("User table response:", JSON.stringify(userData));
     } else {
