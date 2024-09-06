@@ -135,7 +135,7 @@ const Extension = ({ context, actions, runServerless }) => {
         }
     
         setTemplateLink(templateLink);
-        console.log("Final Template Link:", JSON.stringify(templateLink));
+        // console.log("Final Template Link:", JSON.stringify(templateLink));
         // console.log("User table response:", JSON.stringify(userData));
     } else {
         console.error("Failed to create or fetch user table.");
@@ -189,6 +189,11 @@ const Extension = ({ context, actions, runServerless }) => {
             console.error("Failed to fetch properties:", propertiesResponse);
           }
         }
+
+        
+        
+        console.log("Reading template data:", JSON.stringify(templateLink));
+
   
         // Fetch templates
         const templatesResponse = await runServerless({
@@ -202,6 +207,8 @@ const Extension = ({ context, actions, runServerless }) => {
           const data = JSON.parse(templatesResponse.response.body);
           const fetchedTemplates = data.templatesresponse || [];
           setfullTemplates(fetchedTemplates);
+          console.log("Setting templates:", JSON.stringify(fetchedTemplates));
+
           if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
   
             const filtered = fetchedTemplates.filter(template => {
@@ -221,13 +228,15 @@ const Extension = ({ context, actions, runServerless }) => {
             });
             if (filtered.length === 0) {
               setFilteredTemplates(fetchedTemplates);
+              console.log("Filtered templates:", JSON.stringify(fetchedTemplates));
               setInitialFilteredTemplates(fetchedTemplates);
             } else {
               setInitialFilteredTemplates(filtered);
+              console.log("Filtered templates:", JSON.stringify(fetchedTemplates));
               setFilteredTemplates(filtered);
             }
           } else {
-            console.warn("Fields or filters missing. Using unfiltered templates.");
+            console.log("Fields or filters missing. Using unfiltered templates.");
             setTemplates(fetchedTemplates);
             setAllTemplates(fetchedTemplates);
             setFilteredTemplates(Array.isArray(fetchedTemplates) ? fetchedTemplates : []);
