@@ -689,7 +689,7 @@ const deleteRecord = async (recordId, objectType) => {
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
       const datasetid = context.crm.objectId || ''; // Assuming dataset ID is in context
 
-      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle });
+      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, datasetid });
 
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
         ? context.crm.properties[configData.value]
