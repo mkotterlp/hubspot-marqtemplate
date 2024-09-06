@@ -17,7 +17,6 @@ const Extension = ({ context, actions, runServerless }) => {
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
-  const [templateLink, setTemplateLink] = useState('');
   const [authurl, setauth] = useState('');
   const [templates, setTemplates] = useState([]);
   const [allTemplates, setAllTemplates] = useState([]);
@@ -50,6 +49,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
   let propertiesBody = {}; 
   let configData  = {};
+  let templateLink;
 
   
 
@@ -93,7 +93,7 @@ const Extension = ({ context, actions, runServerless }) => {
     
         // console.log('Parsed userData:', JSON.stringify(userData));
 
-        let templateLink = userData.templatesfeed;
+        templateLink = userData.templatesfeed;
         const marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
         setUserRefresh(userData.refreshToken);
