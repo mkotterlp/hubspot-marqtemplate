@@ -265,11 +265,12 @@ const Extension = ({ context, actions, runServerless }) => {
             } else {
               console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
-              return (
-                <Alert title="Danger" variant="danger">
-                    There was an error fetching templates. Please try connecting to Marq again.
-                </Alert>
-            );
+              setIsLoading(false);
+              actions.addAlert({
+                title: "Error with template sync",
+                variant: "error",
+                message: `There was an error fetching templates. Please try connecting to Marq again.'}`
+              });
             }
           }
         } else {
