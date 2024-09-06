@@ -260,18 +260,6 @@ const Extension = ({ context, actions, runServerless }) => {
             }
           } else {
             console.error("Error: Missing template link to fetch templates.");
-
-
-              return (
-                <EmptyState title="Failed to load templates" layout="vertical">
-                  <Text>We couldn't load the templates. Please try again.</Text>
-
-                </EmptyState>
-              );
-            
-
-
-
           }
         } else {
           console.error("Failed to load config data:", configDataResponse);
@@ -999,24 +987,6 @@ const handlePageChange = (pageNumber) => {
   }
 };
 
-  // Check if there are no templates to display
-  if (!isLoading && filteredTemplates.length === 0) {
-    return (
-      <EmptyState title="No templates available" layout="vertical">
-        <Text>There are currently no templates to show. Try searching with a different term or create a blank project</Text>
-        <Button
-          variant="primary"
-          onClick={() => {
-            // Logic to reload or fetch templates again
-            fetchPropertiesAndLoadConfig(objectType);
-          }}
-        >
-          Reload Templates
-        </Button>
-      </EmptyState>
-    );
-  }
-
 
 const paginatedTemplates = filteredTemplates.slice(
   (currentPage - 1) * RECORDS_PER_PAGE,
@@ -1320,6 +1290,17 @@ if (iframeLoading || isLoading) {
     <Flex direction="column" gap="medium" align="center">
       <LoadingSpinner label="Loading projects..." layout="centered" />
     </Flex>
+  );
+} 
+
+if (!isLoading && !templateLink) {
+  return (
+    <EmptyState title="Failed to load templates" layout="vertical">
+      <Text>We couldn't load the templates. Please try reloading.</Text>
+      <Button variant="primary" onClick={reloadTemplates}>
+        Reload Templates
+      </Button>
+    </EmptyState>
   );
 }
 
