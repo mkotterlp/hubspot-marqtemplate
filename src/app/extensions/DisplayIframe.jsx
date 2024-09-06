@@ -105,8 +105,8 @@ const Extension = ({ context, actions, runServerless }) => {
   
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
-            console.error("Error: Missing required parameters (refresh token or marqUserID).");
             setIsLoading(false);
+            setShowTemplates(false);
             return;
           }
   
