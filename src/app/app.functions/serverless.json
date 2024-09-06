@@ -3,6 +3,9 @@
     "getApiKey": {
       "file": "getApiKey.js"
     },
+    "updateUserTable": {
+      "file": "updateUserTable.js"
+    },
     "fetchTemplates": {
       "file": "fetchTemplates.js"
     },

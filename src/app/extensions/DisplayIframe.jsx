@@ -80,170 +80,192 @@ const Extension = ({ context, actions, runServerless }) => {
   
       const userid = context.user.id;
   
-      const createusertable = await runServerless({
-        name: 'marqouathhandler',
-        parameters: { userID: userid }
-      });
-
-      // console.log('createusertable:', JSON.stringify(createusertable));
+      // Validate that userid is available before proceeding
+      if (!userid) {
+        console.error("Error: Missing user ID.");
+        setIsLoading(false);
+        return;
+      }
   
-      if (createusertable?.response?.body) {
-        const responseBody = JSON.parse(createusertable.response.body);
-        const userData = responseBody.row?.values || {};  // Access values directly from row
-    
-        // console.log('Parsed userData:', JSON.stringify(userData));
-
-        templateLink = userData.templatesfeed;
-        const marquserid = userData.marqUserID;
-        currentRefreshToken = userData.refreshToken; 
-        if (currentRefreshToken) {
-          setShowTemplates(true)
-        } else {
-          setShowTemplates(false)
-        }
-        setMarquserid(marquserid);
-
-        
-
-    
-        if (!templateLink && currentRefreshToken) {
+      // Fetch user data from the 'marqouathhandler' serverless function
+      try {
+        const createusertable = await runServerless({
+          name: 'marqouathhandler',
+          parameters: { userID: userid }
+        });
+  
+        if (createusertable?.response?.body) {
+          const responseBody = JSON.parse(createusertable.response.body);
+          const userData = responseBody.row?.values || {}; // Access values directly from row
+  
+          templateLink = userData.templatesfeed;
+          const marquserid = userData.marqUserID;
+          currentRefreshToken = userData.refreshToken;
+  
+          // Validate required values before proceeding with further operations
+          if (!currentRefreshToken || !marquserid) {
+            console.error("Error: Missing required parameters (refresh token or marqUserID).");
+            setIsLoading(false);
+            return;
+          }
+  
+          if (currentRefreshToken) {
+            setShowTemplates(true);
+          } else {
+            setShowTemplates(false);
+          }
+          setMarquserid(marquserid);
+  
+          // Fetch templates if template link is missing
+          if (!templateLink) {
             console.log("Template link is null, fetching a new one...");
-    
-            const fetchResult = await runServerless({
+  
+            try {
+              const fetchResult = await runServerless({
                 name: 'fetchTemplates',
                 parameters: { 
-                    userID: userid,
-                    marquserid: marquserid,
-                    refreshToken: currentRefreshToken 
+                  userID: userid,
+                  marquserid: marquserid,
+                  refreshToken: currentRefreshToken 
                 }
-            });
-    
-            // console.log('fetchResult:', JSON.stringify(fetchResult));
-    
-            if (fetchResult.statusCode === 200) {
+              });
+  
+              if (fetchResult.statusCode === 200) {
                 const fetchedData = JSON.parse(fetchResult.body);
                 templateLink = fetchedData.templates_url;
                 currentRefreshToken = fetchedData.new_refresh_token;
-                console.log("Refresh token after fetching templates:", JSON.stringify(currentRefreshToken));
-                console.log("Fetched new refresh token:", fetchedData.new_refresh_token);
-
+  
+                // Log fetched data
                 console.log("Fetched new template link:", templateLink);
-            } else {
+                console.log("Fetched new refresh token:", currentRefreshToken);
+  
+                // Update HubDB table with new template and refresh token
+                if (templateLink && currentRefreshToken) {
+                  try {
+                    const updateResult = await runServerless({
+                      name: 'updateHubDbTable',
+                      parameters: {
+                        userID: userid,
+                        refreshToken: currentRefreshToken,
+                        templatesJsonUrl: templateLink,
+                      }
+                    });
+  
+                    if (updateResult.statusCode === 200) {
+                      console.log("Successfully updated user data in HubDB.");
+                    } else {
+                      console.error("Failed to update HubDB with new template and refresh token:", updateResult.body);
+                    }
+                  } catch (updateError) {
+                    console.error("Error occurred while trying to update HubDB:", updateError);
+                  }
+                } else {
+                  console.error("Error: Missing template link or refresh token to update HubDB.");
+                }
+              } else {
                 console.error("Failed to fetch new template link:", fetchResult.body);
+              }
+            } catch (fetchError) {
+              console.error("Error occurred while fetching new template link:", fetchError);
             }
-        }
-    
-        console.log("Fetched Template Link:", JSON.stringify(templateLink));
-        // console.log("User table response:", JSON.stringify(userData));
-    } else {
-        console.error("Failed to create or fetch user table.");
-        console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
-    }
-    
-    setIsLoading(true);
-      // Fetch config data
-      const configDataResponse = await runServerless({
-        name: 'hubdbHelper',
-        parameters: { objectType }
-      });
-  
-      if (configDataResponse?.response?.body) {
-        configData = JSON.parse(configDataResponse.response.body).values || {};
-        // console.log("Config Data Loaded:", configData);
-  
-        // Set fieldsArray and filtersArray based on config
-        const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
-        const filters = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
-  
-        const propertiesToWatch = configData.textboxFields ? configData.textboxFields.split(',').map(field => field.trim()) : [];
-        setpropertiesToWatch(propertiesToWatch);
-        setFieldsArray(fields);
-        setFiltersArray(filters);
-  
-        // Fetch CRM properties
-        const designatedProperties = fields.filter(Boolean);
-  
-        // console.log("objectType:", objectType);
-        if (objectType === 'DEAL' && !designatedProperties.includes('dealstage')) {
-          designatedProperties.push('dealstage');
-        }
-  
-        if (designatedProperties.length > 0) {
-          const propertiesResponse = await runServerless({
-            name: 'getObjectProperties',
-            parameters: { objectId: context.crm.objectId, objectType, properties: designatedProperties }
-          });
-  
-          if (propertiesResponse?.response?.body) {
-            propertiesBody = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
-            // console.log("Fetched CRM Properties:", propertiesBody);
-  
-            if (objectType === 'DEAL') {
-              const newstageName = propertiesBody.dealstage;
-              setStage(newstageName);
-            }
-  
-          } else {
-            console.error("Failed to fetch properties:", propertiesResponse);
           }
-        }
-
-        
-        
-        console.log("Reading template data:", JSON.stringify(templateLink));
-
   
-        // Fetch templates
-        const templatesResponse = await runServerless({
-          name: 'fetchJsonData',
-          parameters: {
-            templateLink: templateLink || ''
-          }
+          console.log("Fetched Template Link:", JSON.stringify(templateLink));
+        } else {
+          console.error("Failed to create or fetch user table.");
+          console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
+        }
+      } catch (userTableError) {
+        console.error("Error occurred while fetching user table:", userTableError);
+      }
+  
+      // Validate that objectType is available
+      if (!objectType) {
+        console.error("Error: Missing objectType.");
+        setIsLoading(false);
+        return;
+      }
+  
+      // Fetch config data from 'hubdbHelper'
+      try {
+        const configDataResponse = await runServerless({
+          name: 'hubdbHelper',
+          parameters: { objectType }
         });
   
-        if (templatesResponse?.response?.body) {
-          const data = JSON.parse(templatesResponse.response.body);
-          const fetchedTemplates = data.templatesresponse || [];
-          setfullTemplates(fetchedTemplates);
-          console.log("Setting templates:", JSON.stringify(fetchedTemplates));
-
-          if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
+        if (configDataResponse?.response?.body) {
+          configData = JSON.parse(configDataResponse.response.body).values || {};
+          const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
+          const filters = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
+          setFieldsArray(fields);
+          setFiltersArray(filters);
   
-            const filtered = fetchedTemplates.filter(template => {
+          const propertiesToWatch = configData.textboxFields ? configData.textboxFields.split(',').map(field => field.trim()) : [];
+          setpropertiesToWatch(propertiesToWatch);
   
-              return fields.every((field, index) => {
-                const categoryName = filters[index];
-                const propertyValue = propertiesBody[field]?.toLowerCase(); // Convert to lowercase
-                const category = template.categories.find(c => c.category_name.toLowerCase() === categoryName.toLowerCase());
-                if (category) {
-                  const categoryValues = category.values.map(v => v.toLowerCase());
-                  const matchFound = categoryValues.includes(propertyValue);
-                  return matchFound;
-                } else {
-                  return false;
-                }
+          // Fetch CRM properties if fields are available
+          if (fields.length > 0) {
+            try {
+              const propertiesResponse = await runServerless({
+                name: 'getObjectProperties',
+                parameters: { objectId: context.crm.objectId, objectType, properties: fields }
               });
-            });
-            if (filtered.length === 0) {
-              setFilteredTemplates(fetchedTemplates);
-              console.log("Filtered templates:", JSON.stringify(fetchedTemplates));
-              setInitialFilteredTemplates(fetchedTemplates);
-            } else {
-              setInitialFilteredTemplates(filtered);
-              console.log("Filtered templates:", JSON.stringify(fetchedTemplates));
-              setFilteredTemplates(filtered);
+  
+              if (propertiesResponse?.response?.body) {
+                propertiesBody = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
+                if (objectType === 'DEAL') {
+                  setStage(propertiesBody.dealstage);
+                }
+              } else {
+                console.error("Failed to fetch CRM properties:", propertiesResponse);
+              }
+            } catch (propertiesError) {
+              console.error("Error occurred while fetching CRM properties:", propertiesError);
+            }
+          }
+  
+          // Fetch templates from 'fetchJsonData'
+          if (templateLink) {
+            try {
+              const templatesResponse = await runServerless({
+                name: 'fetchJsonData',
+                parameters: { templateLink }
+              });
+  
+              if (templatesResponse?.response?.body) {
+                const data = JSON.parse(templatesResponse.response.body);
+                const fetchedTemplates = data.templatesresponse || [];
+                setfullTemplates(fetchedTemplates);
+  
+                if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
+                  const filtered = fetchedTemplates.filter(template => {
+                    return fields.every((field, index) => {
+                      const categoryName = filters[index];
+                      const propertyValue = propertiesBody[field]?.toLowerCase();
+                      const category = template.categories.find(c => c.category_name.toLowerCase() === categoryName.toLowerCase());
+                      return category && category.values.map(v => v.toLowerCase()).includes(propertyValue);
+                    });
+                  });
+                  setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                } else {
+                  setTemplates(fetchedTemplates);
+                  setFilteredTemplates(fetchedTemplates);
+                }
+              } else {
+                console.error("Error fetching templates:", templatesResponse);
+              }
+            } catch (templatesError) {
+              console.error("Error occurred while fetching templates:", templatesError);
             }
           } else {
-            console.log("Fields or filters missing. Using unfiltered templates.");
-            setTemplates(fetchedTemplates);
-            setAllTemplates(fetchedTemplates);
-            setFilteredTemplates(Array.isArray(fetchedTemplates) ? fetchedTemplates : []);
+            console.error("Error: Missing template link to fetch templates.");
           }
         } else {
-          console.error("Error: Response or response body is undefined.", templatesResponse);
+          console.error("Failed to load config data:", configDataResponse);
         }
-      } else {
-        console.error("Failed to load config data:", configDataResponse);
+      } catch (configError) {
+        console.error("Error occurred while fetching config data:", configError);
       }
   
       setIsLoading(false);
