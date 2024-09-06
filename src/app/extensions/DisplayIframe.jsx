@@ -67,6 +67,31 @@ const Extension = ({ context, actions, runServerless }) => {
     }
   };
 
+    // Fetch refresh token from user table
+    const fetchRefreshToken = async () => {
+      try {
+        const userId = context.user.id; // Get user ID from context
+        const createusertable = await runServerless({
+          name: 'marqouathhandler', // Serverless function to get the token
+          parameters: { userID: userId }
+        });
+  
+        if (createusertable?.response?.body) {
+          const userData = JSON.parse(createusertable.response.body).values || {};  // Access values directly
+          const currentRefreshToken = userData.refreshToken;
+          setUserRefresh(currentRefreshToken); // Store the refresh token in state
+          console.log("Fetched Refresh Token:", currentRefreshToken);
+          if (currentRefreshToken) {
+            setShowTemplates(true)
+          } else {
+            setShowTemplates(false)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch refresh token:", error);
+      }
+    };
+
  
   const fetchPropertiesAndLoadConfig = async (objectType) => {
     try {
@@ -987,31 +1012,6 @@ useEffect(() => {
 
 
 useEffect(() => {
-  // Fetch refresh token from user table
-  const fetchRefreshToken = async () => {
-    try {
-      const userId = context.user.id; // Get user ID from context
-      const createusertable = await runServerless({
-        name: 'marqouathhandler', // Serverless function to get the token
-        parameters: { userID: userId }
-      });
-
-      if (createusertable?.response?.body) {
-        const userData = JSON.parse(createusertable.response.body).values || {};  // Access values directly
-        const currentRefreshToken = userData.refreshToken;
-        setUserRefresh(currentRefreshToken); // Store the refresh token in state
-        console.log("Fetched Refresh Token:", currentRefreshToken);
-        if (currentRefreshToken) {
-          setShowTemplates(true)
-        } else {
-          setShowTemplates(false)
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch refresh token:", error);
-    }
-  };
-
   fetchRefreshToken();
 }, [context.user.id, runServerless]);
 
