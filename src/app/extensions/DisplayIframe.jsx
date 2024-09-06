@@ -269,7 +269,7 @@ const Extension = ({ context, actions, runServerless }) => {
               actions.addAlert({
                 title: "Error with template sync",
                 variant: "danger",
-                message: `There was an error fetching templates. Please try connecting to Marq again.}`
+                message: `There was an error fetching templates. Please try connecting to Marq again`
               });
             }
           }

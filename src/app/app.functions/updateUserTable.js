@@ -46,8 +46,14 @@ exports.main = async (context) => {
         const rowValues = {
             refreshToken: refreshToken,
             templatesfeed: templatesJsonUrl,
-            lastTemplateSyncDate: new Date().toISOString(),
         };
+
+        // Set lastTemplateSyncDate as null if templatesJsonUrl is blank, else set it as a timestamp
+        if (!templatesJsonUrl) {
+            rowValues.lastTemplateSyncDate = null;  // Clear the date if URL is blank
+        } else {
+            rowValues.lastTemplateSyncDate = Date.now();  // Use timestamp for numeric value
+        }
 
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
         console.log(`User ${userID} updated in the table with new refresh token and templates URL.`);
