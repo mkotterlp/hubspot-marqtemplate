@@ -8,7 +8,6 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
-  const [userrefreshtoken, setUserRefresh] = useState(null);
   const [marquserid, setMarquserid] = useState('');
   const [isPolling, setIsPolling] = useState(false);
 
@@ -50,6 +49,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let propertiesBody = {}; 
   let configData  = {};
   let templateLink;
+  let currentRefreshToken;
 
   
 
@@ -95,8 +95,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
         templateLink = userData.templatesfeed;
         const marquserid = userData.marqUserID;
-        const currentRefreshToken = userData.refreshToken; 
-        setUserRefresh(userData.refreshToken);
+        currentRefreshToken = userData.refreshToken; 
         if (currentRefreshToken) {
           setShowTemplates(true)
         } else {
@@ -124,8 +123,8 @@ const Extension = ({ context, actions, runServerless }) => {
             if (fetchResult.statusCode === 200) {
                 const fetchedData = JSON.parse(fetchResult.body);
                 templateLink = fetchedData.templates_url;
-                setUserRefresh(fetchedData.new_refresh_token);
-                console.log("Refresh token after fetching templates:", JSON.stringify(userrefreshtoken));
+                currentRefreshToken = fetchedData.new_refresh_token;
+                console.log("Refresh token after fetching templates:", JSON.stringify(currentRefreshToken));
                 console.log("Fetched new refresh token:", fetchedData.new_refresh_token);
 
                 console.log("Fetched new template link:", templateLink);
@@ -616,7 +615,7 @@ const deleteRecord = async (recordId, objectType) => {
 
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-      const refresh_token = userrefreshtoken;  // Use the refresh token from state
+      const refresh_token = currentRefreshToken;  // Use the refresh token from state
 
       const marquserId = marquserid; // Assuming user ID is in context
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
@@ -870,12 +869,11 @@ const deleteRecord = async (recordId, objectType) => {
         
         console.log("userData:", userData);
   
-        const currentRefreshToken = userData.refreshToken;
+        currentRefreshToken = userData.refreshToken;
         console.log("currentRefreshToken:", currentRefreshToken);
   
         if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
           console.log("Refresh token found:", currentRefreshToken);
-          setUserRefresh(currentRefreshToken); // Store the refresh token in state
           setIsPolling(false); // Stop polling
           setShowTemplates(true);
         } else {
@@ -998,7 +996,7 @@ const initialize = async () => {
       const userData = JSON.parse(createusertable.response.body).values || {};
       const currentRefreshToken = userData.refreshToken;
       if (currentRefreshToken) {
-        setUserRefresh(currentRefreshToken);  // Ensure it's set only if available
+        showTemplates(true);
       }
     } else {
       console.error("Failed to create or fetch user table.");
@@ -1048,7 +1046,7 @@ useEffect(() => {
 }, [
   apiKey,
   accessToken,
-  userrefreshtoken,
+  currentRefreshToken,
   context.crm.objectId,
   context.crm.objectTypeId,
   objectType,
