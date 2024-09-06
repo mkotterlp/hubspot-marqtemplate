@@ -6,8 +6,8 @@ exports.main = async (context) => {
     const refresh_token = context.parameters?.refresh_token;
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
-    const marquserId = String(context.parameters?.marquserId); // Convert userid to string
-    const recordid = String(context.parameters?.recordid); // Convert recordid to string
+    const marquserId = context.parameters?.marquserId; // Convert userid to string
+    const recordid = context.parameters?.recordid; // Convert recordid to string
     const templateid = context.parameters?.templateid;
     const templatetitle = context.parameters?.templatetitle;
 //
