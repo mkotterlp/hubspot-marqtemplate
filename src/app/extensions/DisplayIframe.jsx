@@ -846,6 +846,7 @@ const deleteRecord = async (recordId, objectType) => {
   
   const pollForRefreshToken = async () => {
     try {
+      console.log("Polling for refresh token...");
       const userId = context.user.id;
       const createusertable = await runServerless({
         name: 'marqouathhandler',
@@ -853,29 +854,42 @@ const deleteRecord = async (recordId, objectType) => {
       });
   
       if (createusertable?.response?.body) {
+        console.log("Received response from serverless function:", createusertable);
         const userData = JSON.parse(createusertable.response.body).values || {};
         const currentRefreshToken = userData.refreshToken;
   
         if (currentRefreshToken) {
+          console.log("Refresh token found:", currentRefreshToken);
           setUserRefresh(currentRefreshToken); // Store the refresh token in state
           setIsPolling(false); // Stop polling
+          setShowTemplates(true)
+        } else {
+          console.log("Refresh token not found yet, continuing to poll...");
+          setShowTemplates(false)
         }
+      } else {
+        console.log("No response body from serverless function.");
       }
     } catch (error) {
-      console.error("Failed to fetch refresh token:", error);
+      console.error("Error while polling for refresh token:", error);
     }
   };
   
-  // Polling logic inside useEffect
+  
   useEffect(() => {
     let pollInterval;
   
     if (isPolling) {
+      console.log("Starting to poll for refresh token every 5 seconds.");
       pollInterval = setInterval(pollForRefreshToken, 5000); // Poll every 5 seconds
     }
   
-    return () => clearInterval(pollInterval); // Clean up interval when component unmounts or polling stops
+    return () => {
+      console.log("Stopping the polling for refresh token.");
+      clearInterval(pollInterval); // Clean up interval when component unmounts or polling stops
+    };
   }, [isPolling]);
+  
   
 
   useEffect(() => {
