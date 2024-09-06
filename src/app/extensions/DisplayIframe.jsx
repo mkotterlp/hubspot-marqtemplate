@@ -99,7 +99,7 @@ const Extension = ({ context, actions, runServerless }) => {
         if (createusertable?.response?.body) {
           const responseBody = JSON.parse(createusertable.response.body);
           const userData = responseBody.row?.values || {}; // Access values directly from row
-  
+          console.log("Fetched user data:", userData);
           lastTemplateSyncDate = userData.lastTemplateSyncDate;
           console.log('lastTemplateSyncDate', lastTemplateSyncDate);
           templateLink = userData.templatesfeed;
