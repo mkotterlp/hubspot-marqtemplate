@@ -114,10 +114,15 @@ const Extension = ({ context, actions, runServerless }) => {
           }
   
           setMarquserid(marquserid);
+
+          const currentTime = Date.now();
+          const timeDifference = currentTime - lastTemplateSyncDate;
+          const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
   
           // Fetch templates if template link is missing
-          if (!templateLink && currentRefreshToken) {
-            console.log("Template link is null, fetching a new one...");
+          if (((timeDifference > twentyFourHoursInMs) && currentRefreshToken) || (!templateLink && currentRefreshToken)) {
+            console.log("More than 24 hours since the last sync or template link is null, fetching new templates...");
+
             setIsLoading(true);
             try {
             
