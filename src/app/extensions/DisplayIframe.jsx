@@ -117,6 +117,7 @@ const Extension = ({ context, actions, runServerless }) => {
             console.log("Template link is null, fetching a new one...");
             setIsLoading(true);
             try {
+            
               const fetchResult = await runServerless({
                 name: 'fetchTemplates',
                 parameters: { 
@@ -126,20 +127,32 @@ const Extension = ({ context, actions, runServerless }) => {
                 }
               });
               
+              // Log the full response object
+              console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
+              
               if (fetchResult.statusCode === 200) {
+                // Log the raw body before parsing
+                console.log("Raw body from fetchResult:", JSON.stringify(fetchResult.body, null, 2));
+              
                 const fetchedData = JSON.parse(fetchResult.body);
+              
+                // Log the parsed fetched data
+                console.log("Parsed fetched data:", JSON.stringify(fetchedData, null, 2));
+              
+                // Assign values and log them
                 templateLink = fetchedData.templatesjsonurl; 
                 currentRefreshToken = fetchedData.newRefreshToken; 
               
-                // Log fetched data
                 console.log("Fetched new template link:", templateLink);
                 console.log("Fetched new refresh token:", currentRefreshToken);
-              
               } else {
                 templateLink = '';
                 currentRefreshToken = '';
-                console.error("Failed to fetch new template link:", fetchResult.body);
+              
+                // Log the error body for non-200 status codes
+                console.error("Failed to fetch new template link. Response body:", JSON.stringify(fetchResult.body, null, 2));
               }
+              
               
 
               try {
