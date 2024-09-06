@@ -91,7 +91,7 @@ const Extension = ({ context, actions, runServerless }) => {
         const marquserid = userData.marqUserID;
         const currentRefreshToken = userData.refreshToken; 
         setUserRefresh(userData.refreshToken);
-        setMarquserid(marqUserID);
+        setMarquserid(marquserid);
 
         
 
