@@ -115,8 +115,8 @@ const Extension = ({ context, actions, runServerless }) => {
           // Fetch templates if template link is missing
           if (!templateLink && currentRefreshToken) {
             console.log("Template link is null, fetching a new one...");
+            setIsLoading(true);
             try {
-              setIsLoading(true);
               const fetchResult = await runServerless({
                 name: 'fetchTemplates',
                 parameters: { 
@@ -265,9 +265,11 @@ const Extension = ({ context, actions, runServerless }) => {
             } else {
               console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
-              <Alert title="Danger" variant="danger" >
-        There was an error fetching templates. Please try connecting to Marq again.
-      </Alert>
+              return (
+                <Alert title="Danger" variant="danger">
+                    There was an error fetching templates. Please try connecting to Marq again.
+                </Alert>
+            );
             }
           }
         } else {
