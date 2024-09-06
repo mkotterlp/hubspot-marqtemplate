@@ -125,21 +125,22 @@ const Extension = ({ context, actions, runServerless }) => {
                   refreshToken: currentRefreshToken 
                 }
               });
-  
+              
               if (fetchResult.statusCode === 200) {
                 const fetchedData = JSON.parse(fetchResult.body);
-                templateLink = fetchedData.templates_url;
-                currentRefreshToken = fetchedData.new_refresh_token;
-  
+                templateLink = fetchedData.templatesjsonurl; 
+                currentRefreshToken = fetchedData.newRefreshToken; 
+              
                 // Log fetched data
                 console.log("Fetched new template link:", templateLink);
                 console.log("Fetched new refresh token:", currentRefreshToken);
-
+              
               } else {
                 templateLink = '';
                 currentRefreshToken = '';
                 console.error("Failed to fetch new template link:", fetchResult.body);
               }
+              
 
               try {
                 setIsLoading(true);

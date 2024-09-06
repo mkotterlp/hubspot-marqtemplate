@@ -105,8 +105,8 @@ exports.main = async (context) => {
     return {
         statusCode: 200,
         body: JSON.stringify({
-            templates_url: templatesData.templatesJsonUrl,
-            new_refresh_token: templatesData.newRefreshToken
+            templatesjsonurl: templatesData.templatesJsonUrl,
+            newRefreshToken: templatesData.newRefreshToken
         })
     };
 };
