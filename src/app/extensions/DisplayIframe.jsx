@@ -79,13 +79,13 @@ const Extension = ({ context, actions, runServerless }) => {
         parameters: { userID: userid }
       });
 
-      console.log('createusertable:', JSON.stringify(createusertable));
+      // console.log('createusertable:', JSON.stringify(createusertable));
   
       if (createusertable?.response?.body) {
         const responseBody = JSON.parse(createusertable.response.body);
         const userData = responseBody.row?.values || {};  // Access values directly from row
     
-        console.log('Parsed userData:', JSON.stringify(userData));
+        // console.log('Parsed userData:', JSON.stringify(userData));
 
         let templateLink = userData.templatesfeed;
         const marquserid = userData.marqUserID;
@@ -109,7 +109,7 @@ const Extension = ({ context, actions, runServerless }) => {
                 }
             });
     
-            console.log('fetchResult:', JSON.stringify(fetchResult));
+            // console.log('fetchResult:', JSON.stringify(fetchResult));
     
             if (fetchResult.statusCode === 200) {
                 const fetchedData = JSON.parse(fetchResult.body);
@@ -126,7 +126,7 @@ const Extension = ({ context, actions, runServerless }) => {
     
         setTemplateLink(templateLink);
         console.log("Final Template Link:", JSON.stringify(templateLink));
-        console.log("User table response:", JSON.stringify(userData));
+        // console.log("User table response:", JSON.stringify(userData));
     } else {
         console.error("Failed to create or fetch user table.");
         console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
@@ -141,7 +141,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
       if (configDataResponse?.response?.body) {
         configData = JSON.parse(configDataResponse.response.body).values || {};
-        console.log("Config Data Loaded:", configData);
+        // console.log("Config Data Loaded:", configData);
   
         // Set fieldsArray and filtersArray based on config
         const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
@@ -155,7 +155,7 @@ const Extension = ({ context, actions, runServerless }) => {
         // Fetch CRM properties
         const designatedProperties = fields.filter(Boolean);
   
-        console.log("objectType:", objectType);
+        // console.log("objectType:", objectType);
         if (objectType === 'DEAL' && !designatedProperties.includes('dealstage')) {
           designatedProperties.push('dealstage');
         }
@@ -168,7 +168,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
           if (propertiesResponse?.response?.body) {
             propertiesBody = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
-            console.log("Fetched CRM Properties:", propertiesBody);
+            // console.log("Fetched CRM Properties:", propertiesBody);
   
             if (objectType === 'DEAL') {
               const newstageName = propertiesBody.dealstage;
@@ -344,7 +344,7 @@ const deleteRecord = async (recordId, objectType) => {
   
       if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
         const projectsData = JSON.parse(associatedProjectsResponse.response.body);
-        console.log("Fetched project data:", projectsData);
+        // console.log("Fetched project data:", projectsData);
   
         if (projectsData && projectsData.results && projectsData.results.length > 0) {
           const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
@@ -356,7 +356,7 @@ const deleteRecord = async (recordId, objectType) => {
   
           if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
             const projectDetails = JSON.parse(projectDetailsResponse.response.body);
-            console.log("Fetched project details:", projectDetails);
+            // console.log("Fetched project details:", projectDetails);
   
             const uniqueDetailedProjects = new Map();
             projectsData.results.forEach(project => {
@@ -373,7 +373,7 @@ const deleteRecord = async (recordId, objectType) => {
             const detailedProjects = Array.from(uniqueDetailedProjects.values());
             detailedProjects.sort((a, b) => new Date(b.hs_lastmodifieddate) - new Date(a.hs_lastmodifieddate));
   
-            console.log("Set project details:", detailedProjects);
+            // console.log("Set project details:", detailedProjects);
 
 
             
@@ -464,7 +464,7 @@ const deleteRecord = async (recordId, objectType) => {
       }
     });
 
-    console.log("Extracted Filters:", filters);
+    // console.log("Extracted Filters:", filters);
 
   
     return filters;
@@ -521,7 +521,7 @@ const deleteRecord = async (recordId, objectType) => {
         if (body && body.key) {
           const apiKey = body.key;
           setAPIkey(apiKey);
-          console.log("API Key loaded:", apiKey);
+          // console.log("API Key loaded:", apiKey);
           const authorizationUrl = handleConnectToMarq(apiKey, userid, userEmail);  // Pass the API key, userid, and userEmail
           setauth(authorizationUrl);
           return apiKey;  // Return the API key
@@ -594,7 +594,7 @@ const deleteRecord = async (recordId, objectType) => {
 
   const handleClick = async (template) => {
     try {
-      console.log("Template clicked:", template.id, template.title);
+      // console.log("Template clicked:", template.id, template.title);
 
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
@@ -605,7 +605,7 @@ const deleteRecord = async (recordId, objectType) => {
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
 
-      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle });
+      // console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle });
 
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
         ? context.crm.properties[configData.value]
@@ -654,10 +654,10 @@ const deleteRecord = async (recordId, objectType) => {
       // Step 2: Retrieve the projectId from the createProject response
       if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
         const projectData = JSON.parse(createProjectResponse.response.body);
-        console.log("Project created:", projectData);
+        // console.log("Project created:", projectData);
   
         const projectId = projectData.documentid; // Get the project ID from the response
-        console.log("Created Project ID:", projectId);
+        // console.log("Created Project ID:", projectId);
   
         // Step 3: Fetch associated projects and check if they are linked to this projectId
         const associatedProjectsResponse = await runServerless({
@@ -670,7 +670,7 @@ const deleteRecord = async (recordId, objectType) => {
   
         if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
           const projectsData = JSON.parse(associatedProjectsResponse.response.body);
-          console.log("Fetched project data:", projectsData);
+          // console.log("Fetched project data:", projectsData);
   
           if (projectsData && projectsData.results && projectsData.results.length > 0) {
             const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
@@ -683,10 +683,10 @@ const deleteRecord = async (recordId, objectType) => {
   
             if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
               const projectDetails = JSON.parse(projectDetailsResponse.response.body);
-              console.log("Fetched project details:", projectDetails);
+              // console.log("Fetched project details:", projectDetails);
   
               const associatedProjectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
-              console.log("Associated Project ID:", associatedProjectId);
+              // console.log("Associated Project ID:", associatedProjectId);
   
               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
               let iframeSrc;
@@ -920,14 +920,10 @@ const initialize = async () => {
 
     if (createusertable?.response?.body) {
       const userData = JSON.parse(createusertable.response.body).values || {};
-      setUserRefresh(prev => {
-        if (prev !== userData.refreshToken) {
-          return userData.refreshToken;
-        }
-        return prev;
-      });
-      
-      console.log("User table response:", userData);
+      const currentRefreshToken = userData.refreshToken;
+      if (currentRefreshToken) {
+        setUserRefresh(currentRefreshToken);  // Ensure it's set only if available
+      }
     } else {
       console.error("Failed to create or fetch user table.");
     }
@@ -987,16 +983,25 @@ useEffect(() => {
   searchTerm
 ]);
 
+
+
+useEffect(() => {
+  const savedToken = localStorage.getItem('refreshToken');
+  if (savedToken) {
+    setUserRefresh(savedToken);
+  }
+}, []);
+
 useEffect(() => {
   if (userrefreshtoken) {
+    localStorage.setItem('refreshToken', userrefreshtoken);
+    setShowTemplates(true);
     console.log("Refresh token updated:", userrefreshtoken);
-    setShowTemplates(true); // Show templates section
-    fetchPropertiesAndLoadConfig(objectType);
   } else {
     console.log("No refresh token");
-    setShowTemplates(false); // Hide templates section if no token
+    setShowTemplates(false);
   }
-}, [userrefreshtoken, objectType]);
+}, [userrefreshtoken]);
 
 
 
