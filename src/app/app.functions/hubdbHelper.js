@@ -25,6 +25,7 @@ exports.main = async (context) => {
                     { name: 'objectType', label: 'Object Type', type: 'TEXT' },
                     { name: 'textboxFields', label: 'Textbox Fields', type: 'TEXT' },
                     { name: 'textboxFilters', label: 'Textbox Filters', type: 'TEXT' },
+                    { name: 'dataFields', label: 'Data Fields', type: 'TEXT' },
                     { name: 'enabledFeatures', label: 'Enabled Features', type: 'MULTISELECT', options: [
                         { name: 'lock', label: 'Enable Lock', type: 'option' },
                         { name: 'download', label: 'Enable Download', type: 'option' },
@@ -84,6 +85,7 @@ exports.main = async (context) => {
                     objectType: objectType,
                     textboxFields: "", 
                     textboxFilters: "", 
+                    dataFields: "", 
                     enabledFeatures: [
                         { name: "share", type: "option" },
                         { name: "saveName", type: "option" }
