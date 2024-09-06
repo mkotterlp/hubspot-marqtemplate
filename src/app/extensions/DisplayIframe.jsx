@@ -722,7 +722,7 @@ const deleteRecord = async (recordId, objectType) => {
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
-          refresh_token: refresh_token,  // Pass original refresh token
+          refresh_token: currentRefreshToken,  // Pass original refresh token
           clientid: clientid,                  // Pass client ID
           clientsecret: clientsecret,          // Pass client secret
           marquserId: marquserId,                      // Pass user ID
@@ -736,52 +736,47 @@ const deleteRecord = async (recordId, objectType) => {
       // Step 2: Retrieve the projectId from the createProject response
       if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
         const projectData = JSON.parse(createProjectResponse.response.body);
-        // console.log("Project created:", projectData);
+        console.log("Project created:", projectData);
   
         const projectId = projectData.documentid; // Get the project ID from the response
-        // console.log("Created Project ID:", projectId);
+        console.log("Created Project ID:", projectId);
   
-        // Step 3: Fetch associated projects and check if they are linked to this projectId
-        const associatedProjectsResponse = await runServerless({
-          name: 'fetchProjects',
-          parameters: {
-            fromObjectId: context.crm.objectId,
-            fromObjectType: objectType
-          }
-        });
+        // // Step 3: Fetch associated projects and check if they are linked to this projectId
+        // const associatedProjectsResponse = await runServerless({
+        //   name: 'fetchProjects',
+        //   parameters: {
+        //     fromObjectId: context.crm.objectId,
+        //     fromObjectType: objectType
+        //   }
+        // });
   
-        if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
-          const projectsData = JSON.parse(associatedProjectsResponse.response.body);
-          // console.log("Fetched project data:", projectsData);
+        // if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
+        //   const projectsData = JSON.parse(associatedProjectsResponse.response.body);
+        //   // console.log("Fetched project data:", projectsData);
   
-          if (projectsData && projectsData.results && projectsData.results.length > 0) {
-            const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
+        //   if (projectsData && projectsData.results && projectsData.results.length > 0) {
+        //     const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
   
-            // Fetch project details using the unique project IDs
-            const projectDetailsResponse = await runServerless({
-              name: 'fetchProjectDetails',
-              parameters: { objectIds: Array.from(uniqueProjectIds) }
-            });
+        //     // Fetch project details using the unique project IDs
+        //     const projectDetailsResponse = await runServerless({
+        //       name: 'fetchProjectDetails',
+        //       parameters: { objectIds: Array.from(uniqueProjectIds) }
+        //     });
   
-            if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
-              const projectDetails = JSON.parse(projectDetailsResponse.response.body);
-              // console.log("Fetched project details:", projectDetails);
+        //     if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
+        //       const projectDetails = JSON.parse(projectDetailsResponse.response.body);
+        //       // console.log("Fetched project details:", projectDetails);
   
-              const associatedProjectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
-              // console.log("Associated Project ID:", associatedProjectId);
+        //       const associatedProjectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
+        //       // console.log("Associated Project ID:", associatedProjectId);
   
               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
               let iframeSrc;
-              if (configType === "multiple") {
-                const returnUrl = `https://app.marq.com/documents/external?callback&${templateOptions}&embeddedOptions=${encodedOptions}`;
-                const baseInnerUrl = `https://app.marq.com/documents/iframe?returnUrl=${encodeURIComponent(returnUrl)}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&projectid=${associatedProjectId || projectId}`;
-                const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
-                iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl) + '#/templates';
-              } else {
+
                 const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}&projectid=${associatedProjectId || projectId}`;
                 const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
                 iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
-              }
+              
   
               // Step 5: Open the iframe with the generated URL
               setIframeUrl(iframeSrc);
@@ -795,17 +790,18 @@ const deleteRecord = async (recordId, objectType) => {
             } else {
               console.error("Failed to fetch project details or empty response");
             }
-          } else {
-            console.error("Failed to fetch associated projects: Empty results array");
-          }
-        } else {
-          console.error("Failed to fetch associated projects.");
-        }
-      } else {
-        console.error("Failed to create project or empty response.");
-      }
+    //       } else {
+    //         console.error("Failed to fetch associated projects: Empty results array");
+    //       }
+    //     } else {
+    //       console.error("Failed to fetch associated projects.");
+    //     }
+    //   } else {
+    //     console.error("Failed to create project or empty response.");
+    //   }
   
-    } catch (error) {
+ } 
+    catch (error) {
       console.error('Error in handleClick:', error);
     }
   };
