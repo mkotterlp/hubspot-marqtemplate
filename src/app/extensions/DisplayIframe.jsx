@@ -165,12 +165,6 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.error("Failed to fetch new template link:", fetchResult.body);
               }
 
-              if (currentRefreshToken) {
-                setShowTemplates(true);
-              } else {
-                setShowTemplates(false);
-              }
-
             } catch (fetchError) {
               console.error("Error occurred while fetching new template link:", fetchError);
             }
@@ -275,6 +269,9 @@ const Extension = ({ context, actions, runServerless }) => {
             } else {
               console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
+              <Alert title="Danger" variant="danger" >
+        There was an error fetching templates. Please try connecting to Marq again.
+      </Alert>
             }
           }
         } else {
@@ -1309,16 +1306,16 @@ if (iframeLoading || isLoading) {
   );
 } 
 
-if (!isLoading && !templateLink) {
-  return (
-    <EmptyState title="Failed to load templates" layout="vertical">
-      <Text>We couldn't load the templates. Please try reloading.</Text>
-      <Button variant="primary" onClick={fetchPropertiesAndLoadConfig}>
-        Reload Templates
-      </Button>
-    </EmptyState>
-  );
-}
+// if (!isLoading && !templateLink) {
+//   return (
+//     <EmptyState title="Failed to load templates" layout="vertical">
+//       <Text>We couldn't load the templates. Please try reloading.</Text>
+//       <Button variant="primary" onClick={fetchPropertiesAndLoadConfig}>
+//         Reload Templates
+//       </Button>
+//     </EmptyState>
+//   );
+// }
 
 
 
