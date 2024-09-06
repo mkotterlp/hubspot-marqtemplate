@@ -732,7 +732,7 @@ const deleteRecord = async (recordId, objectType) => {
           templateid: templateid,              // Pass template ID
           templatetitle: templatetitle,        // Pass template title
           marqaccountid: marqaccountid,
-          dataSetId: datasetid
+          dataSetId: dataSetId
         }
   
       });
