@@ -684,7 +684,7 @@ const deleteRecord = async (recordId, objectType) => {
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid; // Assuming user ID is in context
-      const marqaccountid = "19908047"; // From the Marq account 
+      const marqaccountid = "163559625"; 
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
