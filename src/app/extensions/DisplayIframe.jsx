@@ -8,7 +8,7 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
-  const [marquserid, setMarquserid] = useState('');
+  // const [marquserid, setMarquserid] = useState('');
   const [isPolling, setIsPolling] = useState(false);
 
 
@@ -51,6 +51,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let templateLink;
   let currentRefreshToken;
   let lastTemplateSyncDate;
+  let marquserid
 
   
 
@@ -102,7 +103,9 @@ const Extension = ({ context, actions, runServerless }) => {
           lastTemplateSyncDate = userData.lastTemplateSyncDate;
           console.log('lastTemplateSyncDate', lastTemplateSyncDate);
           templateLink = userData.templatesfeed;
-          const marquserId = userData.marqUserID;
+          const marquserid = userData.marqUserID;
+          // const marquserid = userData.marqUserID;
+
           currentRefreshToken = userData.refreshToken;
 
           console.log("Fetched User Data:", JSON.stringify(userData));
@@ -114,7 +117,7 @@ const Extension = ({ context, actions, runServerless }) => {
             return;
           }
   
-          setMarquserid(marquserId);
+          setMarquserid(marquserid);
 
           const currentTime = Date.now();
           const timeDifference = currentTime - lastTemplateSyncDate;
@@ -683,7 +686,7 @@ const deleteRecord = async (recordId, objectType) => {
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-      const marquserid = marquserid; 
+      const marquserId = marquserid; // Assuming user ID is in context
       const marqaccountid = "163559625"; 
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
