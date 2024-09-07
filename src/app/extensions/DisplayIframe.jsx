@@ -8,7 +8,7 @@ hubspot.extend(({ context, actions, runServerlessFunction }) => (
 
 const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
-  // const [marquserid, setMarquserid] = useState('');
+  const [marquserid, setMarquserid] = useState('');
   const [isPolling, setIsPolling] = useState(false);
 
 
@@ -51,7 +51,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let templateLink;
   let currentRefreshToken;
   let lastTemplateSyncDate;
-  let marquserid
+  // let marquserid
 
   
 
@@ -103,7 +103,7 @@ const Extension = ({ context, actions, runServerless }) => {
           lastTemplateSyncDate = userData.lastTemplateSyncDate;
           console.log('lastTemplateSyncDate', lastTemplateSyncDate);
           templateLink = userData.templatesfeed;
-          marquserid = userData.marqUserID;
+          const marquserid = userData.marqUserID;
           // const marquserid = userData.marqUserID;
 
           currentRefreshToken = userData.refreshToken;
