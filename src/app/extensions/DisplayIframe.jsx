@@ -103,7 +103,7 @@ const Extension = ({ context, actions, runServerless }) => {
           lastTemplateSyncDate = userData.lastTemplateSyncDate;
           console.log('lastTemplateSyncDate', lastTemplateSyncDate);
           templateLink = userData.templatesfeed;
-          const marquserid = userData.marqUserID;
+          marquserid = userData.marqUserID;
           // const marquserid = userData.marqUserID;
 
           currentRefreshToken = userData.refreshToken;
