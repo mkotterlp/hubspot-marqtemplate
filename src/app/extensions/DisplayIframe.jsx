@@ -110,7 +110,7 @@ const Extension = ({ context, actions, runServerless }) => {
           currentRefreshToken = userData.refreshToken;
 
           console.log("Fetched User Data:", JSON.stringify(userData));
-          setRefreshToken(currentRefreshToken)
+          // setRefreshToken(currentRefreshToken)
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
             setIsLoading(false);
@@ -684,7 +684,7 @@ const deleteRecord = async (recordId, objectType) => {
     try {
       console.log("Template clicked:", template.id, template.title);
 
-      const refresh_token = refreshToken;
+      const refresh_token = currentRefreshToken;
       console.log(`refresh_token: ${refresh_token}`)
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
