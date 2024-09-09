@@ -686,7 +686,7 @@ const deleteRecord = async (recordId, objectType) => {
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-      const marquserId = marquserid; // This is from the global marquserid
+      const marquserId = marquserid; 
       const marqaccountid = "163559625"; 
       const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
@@ -741,6 +741,9 @@ const deleteRecord = async (recordId, objectType) => {
         }
   
       });
+
+      console.log({ me, marquserId, userid, dataSetId });
+
   
       // Step 2: Retrieve the projectId from the createProject response
       if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
