@@ -758,7 +758,7 @@ const deleteRecord = async (recordId, objectType) => {
       });
 
 
-  
+  //
       // Step 2: Retrieve the projectId from the createProject response
       if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
         const projectData = JSON.parse(createProjectResponse.response.body);
