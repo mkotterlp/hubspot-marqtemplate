@@ -14,7 +14,7 @@ exports.main = async (context) => {
     const templatetitle = context.parameters?.templatetitle;
     const marqaccountid = context.parameters?.marqaccountid;
     // const datasetid = string(context.parameters?.datasetid);
-    const dataSetId = context.parameters?.datasetId;
+    const dataSetId = context.parameters?.dataSetId;
 
 
     // Log the parameters for debugging
