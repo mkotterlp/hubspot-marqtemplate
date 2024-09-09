@@ -46,9 +46,9 @@ const Extension = ({ context, actions, runServerless }) => {
   const [crmProperties, setCrmProperties] = useState({});
 
   let propertiesBody = {}; 
-  let configData  = {};
+  let configData = {};
   let templateLink;
-  let currentRefreshToken;
+  let currentRefreshToken = "";
   let lastTemplateSyncDate;
   // let marquserid
 
