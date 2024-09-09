@@ -694,7 +694,6 @@ const deleteRecord = async (recordId, objectType) => {
       console.log(`marquserid: ${marquserId}`)
       const objectType = context.crm?.objectType || '';
 
-      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
 
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
         ? context.crm.properties[configData.value]
@@ -709,6 +708,7 @@ const deleteRecord = async (recordId, objectType) => {
       const dataSetType = configData.dataSetType?.name || "custom";
       const dataSetId = configData.dataSetId || `HB.${objectType}`;
       const key = configData.key || "id";
+      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
 
       console.log({ me, marquserId, userid, dataSetId });
 
