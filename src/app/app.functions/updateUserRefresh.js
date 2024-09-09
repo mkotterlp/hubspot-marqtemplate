@@ -6,6 +6,8 @@ exports.main = async (context) => {
     // const refreshToken = context.parameters?.refreshToken; newrefreshtoken
     const refreshToken = context.parameters?.newrefreshtoken; 
 
+    console.log("refreshToken", refreshToken);
+
 
     // Check if all required parameters are provided
     if (!userID) {

@@ -840,7 +840,7 @@ if (!currentRefreshToken) {
                   name: 'updateUserRefresh',
                   parameters: {
                     userID: userid,
-                    refreshToken: "currentRefreshToken",
+                    refreshToken: currentRefreshToken
                   }
                 });
               } catch (updateError) {
