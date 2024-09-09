@@ -683,6 +683,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.log("Template clicked:", template.id, template.title);
 
       const refresh_token = currentRefreshToken;
+      console.log(`refresh_token: ${refresh_token}`)
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
@@ -710,7 +711,6 @@ const deleteRecord = async (recordId, objectType) => {
       const key = configData.key || "id";
       console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
 
-      console.log({ me, marquserId, userid, dataSetId });
 
 
       const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
