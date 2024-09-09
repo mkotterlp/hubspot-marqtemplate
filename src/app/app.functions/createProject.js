@@ -7,12 +7,15 @@ exports.main = async (context) => {
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
     const marquserId = context.parameters?.marquserId; // Convert userid to string
-    const recordid = string(context.parameters?.recordid); // Convert recordid to string
+    // const recordid = string(context.parameters?.recordid); // Convert recordid to string
+    const recordid = context.parameters?.recordid; // Convert recordid to string
+
     const templateid = context.parameters?.templateid;
     const templatetitle = context.parameters?.templatetitle;
     const marqaccountid = context.parameters?.marqaccountid;
-    const datasetid = string(context.parameters?.datasetid);
-//
+    // const datasetid = string(context.parameters?.datasetid);
+    const datasetid = context.parameters?.datasetid;
+
     // Log the parameters for debugging
     console.log("Received parameters:", {
         refresh_token,
