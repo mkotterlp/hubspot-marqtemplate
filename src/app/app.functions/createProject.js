@@ -27,7 +27,7 @@ exports.main = async (context) => {
     });
 
     // Check if all required parameters are available
-    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle) {
+    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle || !marqaccountid || !datasetid) {
         console.error("Missing required parameters");
 
         return {
