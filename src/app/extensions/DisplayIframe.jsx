@@ -798,6 +798,19 @@ const deleteRecord = async (recordId, objectType) => {
                 variant: "danger",
                 message: `There was an error with creating the project. Please try connecting to Marq again`
               });
+
+              try {
+                const updateResult = await runServerless({
+                  name: 'updateUserRefresh',
+                  parameters: {
+                    userID: userid,
+                    refreshToken: "currentRefreshToken",
+                  }
+                });
+              } catch (updateError) {
+                console.error("Error occurred while trying to update HubDB:", updateError);
+              }
+
                 return
 
               }
