@@ -840,7 +840,7 @@ if (!currentRefreshToken) {
                   name: 'updateUserRefresh',
                   parameters: {
                     userID: userid,
-                    refreshToken: currentRefreshToken
+                    newrefreshtoken: currentRefreshToken
                   }
                 });
               } catch (updateError) {
@@ -877,7 +877,7 @@ if (!currentRefreshToken) {
                 name: 'updateUserRefresh',
                 parameters: {
                   userID: userid,
-                  refreshToken: currentRefreshToken,
+                  newrefreshtoken: currentRefreshToken,
                   // newrefreshtoken: newrefreshtoken
 
                 }
