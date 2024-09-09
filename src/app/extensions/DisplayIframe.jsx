@@ -701,7 +701,7 @@ const deleteRecord = async (recordId, objectType) => {
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid; 
       const marqaccountid = "163559625"; 
-      const recordid = context.crm?.objectId || ''; // Assuming CRM record ID is in context
+      const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
       console.log(`marquserid: ${marquserId}`)
@@ -799,7 +799,7 @@ const deleteRecord = async (recordId, objectType) => {
               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
               let iframeSrc;
 
-                const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+                const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
                 const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
                 iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
               
