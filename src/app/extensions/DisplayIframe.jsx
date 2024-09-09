@@ -678,7 +678,7 @@ const deleteRecord = async (recordId, objectType) => {
   //   }
   // };
 
-  const handleClick = async (template) => {
+  const handleClick = async (template, currentRefreshToken) => {
     try {
       console.log("Template clicked:", template.id, template.title);
 
