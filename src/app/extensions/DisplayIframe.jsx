@@ -968,7 +968,7 @@ const deleteRecord = async (recordId, objectType) => {
   // };
   
   const startPollingForRefreshToken = () => {
-    isLoading(true);
+    setIsLoading(true);
     setIsPolling(true); // Start polling when the button is clicked
   };
   
