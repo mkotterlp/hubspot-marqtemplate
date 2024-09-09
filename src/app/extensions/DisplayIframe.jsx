@@ -681,7 +681,7 @@ const deleteRecord = async (recordId, objectType) => {
 
   const handleClick = async (template) => {
 
-    let iframeSrc;
+    let iframeSrc = 'https://info.marq.com/loading';
 
     setIframeLoading(true);
 
@@ -878,6 +878,17 @@ if (!currentRefreshToken) {
   
               // Step 5: Open the iframe with the generated URL
               setIframeUrl(iframeSrc);
+
+              setIframeLoading(false);
+
+              setIframeUrl(iframeSrc);
+              actions.openIframeModal({
+                uri: iframeSrc,
+                height: 1500,
+                width: 1500,
+                title: "Marq",
+              });
+
             } else {
               console.error("Failed to fetch project details or empty response");
             }
