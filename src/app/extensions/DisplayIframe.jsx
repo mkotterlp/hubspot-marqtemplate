@@ -757,8 +757,8 @@ const deleteRecord = async (recordId, objectType) => {
         const projectId = projectData.documentid; // Get the project ID from the response
         console.log("Created Project ID:", projectId);
 
-        const newrefreshtoken = projectData.new_refresh_token
-        console.log("refresh_token after project is created: ", newrefreshtoken)
+        currentRefreshToken = projectData.new_refresh_token
+        console.log("refresh_token after project is created: ", currentRefreshToken)
   
         // // Step 3: Fetch associated projects and check if they are linked to this projectId
         // const associatedProjectsResponse = await runServerless({
@@ -815,8 +815,8 @@ const deleteRecord = async (recordId, objectType) => {
                 name: 'updateUserRefresh',
                 parameters: {
                   userID: userid,
-                  // refreshToken: currentRefreshToken,
-                  newrefreshtoken: newrefreshtoken
+                  refreshToken: currentRefreshToken,
+                  // newrefreshtoken: newrefreshtoken
 
                 }
               });
