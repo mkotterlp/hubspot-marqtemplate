@@ -15,7 +15,6 @@ const Extension = ({ context, actions, runServerless }) => {
   const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(null);
   const [authurl, setauth] = useState('');
   const [templates, setTemplates] = useState([]);
   const [allTemplates, setAllTemplates] = useState([]);
@@ -794,7 +793,7 @@ const deleteRecord = async (recordId, objectType) => {
                 currentRefreshToken = '';
                 setShowTemplates(false);
               actions.addAlert({
-                title: "Error with creativng project",
+                title: "Error with creating project",
                 variant: "danger",
                 message: `There was an error with creating the project. Please try connecting to Marq again`
               });
@@ -991,10 +990,9 @@ const deleteRecord = async (recordId, objectType) => {
         
         console.log("userData:", userData);
   
-        currentRefreshToken = userData.refreshToken;
-        console.log("currentRefreshToken:", currentRefreshToken);
+        currentRefreshToken = userData?.refreshToken || null;
 
-        // setRefreshToken(currentRefreshToken)
+        console.log("currentRefreshToken:", currentRefreshToken);
   
         if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
           console.log("Refresh token found:", currentRefreshToken);
