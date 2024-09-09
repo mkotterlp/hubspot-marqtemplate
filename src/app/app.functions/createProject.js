@@ -14,7 +14,8 @@ exports.main = async (context) => {
     const templatetitle = context.parameters?.templatetitle;
     const marqaccountid = context.parameters?.marqaccountid;
     // const datasetid = string(context.parameters?.datasetid);
-    const datasetid = context.parameters?.datasetid;
+    const dataSetId = context.parameters?.datasetId;
+
 
     // Log the parameters for debugging
     console.log("Received parameters:", {
@@ -26,12 +27,13 @@ exports.main = async (context) => {
         templateid,
         templatetitle,
         marqaccountid,
-        datasetid
+        dataSetId
     });
 
     // Check if all required parameters are available
-    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle || !marqaccountid || !datasetid) {
+    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle || !marqaccountid || !dataSetId) {
         console.error("Missing required parameters");
+        console.log("Parameters in createProject.js:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
 
         return {
             statusCode: 400,
