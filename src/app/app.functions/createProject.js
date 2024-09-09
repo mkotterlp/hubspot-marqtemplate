@@ -52,7 +52,7 @@ exports.main = async (context) => {
             templateid: templateid,
             templatetitle: templatetitle,
             marqaccountid: marqaccountid,
-            dataSetId: datasetid
+            dataSetId: dataSetId
         });
 
         // Step 2: Check the response from the Fastgen API
