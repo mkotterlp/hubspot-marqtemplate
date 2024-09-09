@@ -74,6 +74,24 @@ const Extension = ({ context, actions, runServerless }) => {
   };
 
 
+  const fetchWithRetry = async (retryCount = 3, delay = 1000) => {
+    for (let i = 0; i < retryCount; i++) {
+      try {
+        const fetchResult = await runServerless({
+          name: 'fetchTemplates',
+          parameters: { userID: userid, marquserid: marquserid, refreshToken: currentRefreshToken }
+        });
+        return fetchResult;
+      } catch (error) {
+        if (i < retryCount - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay * (i + 1))); // Exponential backoff
+        } else {
+          throw error;
+        }
+      }
+    }
+  };
+  
 
  
   const fetchPropertiesAndLoadConfig = async (objectType) => {
@@ -130,14 +148,8 @@ const Extension = ({ context, actions, runServerless }) => {
             setIsLoading(true);
             try {
             
-              const fetchResult = await runServerless({
-                name: 'fetchTemplates',
-                parameters: { 
-                  userID: userid,
-                  marquserid: marquserid,
-                  refreshToken: currentRefreshToken 
-                }
-              });
+              const fetchResult = await fetchWithRetry();
+              setIsLoading(true);
               
               // Log the full response object
               console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
