@@ -682,7 +682,44 @@ const deleteRecord = async (recordId, objectType) => {
   const handleClick = async (template) => {
     try {
       console.log("Template clicked:", template.id, template.title);
-      console.log("currentRefreshToken:", currentRefreshToken);
+      const userId = context.user.id;
+
+if (!currentRefreshToken) {
+      try {
+        console.log("Polling for refresh token...");
+        const createusertable = await runServerless({
+          name: 'marqouathhandler',
+          parameters: { userID: userId }
+        });
+        console.log("Response from serverless function:", createusertable); 
+    
+        if (createusertable?.response?.body) {
+          console.log("Received response from serverless function:", createusertable);
+    
+          // Access row and values properly
+          const responseBody = JSON.parse(createusertable.response.body);
+          const userData = responseBody?.row?.values || {};
+          
+          console.log("userData:", userData);
+    
+          currentRefreshToken = userData?.refreshToken || null;
+  
+          console.log("currentRefreshToken:", currentRefreshToken);
+    
+          if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
+            console.log("Refresh token found:", currentRefreshToken);
+          } else {
+            console.log("Refresh token not found");
+            setShowTemplates(false);
+          }
+        } else {
+          console.log("No response body from serverless function.");
+        }
+      } catch (error) {
+        console.error("Error while polling for refresh token:", error);
+      }
+    }
+
 
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
