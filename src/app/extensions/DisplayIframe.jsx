@@ -109,7 +109,7 @@ const Extension = ({ context, actions, runServerless }) => {
           currentRefreshToken = userData.refreshToken;
 
           console.log("Fetched User Data:", JSON.stringify(userData));
-  
+          setRefreshToken(currentRefreshToken)
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
             setIsLoading(false);
@@ -948,7 +948,7 @@ const deleteRecord = async (recordId, objectType) => {
         currentRefreshToken = userData.refreshToken;
         console.log("currentRefreshToken:", currentRefreshToken);
 
-        setRefreshToken(currentRefreshToken)
+        // setRefreshToken(currentRefreshToken)
   
         if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
           console.log("Refresh token found:", currentRefreshToken);
