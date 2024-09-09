@@ -680,9 +680,26 @@ const deleteRecord = async (recordId, objectType) => {
   // };
 
   const handleClick = async (template) => {
+
+    let iframeSrc;
+
+    setIframeLoading(true);
+
+     setIframeUrl(iframeSrc);
+     actions.openIframeModal({
+       uri: iframeSrc,
+       height: 1500,
+       width: 1500,
+       title: "Marq",
+     });
+     setIframeOpen(true);
+   
+
     try {
       console.log("Template clicked:", template.id, template.title);
       const userId = context.user.id;
+
+    
 
 if (!currentRefreshToken) {
       try {
@@ -826,6 +843,7 @@ if (!currentRefreshToken) {
   
               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
 
+              setIframeLoading(false);
               if(!projectId) {
                 currentRefreshToken = '';
                 setShowTemplates(false);
@@ -852,7 +870,6 @@ if (!currentRefreshToken) {
               }
 
 
-              let iframeSrc;
 
                 const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
                 const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
@@ -861,13 +878,6 @@ if (!currentRefreshToken) {
   
               // Step 5: Open the iframe with the generated URL
               setIframeUrl(iframeSrc);
-              actions.openIframeModal({
-                uri: iframeSrc,
-                height: 1500,
-                width: 1500,
-                title: "Marq",
-              });
-              setIframeOpen(true);
             } else {
               console.error("Failed to fetch project details or empty response");
             }
