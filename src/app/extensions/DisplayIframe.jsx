@@ -746,7 +746,6 @@ if (!currentRefreshToken) {
       const templateid = template?.id || ''; // Fetching template ID from the clicked template
       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
       console.log(`marquserid: ${marquserId}`)
-      const objectType = context.crm?.objectType || '';
 
 
       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
@@ -867,7 +866,6 @@ if (!currentRefreshToken) {
                 return
 
               }
-
 
 
                 const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
