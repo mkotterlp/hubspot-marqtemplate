@@ -678,12 +678,12 @@ const deleteRecord = async (recordId, objectType) => {
   //   }
   // };
 
-  const handleClick = async (template, currentRefreshToken) => {
+  const handleClick = async (template) => {
     try {
       console.log("Template clicked:", template.id, template.title);
 
-      // const refresh_token = currentRefreshToken;
-      console.log(`currentRefreshToken: ${currentRefreshToken}`)
+      const refresh_token = refreshToken;
+      console.log(`refresh_token: ${refresh_token}`)
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
@@ -709,7 +709,7 @@ const deleteRecord = async (recordId, objectType) => {
       const dataSetType = configData.dataSetType?.name || "custom";
       const dataSetId = configData.dataSetId || `HB.${objectType}`;
       const key = configData.key || "id";
-      console.log("Collected parameters:", { currentRefreshToken, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
+      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
 
 
 
@@ -732,8 +732,7 @@ const deleteRecord = async (recordId, objectType) => {
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
-          // refresh_token: refresh_token,  // Pass original refresh token
-          currentRefreshToken: currentRefreshToken,  // Pass original refresh token
+          refresh_token: refresh_token,  // Pass original refresh token
           clientid: clientid,                  // Pass client ID
           clientsecret: clientsecret,          // Pass client secret
           marquserId: marquserId,                      // Pass user ID
@@ -948,6 +947,8 @@ const deleteRecord = async (recordId, objectType) => {
   
         currentRefreshToken = userData.refreshToken;
         console.log("currentRefreshToken:", currentRefreshToken);
+
+        setRefreshToken(currentRefreshToken)
   
         if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
           console.log("Refresh token found:", currentRefreshToken);

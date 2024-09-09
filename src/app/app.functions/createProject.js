@@ -3,9 +3,7 @@ const axios = require('axios');
 
 exports.main = async (context) => {
     // Extract the parameters sent from handleClick
-    // const refresh_token = context.parameters?.refresh_token;
-    const refresh_token = context.parameters?.currentRefreshToken;
-
+    const refresh_token = context.parameters?.refresh_token;
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
     const marquserId = context.parameters?.marquserId; // Convert userid to string
