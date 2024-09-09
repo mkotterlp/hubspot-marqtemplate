@@ -710,6 +710,9 @@ const deleteRecord = async (recordId, objectType) => {
       const dataSetId = configData.dataSetId || `HB.${objectType}`;
       const key = configData.key || "id";
 
+      console.log({ me, marquserId, userid, dataSetId });
+
+
       const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
         enabledFeatures,
         fileTypes,
@@ -742,7 +745,6 @@ const deleteRecord = async (recordId, objectType) => {
   
       });
 
-      console.log({ me, marquserId, userid, dataSetId });
 
   
       // Step 2: Retrieve the projectId from the createProject response
