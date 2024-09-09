@@ -711,7 +711,7 @@ const deleteRecord = async (recordId, objectType) => {
       const dataSetType = configData.dataSetType?.name || "custom";
       const dataSetId = configData.dataSetId || `HB.${objectType}`;
       const key = configData.key || "id";
-      console.log("Collected parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
+      console.log("handleClick parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
 
 
 
@@ -756,6 +756,9 @@ const deleteRecord = async (recordId, objectType) => {
   
         const projectId = projectData.documentid; // Get the project ID from the response
         console.log("Created Project ID:", projectId);
+
+        const newrefreshtoken = projectData.new_refresh_token
+        console.log("refresh_token after project is created: ", newrefreshtoken)
   
         // // Step 3: Fetch associated projects and check if they are linked to this projectId
         // const associatedProjectsResponse = await runServerless({
@@ -812,7 +815,9 @@ const deleteRecord = async (recordId, objectType) => {
                 name: 'updateUserRefresh',
                 parameters: {
                   userID: userid,
-                  refreshToken: currentRefreshToken,
+                  // refreshToken: currentRefreshToken,
+                  newrefreshtoken: newrefreshtoken
+
                 }
               });
             } catch (updateError) {

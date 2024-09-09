@@ -32,12 +32,12 @@ exports.main = async (context) => {
 
     // Check if all required parameters are available
     if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle || !marqaccountid || !dataSetId) {
-        console.error("Missing required parameters");
+        console.error("Missing required parameters in createProject");
 
         return {
             statusCode: 400,
 
-            body: JSON.stringify({ message: "Missing required parameters.", refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId})
+            body: JSON.stringify({ message: "Missing required parameters in createProject.", refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId})
         };
     }
 

@@ -3,7 +3,9 @@ const hubspot = require('@hubspot/api-client');
 exports.main = async (context) => {
     // Read the parameters from the request
     const userID = String(context.parameters?.userID);
-    const refreshToken = context.parameters?.refreshToken;
+    // const refreshToken = context.parameters?.refreshToken; newrefreshtoken
+    const refreshToken = context.parameters?.newrefreshtoken; 
+
 
     // Check if all required parameters are provided
     if (!userID) {
