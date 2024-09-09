@@ -766,6 +766,20 @@ const deleteRecord = async (recordId, objectType) => {
   
         const projectId = projectData.documentid; // Get the project ID from the response
         console.log("Created Project ID:", projectId);
+
+        currentRefreshToken = projectData.new_refresh_token;
+
+        try {
+          const updateResult = await runServerless({
+            name: 'updateUserRefresh',
+            parameters: {
+              userID: userid,
+              refreshToken: currentRefreshToken,
+            }
+          });
+        } catch (updateError) {
+          console.error("Error occurred while trying to update HubDB:", updateError);
+        }
   
         // // Step 3: Fetch associated projects and check if they are linked to this projectId
         // const associatedProjectsResponse = await runServerless({
