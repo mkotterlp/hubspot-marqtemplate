@@ -682,6 +682,7 @@ const deleteRecord = async (recordId, objectType) => {
   const handleClick = async (template) => {
     try {
       console.log("Template clicked:", template.id, template.title);
+      console.log("currentRefreshToken:", currentRefreshToken);
 
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
@@ -972,6 +973,8 @@ const deleteRecord = async (recordId, objectType) => {
   };
   
   const pollForRefreshToken = async () => {
+    console.log("Attempting poll");
+
     try {
       console.log("Polling for refresh token...");
       const userId = context.user.id;
@@ -979,6 +982,7 @@ const deleteRecord = async (recordId, objectType) => {
         name: 'marqouathhandler',
         parameters: { userID: userId }
       });
+      console.log("Response from serverless function:", createusertable); 
   
       if (createusertable?.response?.body) {
         console.log("Received response from serverless function:", createusertable);
