@@ -683,7 +683,6 @@ const deleteRecord = async (recordId, objectType) => {
 
     let iframeSrc = 'https://info.marq.com/loading';
 
-    setIframeLoading(true);
 
      setIframeUrl(iframeSrc);
      actions.openIframeModal({
@@ -879,7 +878,6 @@ if (!currentRefreshToken) {
               // Step 5: Open the iframe with the generated URL
               setIframeUrl(iframeSrc);
 
-              setIframeLoading(false);
 
               setIframeUrl(iframeSrc);
               actions.openIframeModal({
