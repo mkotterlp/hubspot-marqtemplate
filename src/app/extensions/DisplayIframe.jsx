@@ -684,7 +684,6 @@ const deleteRecord = async (recordId, objectType) => {
     try {
       console.log("Template clicked:", template.id, template.title);
 
-      const refresh_token = currentRefreshToken;
       console.log(`refresh_token: ${refresh_token}`)
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
@@ -734,7 +733,7 @@ const deleteRecord = async (recordId, objectType) => {
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
-          refresh_token: refresh_token,  // Pass original refresh token
+          refresh_token: currentRefreshToken,
           clientid: clientid,                  // Pass client ID
           clientsecret: clientsecret,          // Pass client secret
           marquserId: marquserId,                      // Pass user ID
@@ -790,6 +789,20 @@ const deleteRecord = async (recordId, objectType) => {
         //       // console.log("Associated Project ID:", associatedProjectId);
   
               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
+
+              if(!projectId) {
+                currentRefreshToken = '';
+                setShowTemplates(false);
+              actions.addAlert({
+                title: "Error with creativng project",
+                variant: "danger",
+                message: `There was an error with creating the project. Please try connecting to Marq again`
+              });
+                return
+
+              }
+
+
               let iframeSrc;
 
                 const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
