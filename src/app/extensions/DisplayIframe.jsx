@@ -11,6 +11,11 @@ const Extension = ({ context, actions, runServerless }) => {
   const [marquserid, setMarquserid] = useState('');
   const [isPolling, setIsPolling] = useState(false);
 
+  const [isConnectToMarq, setIsConnectToMarq] = useState(false);  // New state to track connection flow
+  const [isConnectedToMarq, setIsConnectedToMarq] = useState(false); // Set to true when user connects to Marq
+  const [showAccountTokenButton, setShowAccountTokenButton] = useState(true);
+  const [authorizationUrl, setAuthorizationUrl] = useState('');
+
 
   const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
@@ -597,22 +602,34 @@ const deleteRecord = async (recordId, objectType) => {
     }
   };
 
-  const setapi = async (userid, userEmail) => {
+  const setapi = async (userid, userEmail, isConnectToMarq) => {
     try {
+      // Fetch the API key from the serverless function
       const apiResponse = await runServerless({
         name: 'getApiKey'
       });
   
       if (apiResponse && apiResponse.response && apiResponse.response.body) {
         const body = JSON.parse(apiResponse.response.body);
+  
         if (body && body.key) {
           const apiKey = body.key;
-          setAPIkey(apiKey);
-          // console.log("API Key loaded:", apiKey);
-          const authorizationUrl = handleConnectToMarq(apiKey, userid, userEmail);  // Pass the API key, userid, and userEmail
-          setauth(authorizationUrl);
-          return apiKey;  // Return the API key
+          setAPIkey(apiKey);  // Set the API key in the state
+  
+          // If this is the "Connect to Marq" flow, handle the connection process
+          if (isConnectToMarq) {
+            const authorizationUrl = handleConnectToMarq(apiKey, userid, userEmail);  // Call handleConnectToMarq for initial connection
+            setauth(authorizationUrl);  // Set the authorization URL for redirect
+
+          } else {
+            // If this is the "Account Token" flow, handle getting the account token
+            const authorizationUrl = handleGetAccountToken(apiKey, userid, userEmail);  // Call handleGetAccountToken for account token flow
+            setauth(authorizationUrl);  // Set the authorization URL for redirect
+          }
+  
+          return apiKey;  // Return the API key after success
         } else {
+          // Handle the case when no API key is found
           console.error("No API key found in response.");
           actions.addAlert({
             title: "Error",
@@ -621,6 +638,7 @@ const deleteRecord = async (recordId, objectType) => {
           });
         }
       } else {
+        // Handle invalid or missing API response
         console.error("API response was invalid or missing.");
         actions.addAlert({
           title: "Error",
@@ -629,6 +647,7 @@ const deleteRecord = async (recordId, objectType) => {
         });
       }
     } catch (error) {
+      // Handle error in retrieving API key
       console.error("Error retrieving API key:", error);
       actions.addAlert({
         title: "Error",
@@ -636,8 +655,52 @@ const deleteRecord = async (recordId, objectType) => {
         message: "Failed to retrieve API key."
       });
     }
+  
     return null;  // Return null if the API key was not retrieved
   };
+  
+// ORIGINAL setapi FUNCTION BEFORE THE adding HANDLEGETACCOUNTTOKEN FUNCTION STUFF
+  // const setapi = async (userid, userEmail) => {
+  //   try {
+  //     const apiResponse = await runServerless({
+  //       name: 'getApiKey'
+  //     });
+  
+  //     if (apiResponse && apiResponse.response && apiResponse.response.body) {
+  //       const body = JSON.parse(apiResponse.response.body);
+  //       if (body && body.key) {
+  //         const apiKey = body.key;
+  //         setAPIkey(apiKey);
+  //         // console.log("API Key loaded:", apiKey);
+  //         const authorizationUrl = handleConnectToMarq(apiKey, userid, userEmail);  // Pass the API key, userid, and userEmail
+  //         setauth(authorizationUrl);
+  //         return apiKey;  // Return the API key
+  //       } else {
+  //         console.error("No API key found in response.");
+  //         actions.addAlert({
+  //           title: "Error",
+  //           variant: "error",
+  //           message: "Failed to retrieve API key."
+  //         });
+  //       }
+  //     } else {
+  //       console.error("API response was invalid or missing.");
+  //       actions.addAlert({
+  //         title: "Error",
+  //         variant: "error",
+  //         message: "Invalid API response."
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error retrieving API key:", error);
+  //     actions.addAlert({
+  //       title: "Error",
+  //       variant: "error",
+  //       message: "Failed to retrieve API key."
+  //     });
+  //   }
+  //   return null;  // Return null if the API key was not retrieved
+  // };
 
 
   const handleClick = async (template) => {
@@ -917,6 +980,7 @@ if (!currentRefreshToken) {
           console.log("Refresh token found:", currentRefreshToken);
           setIsPolling(false); // Stop polling
           fetchPropertiesAndLoadConfig(objectType);
+          setIsConnectedToMarq(true); // Blake added this
         } else {
           console.log("Refresh token not found yet, continuing to poll...");
           setShowTemplates(false);
@@ -1016,6 +1080,7 @@ const initialize = async () => {
   if (!hasInitialized.current && objectType) {
     hasInitialized.current = true;
 
+    // Fetch and load properties and associated projects
     fetchPropertiesAndLoadConfig(objectType);
     fetchAssociatedProjectsAndDetails(objectType);
 
@@ -1023,9 +1088,19 @@ const initialize = async () => {
     const userid = context.user.id;
     const userEmail = context.user.email; // Assuming context provides the user's email here
 
-    // Fetch the API key and pass the userid and userEmail
-    const apiKey = await setapi(userid, userEmail);
-    setAPIkey(apiKey);
+    // Check if we are in the "Connect to Marq" flow
+    if (isConnectToMarq) {
+      // Fetch the API key and pass the userid, userEmail, and true for the "Connect to Marq" flow
+      const apiKey = await setapi(userid, userEmail, true);  // Pass true for the connect flow
+      setAPIkey(apiKey);
+
+      // After connecting to Marq, set the connected state to true
+      setIsConnectedToMarq(true);
+
+      // Reset isConnectToMarq to prevent unnecessary re-invocations
+      setIsConnectToMarq(false);
+      // this ^^ is different than the one above it
+    }
 
     // Fetch Marq user data and update refresh token if necessary
     const createusertable = await runServerless({
@@ -1036,11 +1111,16 @@ const initialize = async () => {
     if (createusertable?.response?.body) {
       const userData = JSON.parse(createusertable.response.body).values || {};
       const currentRefreshToken = userData.refreshToken;
+
       if (currentRefreshToken) {
-        showTemplates(true);
+        setIsConnectedToMarq(true);  // User is connected to Marq
+        showTemplates(true);  // Show templates if a valid refresh token exists
+      } else {
+        setIsConnectedToMarq(false);  // User is not connected to Marq
       }
     } else {
       console.error("Failed to create or fetch user table.");
+      setIsConnectedToMarq(false);  // Set to false if there's an error
     }
 
   } else if (
@@ -1049,9 +1129,61 @@ const initialize = async () => {
     filtersArray.length > 0 &&
     Object.keys(crmProperties).length > 0
   ) {
+    // Apply template filtering based on the search term and loaded properties
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
+
+
+
+
+// ORIGINAL INITIALIZE FUNCTION BEFORE THE adding HANDLEGETACCOUNTTOKEN FUNCTION
+// const initialize = async () => {
+//   if (!hasInitialized.current && objectType) {
+//     hasInitialized.current = true;
+
+//     fetchPropertiesAndLoadConfig(objectType);
+//     fetchAssociatedProjectsAndDetails(objectType);
+
+//     // Fetch the userid and userEmail from context
+//     const userid = context.user.id;
+//     const userEmail = context.user.email; // Assuming context provides the user's email here
+
+//     // Fetch the API key and pass the userid and userEmail
+//     const apiKey = await setapi(userid, userEmail);
+//     setAPIkey(apiKey);
+
+//     // Fetch Marq user data and update refresh token if necessary
+//     const createusertable = await runServerless({
+//       name: 'marqouathhandler',
+//       parameters: { userID: userid }
+//     });
+
+//     if (createusertable?.response?.body) {
+//       const userData = JSON.parse(createusertable.response.body).values || {};
+//       const currentRefreshToken = userData.refreshToken;
+//       if (currentRefreshToken) {
+//         showTemplates(true);
+//       }
+//     } else {
+//       console.error("Failed to create or fetch user table.");
+//     }
+
+//   } else if (
+//     hasInitialized.current &&
+//     fieldsArray.length > 0 &&
+//     filtersArray.length > 0 &&
+//     Object.keys(crmProperties).length > 0
+//   ) {
+//     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
+//   }
+// };
+
+
+
+
+
 
 // const initialize = async () => {
 //   if (!hasInitialized.current && objectType) {
@@ -1249,7 +1381,56 @@ const handleConnectToMarq = (apiKey, userid, userEmail) => {
   }
 };
 
+const handleGetAccountToken = async (apiKey, userid, userEmail) => {
+  try {
+    // Step 1: Check if the account token exists
+    const response = await runServerless({
+      name: 'dataTableHandler',
+      parameters: {
+        checkExistingToken: true, // Assuming we add this parameter to check token existence
+        userid: userid, // Pass the user ID to the serverless function
+      }
+    });
 
+    // Step 2: If account token exists, log it and proceed to dataset creation
+    if (response?.response?.body) {
+      const body = JSON.parse(response.response.body);
+      const existingToken = body.refreshToken;
+
+      if (existingToken) {
+        console.log("Account token already exists:", existingToken);
+        // Proceed with creating or updating the dataset here
+        createOrUpdateDataset(existingToken);
+        return;
+      }
+    }
+
+    // Step 3: If no account token exists, initiate the OAuth flow
+    console.log("No account token found, initiating OAuth flow...");
+    const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
+
+    if (!authorizationUrl) {
+      throw new Error("Failed to generate authorization URL.");
+    }
+
+    // Chat says to do this but IDK if it will work
+    const authorizationCode = await performOAuthFlow(authorizationUrl); // This is a placeholder for actual OAuth flow
+    
+    if (authorizationCode) {
+      console.log("Received authorization code:", authorizationCode);
+      await handleOAuthCallback(authorizationCode);  // Call the callback function inline
+    }
+
+    // Step 4: Provide the generated authorization URL
+    console.log("Generated Authorization URL:", authorizationUrl);
+    return authorizationUrl;
+
+  } catch (error) {
+    console.error('Error handling account token click:', error.message);
+  }
+};
+
+//----------------------------------------------------------------------------------------------------------
 
 function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   try {
@@ -1302,7 +1483,151 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   }
 }
 
+//----------------------------------------------------------------------------------------------------------
 
+
+function getAuthorizationUrlForData(apiKey, userid, userEmail) {
+  try {
+    const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+    const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+    const redirectUri = 'https://info.marq.com/crm-oauth-hubspot'; // Update as necessary
+
+    const encodedRedirectUri = encodeURIComponent(redirectUri);
+
+    // Create the state map that includes the API key, userId, and email
+    const stateMap = {
+      apiKey: apiKey,
+      metadataType: 'data',  // Set metadata type to 'data'
+      clientId: clientId,
+      clientSecret: clientSecret,
+      redirectUri: encodedRedirectUri,
+      userid: userid,       // Include the userId
+      email: userEmail      // Include the userEmail
+    };
+
+    const stateJson = JSON.stringify(stateMap);
+    const stateParam = btoa(stateJson); // Encode the state parameter
+
+    // Define the required scopes for "data" metadata type
+    const scopes = 'project.templates project.content data-service.admin offline_access';
+    const encodedScopes = encodeURIComponent(scopes);
+
+    // Construct the authorization URL for data
+    const authorizationUrl = `https://marq.com/oauth2/authorizeAccount`
+                           + `?response_type=code`
+                           + `&client_id=${clientId}`
+                           + `&client_secret=${clientSecret}`
+                           + `&scope=${encodedScopes}`
+                           + `&redirect_uri=${encodedRedirectUri}`
+                           + `&state=${stateParam}`;
+
+    return authorizationUrl;
+
+  } catch (error) {
+    console.error('Error generating authorization URL:', error.message);
+    return null;
+  }
+}
+
+
+const handleOAuthCallback = async (code) => {
+  try {
+    // Call the serverless function to exchange the authorization code for a token
+    const tokenResponse = await runServerless({
+      name: 'exchangeAuthCodeForToken',
+      parameters: { code }  // Pass the authorization code
+    });
+
+    if (tokenResponse?.response?.body) {
+      const body = JSON.parse(tokenResponse.response.body);
+      const refreshToken = body.refresh_token;
+
+      if (refreshToken) {
+        console.log("Received refresh token:", refreshToken);
+        // Save the token to HubDB and proceed to dataset creation
+        await saveTokenToTable(refreshToken);
+        createOrUpdateDataset(refreshToken);
+      }
+    } else {
+      console.error("Failed to exchange code for token.");
+    }
+  } catch (error) {
+    console.error('Error handling OAuth callback:', error.message);
+  }
+};
+
+// Chat says to do this but IDK if it will work
+const performOAuthFlow = async (authorizationUrl) => {
+  return new Promise((resolve, reject) => {
+    const authWindow = window.open(authorizationUrl, 'OAuthWindow', 'width=500,height=600');
+
+    const checkOAuthWindow = setInterval(() => {
+      if (authWindow.closed) {
+        clearInterval(checkOAuthWindow);
+        // Here you would retrieve the authorization code from the window once it’s closed
+        // This is where you capture the code from the popup URL or session storage
+        const code = sessionStorage.getItem('oauth_code');  // Just an example of where to store the code
+        if (code) {
+          resolve(code);
+        } else {
+          reject('Authorization code not found');
+        }
+      }
+    }, 1000);  // Check every second if the window has closed
+  });
+};
+
+
+
+async function saveTokenToTable(refreshToken) {
+  try {
+    const response = await runServerless({
+      name: 'dataTableHandler',  // The serverless function that handles the HubDB logic
+      parameters: {
+        action: 'saveToken',
+        refreshToken: refreshToken
+      }
+    });
+
+    if (response?.response?.statusCode === 200) {
+      console.log("Refresh token saved successfully.");
+    } else {
+      console.error("Failed to save refresh token.");
+    }
+  } catch (error) {
+    console.error('Error saving refresh token:', error.message);
+  }
+}
+
+
+const createOrUpdateDataset = async (refreshToken) => {
+  try {
+    // Prepare the schema and other dataset details
+    const schema = [
+      { name: "Id", fieldType: "STRING", isPrimary: true },
+      // Add other fields as required
+    ];
+
+    const response = await runServerless({
+      name: 'createOrUpdateDataset',
+      parameters: {
+        refreshToken: refreshToken,
+        schema: schema
+      }
+    });
+
+    if (response?.response?.statusCode === 200) {
+      console.log("Dataset created or updated successfully.");
+    } else {
+      console.error("Failed to create or update dataset.");
+    }
+  } catch (error) {
+    console.error('Error creating or updating dataset:', error.message);
+  }
+};
+
+//===================================================================================================
+//===================================================================================================
 
 if (iframeLoading || isLoading) {
   return (
@@ -1326,9 +1651,33 @@ if (iframeLoading || isLoading) {
 
 
 if (showTemplates) {
+  setShowAccountTokenButton(false)
 
 return (
   <>
+    {showAccountTokenButton && (
+        <Button
+          variant="primary"
+          size="small"
+          type="button"
+          onClick={getAccountToken()}
+        >
+          Account Token
+        </Button>
+      )}
+
+(
+    {/* <Button
+      href={authurl}
+      variant="primary"
+      size="med"
+      type="button"
+      onClick={startPollingForRefreshToken}
+    >
+      Connect to Marq
+    </Button>
+  ); */}
+
     <Form>
       <Flex direction="row" justify="center" gap="small">
         <Box flex={1}>
