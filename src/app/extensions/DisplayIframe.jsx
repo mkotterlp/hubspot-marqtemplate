@@ -844,6 +844,10 @@ if (!currentRefreshToken) {
                 height: 1500,
                 width: 1500,
                 title: "Marq",
+                onClose: () => {
+                  setIframeOpen(false);  // Set the state to closed
+                  refreshProjects();  // Automatically trigger your recheck logic when the iframe closes
+                },
               });
 
             } else {
