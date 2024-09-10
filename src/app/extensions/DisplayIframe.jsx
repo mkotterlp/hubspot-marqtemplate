@@ -1109,7 +1109,19 @@ useEffect(() => {
 
 
 
-
+useEffect(() => {
+  actions.onMessage((message) => {
+    try {
+      const messageData = JSON.parse(message);
+      if (messageData.action === "DONE") {
+        console.log("Received DONE action from iframe");
+        refreshProjects(); 
+      }
+    } catch (error) {
+      console.error("Error parsing message data:", error);
+    }
+  });
+}, [actions]);
 
 
 useEffect(() => {
