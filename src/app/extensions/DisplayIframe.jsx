@@ -590,10 +590,13 @@ const deleteRecord = async (recordId, objectType) => {
 
 
   const refreshProjects = async () => {
+    console.log("Calling refresh projects")
     if (objectType) {
       setIsLoading(true);
       await fetchAssociatedProjectsAndDetails(objectType);
       setIsLoading(false);
+    } else {
+      console.log("Object type not detected")
     }
   };
 
@@ -845,6 +848,7 @@ if (!currentRefreshToken) {
                 width: 1500,
                 title: "Marq",
                 onClose: () => {
+                  console.log("Iframe has been closed!"); 
                   setIframeOpen(false);  // Set the state to closed
                   refreshProjects();  // Automatically trigger your recheck logic when the iframe closes
                 },
