@@ -45,8 +45,8 @@ const Extension = ({ context, actions, runServerless }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [crmProperties, setCrmProperties] = useState({});
   const [shouldPollForProjects, setShouldPollForProjects] = useState(false); // New state for polling
-  const pollingProjectsIntervalRef = useRef(null);
-  const pollingProjectsTimeoutRef = useRef(null);
+  const [prevProjectCount, setPrevProjectCount] = useState(0);
+
 
   let propertiesBody = {}; 
   let configData = {};
@@ -420,10 +420,11 @@ const deleteRecord = async (recordId, objectType) => {
   }
 
   const fetchAssociatedProjectsAndDetails = useCallback(async (objectType) => {
+    console.log("Fetching projects");
     if (!context.crm.objectId) {
       console.error("No object ID available to fetch associated projects.");
       setIsLoading(false);
-      return;
+      return [];
     }
   
     try {
@@ -437,11 +438,11 @@ const deleteRecord = async (recordId, objectType) => {
   
       if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
         const projectsData = JSON.parse(associatedProjectsResponse.response.body);
-        // console.log("Fetched project data:", projectsData);
+        console.log("Fetched project data:", projectsData);
   
         if (projectsData && projectsData.results && projectsData.results.length > 0) {
           const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
-  
+          
           const projectDetailsResponse = await runServerless({
             name: 'fetchProjectDetails',
             parameters: { objectIds: Array.from(uniqueProjectIds) }
@@ -449,7 +450,6 @@ const deleteRecord = async (recordId, objectType) => {
   
           if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
             const projectDetails = JSON.parse(projectDetailsResponse.response.body);
-            // console.log("Fetched project details:", projectDetails);
   
             const uniqueDetailedProjects = new Map();
             projectsData.results.forEach(project => {
@@ -466,30 +466,19 @@ const deleteRecord = async (recordId, objectType) => {
             const detailedProjects = Array.from(uniqueDetailedProjects.values());
             detailedProjects.sort((a, b) => new Date(b.hs_lastmodifieddate) - new Date(a.hs_lastmodifieddate));
   
-            // console.log("Set project details:", detailedProjects);
-
-
-            
+            // Update state
             setProjects(detailedProjects);
             const totalPages = Math.ceil(detailedProjects.length / RECORDS_PER_PAGE);
             setTotalPages(totalPages);
             setIsLoading(false);
             setDataFetched(true);
-          } else {
-            console.error("Failed to fetch project details or empty response");
-            setIsLoading(false);
-            setDataFetched(true);
+  
+            // Return the detailed projects
+            return detailedProjects;
           }
-        } else {
-          console.error("Failed to fetch associated projects: Empty results array");
-          setIsLoading(false);
-          setDataFetched(true);
         }
-      } else {
-        throw new Error("Invalid or empty response from serverless function 'fetchProjects'.");
-        setIsLoading(false);
-        setDataFetched(true);
       }
+      return [];
     } catch (error) {
       console.error("Failed to fetch associated projects:", error);
       setIsLoading(false);
@@ -499,8 +488,10 @@ const deleteRecord = async (recordId, objectType) => {
         variant: "error",
         message: `Error fetching associated projects: ${error.message || 'No error message available'}`
       });
+      return [];
     }
   }, [context.crm.objectId, runServerless, actions]);
+  
   
 
   const editClick = async (projectId, fileId, encodedoptions) => {
@@ -596,15 +587,24 @@ const deleteRecord = async (recordId, objectType) => {
 
 
   const refreshProjects = async () => {
-    console.log("Calling refresh projects")
+    console.log("Calling refresh projects");
+    
     if (objectType) {
-      setIsLoading(true);
-      await fetchAssociatedProjectsAndDetails(objectType);
-      setIsLoading(false);
+      const previousProjectCount = projects.length;
+  
+      // Fetch the new projects
+      const fetchedProjects = await fetchAssociatedProjectsAndDetails(objectType);
+  
+      // Check if new projects have been added
+      if (fetchedProjects.length > previousProjectCount) {
+        console.log("New projects detected, stopping polling");
+        setShouldPollForProjects(false); // Stop polling
+      }
     } else {
-      console.log("Object type not detected")
+      console.log("Object type not detected");
     }
   };
+  
 
   const setapi = async (userid, userEmail) => {
     try {
@@ -966,32 +966,25 @@ if (!currentRefreshToken) {
   
   useEffect(() => {
     if (shouldPollForProjects) {
-      let pollingDuration = 0;
+      console.log("Polling for projects started");
   
-      const pollingforprojects = () => {
-        console.log("Polling for projects");
-        refreshProjects();
-  
-        pollingDuration += 20000; // Increase duration by 20 seconds after each poll
-  
-        // Continue polling if less than 3 minutes (180000 ms)
-        if (pollingDuration < 180000) {
-          setTimeout(pollingforprojects, 20000); // Poll every 20 seconds
-        } else {
-          console.log("Ending poll for projects after 3 minutes");
-          setShouldPollForProjects(false); // Stop polling after 3 minutes
-        }
+      // Define the polling function
+      const pollingforprojects = async () => {
+        await refreshProjects();  // This will now stop polling if new projects are detected
       };
   
-      // Start polling
-      pollingforprojects();
+      // Start polling every 20 seconds
+      const intervalId = setInterval(pollingforprojects, 20000);
   
-      // Cleanup to ensure no ongoing polling after unmounting or stopping
+      // Cleanup to clear polling when unmounted or polling is stopped
       return () => {
-        setShouldPollForProjects(false);
+        console.log("Stopping polling for projects");
+        clearInterval(intervalId);
+        setShouldPollForProjects(false);  // Stop polling
       };
     }
   }, [shouldPollForProjects, refreshProjects]);
+  
   
   
 
