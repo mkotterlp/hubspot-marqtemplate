@@ -602,7 +602,8 @@ const deleteRecord = async (recordId, objectType) => {
     console.log("Calling refresh projects");
   
     if (objectType) {
-      const previousProjectCount = projects.length;
+      // Get previous project count from ref
+      const previousProjectCount = previousProjectCountRef.current;
       console.log(`Previous project count: ${previousProjectCount}`);
   
       // Fetch the new projects
@@ -620,6 +621,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.log("Object type not detected");
     }
   };
+  
   
   
 
