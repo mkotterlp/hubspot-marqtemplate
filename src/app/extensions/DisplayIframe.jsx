@@ -47,6 +47,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [shouldPollForProjects, setShouldPollForProjects] = useState(false); // New state for polling
   const [prevProjectCount, setPrevProjectCount] = useState(0);
   const previousProjectCountRef = useRef(projects.length); 
+  const pollingTimerRef = useRef(null);
 
 
   let propertiesBody = {}; 
@@ -983,33 +984,42 @@ if (!currentRefreshToken) {
         const pollingforprojects = async () => {
             console.log("Polling for projects");
 
-            const previousProjectCount = previousProjectCountRef.current;  // Use ref for previous project count
+            const previousProjectCount = previousProjectCountRef.current; // Use ref for previous project count
             console.log("Previous project count:", previousProjectCount);
 
-            await refreshProjects();  // Fetch new projects
+            await refreshProjects(); // Fetch new projects
 
-            const fetchedProjectCount = projects.length;  // Capture the updated project count after refresh
+            const fetchedProjectCount = projects.length; // Capture the updated project count after refresh
             console.log("Fetched project count:", fetchedProjectCount);
 
             if (fetchedProjectCount > previousProjectCount) {
                 console.log("New projects detected, stopping polling");
-                setShouldPollForProjects(false);  // Stop polling if new projects are found
+                setShouldPollForProjects(false); // Stop polling if new projects are found
             } else {
                 console.log("No new projects detected, continuing polling");
-                previousProjectCountRef.current = fetchedProjectCount;  // Update ref with the latest project count
-                setTimeout(pollingforprojects, 20000);  // Continue polling every 20 seconds if no new projects
+                previousProjectCountRef.current = fetchedProjectCount; // Update ref with the latest project count
+                pollingTimerRef.current = setTimeout(pollingforprojects, 20000); // Continue polling every 20 seconds if no new projects
             }
         };
+
+        // Clear any existing polling timer before starting a new one
+        if (pollingTimerRef.current) {
+            clearTimeout(pollingTimerRef.current);
+        }
 
         // Start polling
         pollingforprojects();
 
         // Cleanup to ensure no ongoing polling after unmounting or stopping
         return () => {
+            if (pollingTimerRef.current) {
+                clearTimeout(pollingTimerRef.current);
+            }
             setShouldPollForProjects(false);
         };
     }
 }, [shouldPollForProjects, refreshProjects, projects.length]);
+
 
   
   
