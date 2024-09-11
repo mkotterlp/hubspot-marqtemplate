@@ -1540,48 +1540,40 @@ const handleGetAccountToken = async (apiKey, userid, userEmail) => {
     const response = await runServerless({
       name: 'dataTableHandler',
       parameters: {
-        checkExistingToken: true, // Assuming we add this parameter to check token existence
-        userid: userid, // Pass the user ID to the serverless function
+        checkExistingToken: true,
+        userid: userid,
       }
     });
 
-    // Step 2: If account token exists, log it and proceed to dataset creation
     if (response?.response?.body) {
       const body = JSON.parse(response.response.body);
       const existingToken = body.refreshToken;
 
       if (existingToken) {
         console.log("Account token already exists:", existingToken);
-        // Proceed with creating or updating the dataset here
         createOrUpdateDataset(existingToken);
+
+        // Hide the Account Token button once the token is retrieved
+        setShowAccountTokenButton(false); // Hide the button
         return;
       }
     }
 
     // Step 3: If no account token exists, initiate the OAuth flow
-    console.log("No account token found, initiating OAuth flow...");
     const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
+    const authorizationCode = await performOAuthFlow(authorizationUrl);
 
-    if (!authorizationUrl) {
-      throw new Error("Failed to generate authorization URL.");
-    }
-
-    // Chat says to do this but IDK if it will work
-    const authorizationCode = await performOAuthFlow(authorizationUrl); // This is a placeholder for actual OAuth flow
-    
     if (authorizationCode) {
-      console.log("Received authorization code:", authorizationCode);
-      await handleOAuthCallback(authorizationCode);  // Call the callback function inline
+      await handleOAuthCallback(authorizationCode);
+
+      // Hide the Account Token button after successful OAuth flow
+      setShowAccountTokenButton(false); // Hide the button
     }
-
-    // Step 4: Provide the generated authorization URL
-    console.log("Generated Authorization URL:", authorizationUrl);
-    return authorizationUrl;
-
   } catch (error) {
     console.error('Error handling account token click:', error.message);
   }
 };
+
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -1833,7 +1825,6 @@ if (iframeLoading || isLoading) {
 
 
 if (showTemplates) {
-  setShowAccountTokenButton(false)
 
 return (
   <>
