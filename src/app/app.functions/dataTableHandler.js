@@ -27,7 +27,7 @@ exports.main = async (context) => {
                     { name: 'refreshtoken', label: 'Refresh token', type: 'TEXT' },
                     { name: 'datasetid', label: 'Data set ID', type: 'TEXT' },
                     { name: 'collectionid', label: 'Collection ID', type: 'TEXT' },
-                    
+                    { name: 'dataFields', label: 'Data Fields', type: 'TEXT' }  // Added column for designated fields
                 ],
             });
             tableId = tableCreationResponse.id;
@@ -135,7 +135,7 @@ exports.main = async (context) => {
             throw new Error('Failed to fetch rows from the table after publishing');
         }
 
-        // Assuming context.parameters contains necessary keys for filtering config
+        // Step 7: Update fields and schema in HubDB
         const objectType = context.parameters?.objectType?.toLowerCase() || 'default'; // Default object type if not provided
         let relevantRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === objectType);
 
@@ -143,9 +143,36 @@ exports.main = async (context) => {
             throw new Error(`No configuration found for object type: ${objectType}`);
         }
 
+        // Fetch designated fields from the 'dataFields' column
+        const designatedFields = relevantRow.values.dataFields || '';  
+        const designatedFieldList = designatedFields.split(',').map(field => field.trim());
+
+        // Ensure 'Id' (primary field) is included in the fields
+        if (!designatedFieldList.includes('Id')) {
+            designatedFieldList.push('Id');
+        }
+
+        console.log('Designated fields:', designatedFieldList);
+
+        // Update the row with the newly designated fields
+        const updatedRow = {
+            ...relevantRow.values,
+            dataFields: designatedFieldList.join(', ')  // Update the 'dataFields' column with new schema
+        };
+
+        await hubspotClient.cms.hubdb.rowsApi.updateTableRow(tableId, relevantRow.id, { values: updatedRow });
+
+        // Publish the changes to the HubDB table
+        await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+
+        console.log('Fields and schema updated successfully in HubDB.');
+
         return {
-            body: JSON.stringify(relevantRow),
-            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Fields and schema updated successfully in HubDB.',
+                updatedFields: designatedFieldList
+            }),
+            statusCode: 200
         };
     } catch (error) {
         console.error('Error:', {
@@ -160,6 +187,7 @@ exports.main = async (context) => {
         };
     }
 };
+
 
 
 

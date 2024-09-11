@@ -50,7 +50,14 @@
     },
     "updateUserToken": {
       "file": "updateUserToken.js"
+    },
+    "exchangeAuthCodeForToken": {
+      "file": "exchangeAuthCodeForToken.js"
+    },
+    "createDataset": {
+      "file": "createDataset.js"
     }
+    
 
 
     

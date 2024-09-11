@@ -702,93 +702,89 @@ const deleteRecord = async (recordId, objectType) => {
   //   return null;  // Return null if the API key was not retrieved
   // };
 
-
   const handleClick = async (template) => {
-
     let iframeSrc = 'https://info.marq.com/loading';
-
-
-     setIframeUrl(iframeSrc);
-     actions.openIframeModal({
-       uri: iframeSrc,
-       height: 1500,
-       width: 1500,
-       title: "Marq",
-     });
-     setIframeOpen(true);
-   
-
+    setIframeUrl(iframeSrc);
+    actions.openIframeModal({
+      uri: iframeSrc,
+      height: 1500,
+      width: 1500,
+      title: "Marq",
+    });
+    setIframeOpen(true);
+  
     try {
       console.log("Template clicked:", template.id, template.title);
       const userId = context.user.id;
-
-    
-
-if (!currentRefreshToken) {
-      try {
-        console.log("Polling for refresh token...");
-        const createusertable = await runServerless({
-          name: 'marqouathhandler',
-          parameters: { userID: userId }
-        });
-        console.log("Response from serverless function:", createusertable); 
-    
-        if (createusertable?.response?.body) {
-          console.log("Received response from serverless function:", createusertable);
-    
-          // Access row and values properly
-          const responseBody = JSON.parse(createusertable.response.body);
-          const userData = responseBody?.row?.values || {};
-          
-          console.log("userData:", userData);
-    
-          currentRefreshToken = userData?.refreshToken || null;
   
-          console.log("currentRefreshToken:", currentRefreshToken);
-    
-          if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
-            console.log("Refresh token found:", currentRefreshToken);
+      // Step 1: Check for existing refresh token
+      if (!currentRefreshToken) {
+        try {
+          console.log("Polling for refresh token...");
+          const createusertable = await runServerless({
+            name: 'marqouathhandler',
+            parameters: { userID: userId }
+          });
+  
+          if (createusertable?.response?.body) {
+            const responseBody = JSON.parse(createusertable.response.body);
+            const userData = responseBody?.row?.values || {};
+            currentRefreshToken = userData?.refreshToken || null;
+            if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
+              console.log("Refresh token not found");
+              setShowTemplates(false);
+            }
           } else {
-            console.log("Refresh token not found");
-            setShowTemplates(false);
+            console.log("No response body from serverless function.");
           }
-        } else {
-          console.log("No response body from serverless function.");
+        } catch (error) {
+          console.error("Error while polling for refresh token:", error);
         }
-      } catch (error) {
-        console.error("Error while polling for refresh token:", error);
       }
-    }
-
-
+  
       const userid = context.user.id;
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid; 
       const marqaccountid = "163559625"; 
       const recordid = context.crm?.objectId?.toString() || '';
-      const templateid = template?.id || ''; // Fetching template ID from the clicked template
-      const templatetitle = template?.title || ''; // Fetching template title from the clicked template
-      console.log(`marquserid: ${marquserId}`)
-
-
-      const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
-        ? context.crm.properties[configData.value]
-        : null;
-
+      const templateid = template?.id || '';
+      const templatetitle = template?.title || '';
+      console.log(`marquserid: ${marquserId}`);
+  
       const contactId = context.crm.objectId;
-
       const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
       const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
       const showTabs = configData.showTabs?.map(tab => tab.name) || ["templates"];
       const configType = configData.configType?.name || "single";
       const dataSetType = configData.dataSetType?.name || "custom";
-      const dataSetId = configData.dataSetId || `HB.${objectType}`;
       const key = configData.key || "id";
-      // console.log("handleClick parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
-
-
-
+  
+      // Step 2: Retrieve or create the dataset ID
+      let dataSetId;
+      if (dataSetType === 'custom') {
+        // Call the createDataset serverless function to create or get a dataset
+        const createDatasetResponse = await runServerless({
+          name: 'createDataset',
+          parameters: {
+            refreshToken: currentRefreshToken,
+            schema: [
+              { name: "Id", fieldType: "STRING", isPrimary: true },
+              // Add other fields as required
+            ]
+          }
+        });
+  
+        if (createDatasetResponse?.response?.body) {
+          const datasetData = JSON.parse(createDatasetResponse.response.body);
+          dataSetId = datasetData.dataSourceId;
+          console.log("DataSet ID:", dataSetId);
+        } else {
+          console.error("Failed to create or get dataset.");
+          return;
+        }
+      }
+  
       const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
         enabledFeatures,
         fileTypes,
@@ -797,151 +793,308 @@ if (!currentRefreshToken) {
   
       let importData = '';
       if (dataSetType === 'property listing') {
-        importData = `propertyId=${dynamicValue || context.crm.objectId}`;
+        importData = `propertyId=${context.crm.objectId}`;
       } else if (dataSetType === 'custom') {
-        importData = `dataSetId=${dataSetId}&key=${key}&value=${dynamicValue || context.crm.objectId}`;
+        importData = `dataSetId=${dataSetId}&key=${key}&value=${context.crm.objectId}`;
       }
   
       const hasImportData = dataSetType !== 'none' && importData;
   
-      // Step 1: Call the createProject serverless function to create a new project and get the project ID
+      // Step 3: Call the createProject serverless function to create a new project and get the project ID
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
           refresh_token: currentRefreshToken,
-          clientid: clientid,                  // Pass client ID
-          clientsecret: clientsecret,          // Pass client secret
-          marquserId: marquserId,                      // Pass user ID
-          recordid: recordid,                  // Pass CRM record ID
-          templateid: templateid,              // Pass template ID
-          templatetitle: templatetitle,        // Pass template title
+          clientid: clientid,
+          clientsecret: clientsecret,
+          marquserId: marquserId,
+          recordid: recordid,
+          templateid: templateid,
+          templatetitle: templatetitle,
           marqaccountid: marqaccountid,
-          dataSetId: dataSetId
+          dataSetId: dataSetId // Send the retrieved or created dataset ID
         }
-  
       });
-
-
   
-      // Step 2: Retrieve the projectId from the createProject response
-      if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
+      // Step 4: Retrieve the projectId from the createProject response
+      if (createProjectResponse?.response?.body) {
         const projectData = JSON.parse(createProjectResponse.response.body);
         console.log("Project created:", projectData);
-  
-        const projectId = projectData.documentid; // Get the project ID from the response
+        const projectId = projectData.documentid;
+        currentRefreshToken = projectData.new_refresh_token;
         console.log("Created Project ID:", projectId);
-
-        currentRefreshToken = projectData.new_refresh_token
-        console.log("refresh_token after project is created: ", currentRefreshToken)
   
-        // // Step 3: Fetch associated projects and check if they are linked to this projectId
-        // const associatedProjectsResponse = await runServerless({
-        //   name: 'fetchProjects',
-        //   parameters: {
-        //     fromObjectId: context.crm.objectId,
-        //     fromObjectType: objectType
-        //   }
-        // });
+        setIframeLoading(false);
+        if (!projectId) {
+          currentRefreshToken = '';
+          setShowTemplates(false);
+          actions.addAlert({
+            title: "Error with creating project",
+            variant: "danger",
+            message: `There was an error with creating the project. Please try connecting to Marq again`
+          });
+          return;
+        }
   
-        // if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
-        //   const projectsData = JSON.parse(associatedProjectsResponse.response.body);
-        //   // console.log("Fetched project data:", projectsData);
-  
-        //   if (projectsData && projectsData.results && projectsData.results.length > 0) {
-        //     const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
-  
-        //     // Fetch project details using the unique project IDs
-        //     const projectDetailsResponse = await runServerless({
-        //       name: 'fetchProjectDetails',
-        //       parameters: { objectIds: Array.from(uniqueProjectIds) }
-        //     });
-  
-        //     if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
-        //       const projectDetails = JSON.parse(projectDetailsResponse.response.body);
-        //       // console.log("Fetched project details:", projectDetails);
-  
-        //       const associatedProjectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
-        //       // console.log("Associated Project ID:", associatedProjectId);
-  
-              // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
-
-              setIframeLoading(false);
-              if(!projectId) {
-                currentRefreshToken = '';
-                setShowTemplates(false);
-              actions.addAlert({
-                title: "Error with creating project",
-                variant: "danger",
-                message: `There was an error with creating the project. Please try connecting to Marq again`
-              });
-
-              try {
-                const updateResult = await runServerless({
-                  name: 'updateUserRefresh',
-                  parameters: {
-                    userID: userid,
-                    newrefreshtoken: currentRefreshToken
-                  }
-                });
-              } catch (updateError) {
-                console.error("Error occurred while trying to update HubDB:", updateError);
-              }
-
-                return
-
-              }
-
-
-                const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
-                const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
-                iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
-              
-  
-              // Step 5: Open the iframe with the generated URL
-              setIframeUrl(iframeSrc);
-
-
-              setIframeUrl(iframeSrc);
-              actions.openIframeModal({
-                uri: iframeSrc,
-                height: 1500,
-                width: 1500,
-                title: "Marq",
-              });
-
-            } else {
-              console.error("Failed to fetch project details or empty response");
-            }
-
-            try {
-              const updateResult = await runServerless({
-                name: 'updateUserRefresh',
-                parameters: {
-                  userID: userid,
-                  newrefreshtoken: currentRefreshToken,
-                  // newrefreshtoken: newrefreshtoken
-
-                }
-              });
-            } catch (updateError) {
-              console.error("Error occurred while trying to update HubDB:", updateError);
-            }
-
-    //       } else {
-    //         console.error("Failed to fetch associated projects: Empty results array");
-    //       }
-    //     } else {
-    //       console.error("Failed to fetch associated projects.");
-    //     }
-    //   } else {
-    //     console.error("Failed to create project or empty response.");
-    //   }
-  
- } 
-    catch (error) {
+        const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+        const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+        setIframeUrl(iframeSrc);
+        actions.openIframeModal({
+          uri: iframeSrc,
+          height: 1500,
+          width: 1500,
+          title: "Marq",
+        });
+      } else {
+        console.error("Failed to create project.");
+      }
+    } catch (error) {
       console.error('Error in handleClick:', error);
     }
   };
+  
+
+// ORIGINAL handleClick FUNCTION BEFORE THE adding HANDLEGETACCOUNTTOKEN FUNCTION STUFF
+//   const handleClick = async (template) => {
+
+//     let iframeSrc = 'https://info.marq.com/loading';
+
+
+//      setIframeUrl(iframeSrc);
+//      actions.openIframeModal({
+//        uri: iframeSrc,
+//        height: 1500,
+//        width: 1500,
+//        title: "Marq",
+//      });
+//      setIframeOpen(true);
+   
+
+//     try {
+//       console.log("Template clicked:", template.id, template.title);
+//       const userId = context.user.id;
+
+    
+
+// if (!currentRefreshToken) {
+//       try {
+//         console.log("Polling for refresh token...");
+//         const createusertable = await runServerless({
+//           name: 'marqouathhandler',
+//           parameters: { userID: userId }
+//         });
+//         console.log("Response from serverless function:", createusertable); 
+    
+//         if (createusertable?.response?.body) {
+//           console.log("Received response from serverless function:", createusertable);
+    
+//           // Access row and values properly
+//           const responseBody = JSON.parse(createusertable.response.body);
+//           const userData = responseBody?.row?.values || {};
+          
+//           console.log("userData:", userData);
+    
+//           currentRefreshToken = userData?.refreshToken || null;
+  
+//           console.log("currentRefreshToken:", currentRefreshToken);
+    
+//           if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
+//             console.log("Refresh token found:", currentRefreshToken);
+//           } else {
+//             console.log("Refresh token not found");
+//             setShowTemplates(false);
+//           }
+//         } else {
+//           console.log("No response body from serverless function.");
+//         }
+//       } catch (error) {
+//         console.error("Error while polling for refresh token:", error);
+//       }
+//     }
+
+
+//       const userid = context.user.id;
+//       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+//       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+//       const marquserId = marquserid; 
+//       const marqaccountid = "163559625"; 
+//       const recordid = context.crm?.objectId?.toString() || '';
+//       const templateid = template?.id || ''; // Fetching template ID from the clicked template
+//       const templatetitle = template?.title || ''; // Fetching template title from the clicked template
+//       console.log(`marquserid: ${marquserId}`)
+
+
+//       const dynamicValue = (configData.value && context.crm.properties && configData.value in context.crm.properties)
+//         ? context.crm.properties[configData.value]
+//         : null;
+
+//       const contactId = context.crm.objectId;
+
+//       const enabledFeatures = configData.enabledFeatures?.map(feature => feature.name) || ["share"];
+//       const fileTypes = configData.fileTypes?.map(fileType => fileType.name) || ["pdf"];
+//       const showTabs = configData.showTabs?.map(tab => tab.name) || ["templates"];
+//       const configType = configData.configType?.name || "single";
+//       const dataSetType = configData.dataSetType?.name || "custom";
+//       const dataSetId = configData.dataSetId || `HB.${objectType}`;
+//       const key = configData.key || "id";
+//       // console.log("handleClick parameters:", { refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId });
+
+
+
+//       const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+//         enabledFeatures,
+//         fileTypes,
+//         showTabs,
+//       })));
+  
+//       let importData = '';
+//       if (dataSetType === 'property listing') {
+//         importData = `propertyId=${dynamicValue || context.crm.objectId}`;
+//       } else if (dataSetType === 'custom') {
+//         importData = `dataSetId=${dataSetId}&key=${key}&value=${dynamicValue || context.crm.objectId}`;
+//       }
+  
+//       const hasImportData = dataSetType !== 'none' && importData;
+  
+//       // Step 1: Call the createProject serverless function to create a new project and get the project ID
+//       const createProjectResponse = await runServerless({
+//         name: 'createProject',
+//         parameters: {
+//           refresh_token: currentRefreshToken,
+//           clientid: clientid,                  // Pass client ID
+//           clientsecret: clientsecret,          // Pass client secret
+//           marquserId: marquserId,                      // Pass user ID
+//           recordid: recordid,                  // Pass CRM record ID
+//           templateid: templateid,              // Pass template ID
+//           templatetitle: templatetitle,        // Pass template title
+//           marqaccountid: marqaccountid,
+//           dataSetId: dataSetId
+//         }
+  
+//       });
+
+
+  
+//       // Step 2: Retrieve the projectId from the createProject response
+//       if (createProjectResponse && createProjectResponse.response && createProjectResponse.response.body) {
+//         const projectData = JSON.parse(createProjectResponse.response.body);
+//         console.log("Project created:", projectData);
+  
+//         const projectId = projectData.documentid; // Get the project ID from the response
+//         console.log("Created Project ID:", projectId);
+
+//         currentRefreshToken = projectData.new_refresh_token
+//         console.log("refresh_token after project is created: ", currentRefreshToken)
+  
+//         // // Step 3: Fetch associated projects and check if they are linked to this projectId
+//         // const associatedProjectsResponse = await runServerless({
+//         //   name: 'fetchProjects',
+//         //   parameters: {
+//         //     fromObjectId: context.crm.objectId,
+//         //     fromObjectType: objectType
+//         //   }
+//         // });
+  
+//         // if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
+//         //   const projectsData = JSON.parse(associatedProjectsResponse.response.body);
+//         //   // console.log("Fetched project data:", projectsData);
+  
+//         //   if (projectsData && projectsData.results && projectsData.results.length > 0) {
+//         //     const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
+  
+//         //     // Fetch project details using the unique project IDs
+//         //     const projectDetailsResponse = await runServerless({
+//         //       name: 'fetchProjectDetails',
+//         //       parameters: { objectIds: Array.from(uniqueProjectIds) }
+//         //     });
+  
+//         //     if (projectDetailsResponse && projectDetailsResponse.response && projectDetailsResponse.response.body) {
+//         //       const projectDetails = JSON.parse(projectDetailsResponse.response.body);
+//         //       // console.log("Fetched project details:", projectDetails);
+  
+//         //       const associatedProjectId = projectDetails[0].projectid; // Assuming the first result is the relevant one
+//         //       // console.log("Associated Project ID:", associatedProjectId);
+  
+//               // Step 4: Now proceed with the iframe URL creation using projectId and other necessary details
+
+//               setIframeLoading(false);
+//               if(!projectId) {
+//                 currentRefreshToken = '';
+//                 setShowTemplates(false);
+//               actions.addAlert({
+//                 title: "Error with creating project",
+//                 variant: "danger",
+//                 message: `There was an error with creating the project. Please try connecting to Marq again`
+//               });
+
+//               try {
+//                 const updateResult = await runServerless({
+//                   name: 'updateUserRefresh',
+//                   parameters: {
+//                     userID: userid,
+//                     newrefreshtoken: currentRefreshToken
+//                   }
+//                 });
+//               } catch (updateError) {
+//                 console.error("Error occurred while trying to update HubDB:", updateError);
+//               }
+
+//                 return
+
+//               }
+
+
+//                 const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+//                 const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+//                 iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+              
+  
+//               // Step 5: Open the iframe with the generated URL
+//               setIframeUrl(iframeSrc);
+
+
+//               setIframeUrl(iframeSrc);
+//               actions.openIframeModal({
+//                 uri: iframeSrc,
+//                 height: 1500,
+//                 width: 1500,
+//                 title: "Marq",
+//               });
+
+//             } else {
+//               console.error("Failed to fetch project details or empty response");
+//             }
+
+//             try {
+//               const updateResult = await runServerless({
+//                 name: 'updateUserRefresh',
+//                 parameters: {
+//                   userID: userid,
+//                   newrefreshtoken: currentRefreshToken,
+//                   // newrefreshtoken: newrefreshtoken
+
+//                 }
+//               });
+//             } catch (updateError) {
+//               console.error("Error occurred while trying to update HubDB:", updateError);
+//             }
+
+//     //       } else {
+//     //         console.error("Failed to fetch associated projects: Empty results array");
+//     //       }
+//     //     } else {
+//     //       console.error("Failed to fetch associated projects.");
+//     //     }
+//     //   } else {
+//     //     console.error("Failed to create project or empty response.");
+//     //   }
+  
+//  } 
+//     catch (error) {
+//       console.error('Error in handleClick:', error);
+//     }
+//   };
   
 
   
@@ -1532,10 +1685,9 @@ function getAuthorizationUrlForData(apiKey, userid, userEmail) {
 
 const handleOAuthCallback = async (code) => {
   try {
-    // Call the serverless function to exchange the authorization code for a token
     const tokenResponse = await runServerless({
       name: 'exchangeAuthCodeForToken',
-      parameters: { code }  // Pass the authorization code
+      parameters: { code }
     });
 
     if (tokenResponse?.response?.body) {
@@ -1544,9 +1696,24 @@ const handleOAuthCallback = async (code) => {
 
       if (refreshToken) {
         console.log("Received refresh token:", refreshToken);
-        // Save the token to HubDB and proceed to dataset creation
+        
         await saveTokenToTable(refreshToken);
-        createOrUpdateDataset(refreshToken);
+        
+        // Create dataset first
+        const datasetResponse = await createOrUpdateDataset(refreshToken);
+        const { collectionId, dataSourceId } = datasetResponse; // Get collectionId, dataSourceId from response
+
+        // Call updateDataset here
+        await runServerless({
+          name: 'updateDataset',
+          parameters: {
+            refreshToken,
+            collectionId,
+            dataSourceId,
+            userData: { /* user-specific data */ },
+            customFields: { /* custom fields */ }
+          }
+        });
       }
     } else {
       console.error("Failed to exchange code for token.");
@@ -1555,6 +1722,7 @@ const handleOAuthCallback = async (code) => {
     console.error('Error handling OAuth callback:', error.message);
   }
 };
+
 
 // Chat says to do this but IDK if it will work
 const performOAuthFlow = async (authorizationUrl) => {
@@ -1602,14 +1770,13 @@ async function saveTokenToTable(refreshToken) {
 
 const createOrUpdateDataset = async (refreshToken) => {
   try {
-    // Prepare the schema and other dataset details
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true },
       // Add other fields as required
     ];
 
     const response = await runServerless({
-      name: 'createOrUpdateDataset',
+      name: 'createDataset',
       parameters: {
         refreshToken: refreshToken,
         schema: schema
@@ -1618,6 +1785,21 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     if (response?.response?.statusCode === 200) {
       console.log("Dataset created or updated successfully.");
+
+      // Call updateDataset function here after creating/updating dataset
+      const { collectionId, dataSourceId } = response.response.body; // Retrieve from response
+
+      await runServerless({
+        name: 'updateDataset',
+        parameters: {
+          refreshToken,
+          collectionId,
+          dataSourceId,
+          userData: { /* user-specific data */ }, // Provide user-specific data here
+          customFields: { /* any custom fields to send */ }
+        }
+      });
+
     } else {
       console.error("Failed to create or update dataset.");
     }
@@ -1660,23 +1842,14 @@ return (
           variant="primary"
           size="small"
           type="button"
-          onClick={getAccountToken()}
+          onClick={handleGetAccountToken()}
         >
           Account Token
         </Button>
       )}
 
 (
-    {/* <Button
-      href={authurl}
-      variant="primary"
-      size="med"
-      type="button"
-      onClick={startPollingForRefreshToken}
-    >
-      Connect to Marq
-    </Button>
-  ); */}
+    
 
     <Form>
       <Flex direction="row" justify="center" gap="small">
