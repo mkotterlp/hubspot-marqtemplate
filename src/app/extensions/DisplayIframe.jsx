@@ -964,7 +964,6 @@ if (!currentRefreshToken) {
     };
   }, [isPolling]);
   
-  
   useEffect(() => {
     if (shouldPollForProjects) {
       let pollingDuration = 0;
@@ -977,7 +976,7 @@ if (!currentRefreshToken) {
   
         // Continue polling if less than 3 minutes (180000 ms)
         if (pollingDuration < 180000) {
-          setTimeout(poll, 20000); // Poll every 20 seconds
+          setTimeout(pollingforprojects, 20000); // Poll every 20 seconds
         } else {
           console.log("Ending poll for projects after 3 minutes");
           setShouldPollForProjects(false); // Stop polling after 3 minutes
@@ -993,6 +992,7 @@ if (!currentRefreshToken) {
       };
     }
   }, [shouldPollForProjects, refreshProjects]);
+  
   
 
   useEffect(() => {
