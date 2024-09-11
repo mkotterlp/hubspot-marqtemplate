@@ -840,6 +840,9 @@ if (!currentRefreshToken) {
                 message: `There was an error with creating the project. Please try connecting to Marq again`
               });
 
+              actions.closeIframeModal(); 
+              setIframeOpen(false);
+
               try {
                 const updateResult = await runServerless({
                   name: 'updateUserRefresh',
@@ -852,8 +855,7 @@ if (!currentRefreshToken) {
                 console.error("Error occurred while trying to update HubDB:", updateError);
               }
 
-              actions.closeIframeModal(); 
-              setIframeOpen(false);
+             
 
                 return
 
