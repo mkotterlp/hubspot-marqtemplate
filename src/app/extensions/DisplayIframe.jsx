@@ -48,6 +48,8 @@ const Extension = ({ context, actions, runServerless }) => {
   const [prevProjectCount, setPrevProjectCount] = useState(0);
   const previousProjectCountRef = useRef(projects.length); 
   const pollingTimerRef = useRef(null);
+  const [hasSyncedOnce, setHasSyncedOnce] = useState(false);
+
 
 
   let propertiesBody = {}; 
