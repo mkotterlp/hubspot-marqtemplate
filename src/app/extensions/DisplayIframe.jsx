@@ -259,9 +259,12 @@ const Extension = ({ context, actions, runServerless }) => {
               console.error("Error occurred while fetching CRM properties:", propertiesError);
             }
           }
+
           
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
+            console.log('applying templates')
+
             try {
               setIsLoading(true);
               const templatesResponse = await runServerless({
