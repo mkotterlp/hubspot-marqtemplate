@@ -830,6 +830,9 @@ if (!currentRefreshToken) {
                 console.error("Error occurred while trying to update HubDB:", updateError);
               }
 
+              actions.closeIframeModal(); 
+              setIframeOpen(false);
+
                 return
 
               }
@@ -856,7 +859,7 @@ if (!currentRefreshToken) {
                   refreshProjects();  // Automatically trigger your recheck logic when the iframe closes
                 },
               });
-              setShouldPollForProjects(false);
+              setShouldPollForProjects(true);
 
             } else {
               console.error("Failed to fetch project details or empty response");
@@ -868,8 +871,6 @@ if (!currentRefreshToken) {
                 parameters: {
                   userID: userid,
                   newrefreshtoken: currentRefreshToken,
-                  // newrefreshtoken: newrefreshtoken
-
                 }
               });
             } catch (updateError) {
@@ -889,6 +890,10 @@ if (!currentRefreshToken) {
  } 
     catch (error) {
       console.error('Error in handleClick:', error);
+
+      actions.closeIframeModal(); 
+      setIframeOpen(false);
+      setShouldPollForProjects(false);
     }
   };
   
