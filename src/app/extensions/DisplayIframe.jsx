@@ -480,7 +480,7 @@ const deleteRecord = async (recordId, objectType) => {
             // Return the detailed projects
             return detailedProjects;
           }
-        }
+        } 
       }
       return [];
     } catch (error) {
@@ -1792,26 +1792,26 @@ const handleOAuthCallback = async (code) => {
 
 
 
-// Chat says to do this but IDK if it will work
-const performOAuthFlow = async (authorizationUrl) => {
-  return new Promise((resolve, reject) => {
-    const authWindow = window.open(authorizationUrl, 'OAuthWindow', 'width=500,height=600');
+// // Chat says to do this but IDK if it will work
+// const performOAuthFlow = async (authorizationUrl) => {
+//   return new Promise((resolve, reject) => {
+//     const authWindow = window.open(authorizationUrl, 'OAuthWindow', 'width=500,height=600');
 
-    const checkOAuthWindow = setInterval(() => {
-      if (authWindow.closed) {
-        clearInterval(checkOAuthWindow);
-        // Here you would retrieve the authorization code from the window once it’s closed
-        // This is where you capture the code from the popup URL or session storage
-        const code = sessionStorage.getItem('oauth_code');  // Just an example of where to store the code
-        if (code) {
-          resolve(code);
-        } else {
-          reject('Authorization code not found');
-        }
-      }
-    }, 1000);  // Check every second if the window has closed
-  });
-};
+//     const checkOAuthWindow = setInterval(() => {
+//       if (authWindow.closed) {
+//         clearInterval(checkOAuthWindow);
+//         // Here you would retrieve the authorization code from the window once it’s closed
+//         // This is where you capture the code from the popup URL or session storage
+//         const code = sessionStorage.getItem('oauth_code');  // Just an example of where to store the code
+//         if (code) {
+//           resolve(code);
+//         } else {
+//           reject('Authorization code not found');
+//         }
+//       }
+//     }, 1000);  // Check every second if the window has closed
+//   });
+// };
 
 
 
