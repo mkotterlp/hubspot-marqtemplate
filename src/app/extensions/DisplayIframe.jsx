@@ -1624,12 +1624,12 @@ const handleGetAccountToken = async (apiKey, userid, userEmail) => {
     const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
     // const authorizationCode = await performOAuthFlow(authorizationUrl);
 
-    if (authorizationCode) {
-      // await handleOAuthCallback(authorizationCode);
+    // if (authorizationCode) {
+    //   // await handleOAuthCallback(authorizationCode);
 
-      // Hide the Account Token button after successful OAuth flow
-      setShowAccountTokenButton(false); // Hide the button
-    }
+    //   // Hide the Account Token button after successful OAuth flow
+    //   setShowAccountTokenButton(false); // Hide the button
+    // }
   } catch (error) {
     console.error('Error handling account token click:', error.message);
   }
