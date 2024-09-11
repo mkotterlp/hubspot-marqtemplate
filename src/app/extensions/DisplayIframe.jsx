@@ -965,7 +965,10 @@ if (!currentRefreshToken) {
 
   // Polling effect triggered by shouldPollForProjects state
   useEffect(() => {
+    console.log("Polling for projects updated")
     if (shouldPollForProjects) {
+      console.log("Starting poll for projects")
+
       // Start polling every 20 seconds
       pollingProjectsIntervalRef.current = setInterval(() => {
         refreshProjects();
@@ -973,6 +976,7 @@ if (!currentRefreshToken) {
 
       // Stop polling after 3 minutes
       pollingProjectsTimeoutRef.current = setTimeout(() => {
+        console.log("Ending poll for projects")
         stopPollingForProjects();
       }, 180000); // 3 minutes
     }
