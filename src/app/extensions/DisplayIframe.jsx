@@ -44,6 +44,9 @@ const Extension = ({ context, actions, runServerless }) => {
   const RECORDS_PER_PAGE = 10;
   const [hoveredRow, setHoveredRow] = useState(null);
   const [crmProperties, setCrmProperties] = useState({});
+  const [shouldPollForProjects, setShouldPollForProjects] = useState(false); // New state for polling
+  const pollingProjectsIntervalRef = useRef(null);
+  const pollingProjectsTimeoutRef = useRef(null);
 
   let propertiesBody = {}; 
   let configData = {};
@@ -853,6 +856,7 @@ if (!currentRefreshToken) {
                   refreshProjects();  // Automatically trigger your recheck logic when the iframe closes
                 },
               });
+              setShouldPollForProjects(false);
 
             } else {
               console.error("Failed to fetch project details or empty response");
@@ -937,7 +941,39 @@ if (!currentRefreshToken) {
     }
   };
   
-  
+  const stopPollingForProjects = () => {
+    if (pollingProjectsIntervalRef.current) {
+      clearInterval(pollingProjectsIntervalRef.current);
+      pollingProjectsIntervalRef.current = null;
+    }
+
+    if (pollingProjectsTimeoutRef.current) {
+      clearTimeout(pollingProjectsTimeoutRef.current);
+      pollingProjectsTimeoutRef.current = null;
+    }
+
+    setShouldPollForProjects(false); // Stop polling
+  };
+
+  // Polling effect triggered by shouldPollForProjects state
+  useEffect(() => {
+    if (shouldPollForProjects) {
+      // Start polling every 20 seconds
+      pollingProjectsIntervalRef.current = setInterval(() => {
+        refreshProjects();
+      }, 20000); // Poll every 20 seconds
+
+      // Stop polling after 3 minutes
+      pollingProjectsTimeoutRef.current = setTimeout(() => {
+        stopPollingForProjects();
+      }, 180000); // 3 minutes
+    }
+
+    // Cleanup function to clear interval and timeout when polling stops
+    return () => {
+      stopPollingForProjects(); // Stop polling if component unmounts or polling is turned off
+    };
+  }, [shouldPollForProjects]); 
   
   useEffect(() => {
     let pollInterval;
