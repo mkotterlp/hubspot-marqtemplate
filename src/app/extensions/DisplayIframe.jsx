@@ -1674,14 +1674,15 @@ function getAuthorizationUrlForData(apiKey, userid, userEmail) {
   }
 }
 
-
 const handleOAuthCallback = async (code) => {
   try {
+    // Step 1: Exchange the authorization code for a token
     const tokenResponse = await runServerless({
       name: 'exchangeAuthCodeForToken',
       parameters: { code }
     });
 
+    // Step 2: Parse the token response to get the refresh token
     if (tokenResponse?.response?.body) {
       const body = JSON.parse(tokenResponse.response.body);
       const refreshToken = body.refresh_token;
@@ -1689,23 +1690,36 @@ const handleOAuthCallback = async (code) => {
       if (refreshToken) {
         console.log("Received refresh token:", refreshToken);
         
+        // Step 3: Save the refresh token to the database
         await saveTokenToTable(refreshToken);
         
-        // Create dataset first
+        // Step 4: Create or update the dataset and get collectionId and dataSourceId
         const datasetResponse = await createOrUpdateDataset(refreshToken);
-        const { collectionId, dataSourceId } = datasetResponse; // Get collectionId, dataSourceId from response
 
-        // Call updateDataset here
-        await runServerless({
-          name: 'updateDataset',
-          parameters: {
-            refreshToken,
-            collectionId,
-            dataSourceId,
-            userData: { /* user-specific data */ },
-            customFields: { /* custom fields */ }
+        if (datasetResponse) {
+          const { collectionId, dataSourceId } = datasetResponse; // Get collectionId, dataSourceId from response
+
+          if (collectionId && dataSourceId) {
+            // Step 5: Call updateDataset to send the data to the dataset
+            await runServerless({
+              name: 'updateDataset',
+              parameters: {
+                refreshToken,
+                collectionId,
+                dataSourceId,
+                clientid: 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa',  // Client ID
+                clientsecret: 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX', // Client Secret
+                userData: { /* user-specific data */ },   // Provide user-specific data here
+                customFields: { /* any custom fields to send */ }
+              }
+            });
+            console.log("Data sent successfully to the dataset.");
+          } else {
+            console.error("Missing collectionId or dataSourceId from dataset creation response.");
           }
-        });
+        } else {
+          console.error("Failed to create or update dataset.");
+        }
       }
     } else {
       console.error("Failed to exchange code for token.");
@@ -1714,6 +1728,7 @@ const handleOAuthCallback = async (code) => {
     console.error('Error handling OAuth callback:', error.message);
   }
 };
+
 
 
 // Chat says to do this but IDK if it will work
@@ -1759,46 +1774,67 @@ async function saveTokenToTable(refreshToken) {
   }
 }
 
-
 const createOrUpdateDataset = async (refreshToken) => {
   try {
+    // Define the schema for the dataset
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true },
-      // Add other fields as required
+      // Add additional fields as required
     ];
 
-    const response = await runServerless({
+    // Step 1: Call the createDataset serverless function to create or update the dataset
+    const createDatasetResponse = await runServerless({
       name: 'createDataset',
       parameters: {
-        refreshToken: refreshToken,
-        schema: schema
+        refreshToken: refreshToken,             // Pass the refresh token
+        clientid: 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa',  // Client ID
+        clientsecret: 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX', // Client Secret
+        collectionId: collectionId,             // Pass the collection ID (if available)
+        dataSourceId: dataSourceId,             // Pass the data source ID (if available)
+        properties: properties,                 // Pass any relevant user data as properties
+        schema: schema                          // Pass the schema for the dataset
       }
     });
-
-    if (response?.response?.statusCode === 200) {
+    
+    if (createDatasetResponse?.response?.statusCode === 200) {
       console.log("Dataset created or updated successfully.");
 
-      // Call updateDataset function here after creating/updating dataset
-      const { collectionId, dataSourceId } = response.response.body; // Retrieve from response
+      // Step 2: Retrieve collectionId and dataSourceId from the createDataset response
+      const { collectionId: newCollectionId, dataSourceId: newDataSourceId } = createDatasetResponse.response.body; 
 
-      await runServerless({
+      // Update the collectionId and dataSourceId from the response if they are available
+      const finalCollectionId = newCollectionId || collectionId;
+      const finalDataSourceId = newDataSourceId || dataSourceId;
+
+      // Step 3: Call the updateDataset serverless function to send data to the dataset
+      const updateResponse = await runServerless({
         name: 'updateDataset',
         parameters: {
-          refreshToken,
-          collectionId,
-          dataSourceId,
-          userData: { /* user-specific data */ }, // Provide user-specific data here
-          customFields: { /* any custom fields to send */ }
+          refreshToken: refreshToken,          // Pass the refresh token
+          clientid: 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa',   // Client ID
+          clientsecret: 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX', // Client Secret
+          collectionId: finalCollectionId,     // Use the new or existing collection ID
+          dataSourceId: finalDataSourceId,     // Use the new or existing data source ID
+          properties: properties,              // Pass user-specific data as properties
+          schema: schema                       // Pass the same schema used in createDataset
         }
       });
 
+      // Step 4: Check the response from the updateDataset function
+      if (updateResponse?.response?.statusCode === 200) {
+        console.log("Data sent successfully to the dataset.");
+      } else {
+        console.error("Failed to send data to the dataset:", updateResponse?.response?.body);
+      }
+
     } else {
-      console.error("Failed to create or update dataset.");
+      console.error("Failed to create or update dataset:", createDatasetResponse?.response?.body);
     }
   } catch (error) {
     console.error('Error creating or updating dataset:', error.message);
   }
 };
+
 
 //===================================================================================================
 //===================================================================================================

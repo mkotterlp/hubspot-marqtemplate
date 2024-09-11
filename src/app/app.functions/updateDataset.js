@@ -3,13 +3,13 @@ const axios = require('axios');
 exports.main = async (context) => {
   try {
     // Extract parameters from the serverless context
-    const { refreshToken, collectionId, dataSourceId, userData, customFields } = context.parameters;
+    const { refreshToken, collectionId, dataSourceId, clientid, clientsecret, properties, schema } = context.parameters;
 
-    if (!refreshToken || !collectionId || !dataSourceId) {
+    if (!refreshToken || !collectionId || !dataSourceId || !clientid || !clientsecret) {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          error: 'Missing required parameters: refreshToken, collectionId, or dataSourceId',
+          error: 'Missing required parameters: refreshToken, collectionId, dataSourceId, clientid, or clientsecret',
         }),
       };
     }
@@ -17,14 +17,12 @@ exports.main = async (context) => {
     // Step 1: Prepare the data payload
     const dataPayload = {
       refresh_token: refreshToken,
-      clientid: process.env.CLIENT_ID,
-      clientsecret: process.env.CLIENT_SECRET,
+      clientid: clientid,
+      clientsecret: clientsecret,
       collectionId: collectionId,
       dataSourceId: dataSourceId,
-      properties: {
-        ...userData, // Include user data
-        ...customFields // Include custom fields
-      }
+      properties: properties, // Send user-specific data and custom fields
+      schema: schema           // Send the schema
     };
 
     console.log('Prepared data payload:', dataPayload);
