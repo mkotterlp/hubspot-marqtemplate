@@ -588,22 +588,27 @@ const deleteRecord = async (recordId, objectType) => {
 
   const refreshProjects = async () => {
     console.log("Calling refresh projects");
-    
+  
     if (objectType) {
       const previousProjectCount = projects.length;
+      console.log(`Previous project count: ${previousProjectCount}`);
   
       // Fetch the new projects
       const fetchedProjects = await fetchAssociatedProjectsAndDetails(objectType);
+      console.log(`Fetched project count: ${fetchedProjects.length}`);
   
       // Check if new projects have been added
       if (fetchedProjects.length > previousProjectCount) {
         console.log("New projects detected, stopping polling");
         setShouldPollForProjects(false); // Stop polling
+      } else {
+        console.log("No new projects detected, continuing polling");
       }
     } else {
       console.log("Object type not detected");
     }
   };
+  
   
 
   const setapi = async (userid, userEmail) => {
