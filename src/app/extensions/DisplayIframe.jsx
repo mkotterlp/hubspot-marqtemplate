@@ -949,43 +949,6 @@ if (!currentRefreshToken) {
     }
   };
   
-  const stopPollingForProjects = () => {
-    if (pollingProjectsIntervalRef.current) {
-      clearInterval(pollingProjectsIntervalRef.current);
-      pollingProjectsIntervalRef.current = null;
-    }
-
-    if (pollingProjectsTimeoutRef.current) {
-      clearTimeout(pollingProjectsTimeoutRef.current);
-      pollingProjectsTimeoutRef.current = null;
-    }
-
-    setShouldPollForProjects(false); // Stop polling
-  };
-
-  // Polling effect triggered by shouldPollForProjects state
-  useEffect(() => {
-    console.log("Polling for projects updated")
-    if (shouldPollForProjects) {
-      console.log("Starting poll for projects")
-
-      // Start polling every 20 seconds
-      pollingProjectsIntervalRef.current = setInterval(() => {
-        refreshProjects();
-      }, 20000); // Poll every 20 seconds
-
-      // Stop polling after 3 minutes
-      pollingProjectsTimeoutRef.current = setTimeout(() => {
-        console.log("Ending poll for projects")
-        stopPollingForProjects();
-      }, 180000); // 3 minutes
-    }
-
-    // Cleanup function to clear interval and timeout when polling stops
-    return () => {
-      stopPollingForProjects(); // Stop polling if component unmounts or polling is turned off
-    };
-  }, [shouldPollForProjects]); 
   
   useEffect(() => {
     let pollInterval;
@@ -1001,6 +964,35 @@ if (!currentRefreshToken) {
     };
   }, [isPolling]);
   
+  
+  useEffect(() => {
+    if (shouldPollForProjects) {
+      let pollingDuration = 0;
+  
+      const pollingforprojects = () => {
+        console.log("Polling for projects");
+        refreshProjects();
+  
+        pollingDuration += 20000; // Increase duration by 20 seconds after each poll
+  
+        // Continue polling if less than 3 minutes (180000 ms)
+        if (pollingDuration < 180000) {
+          setTimeout(poll, 20000); // Poll every 20 seconds
+        } else {
+          console.log("Ending poll for projects after 3 minutes");
+          setShouldPollForProjects(false); // Stop polling after 3 minutes
+        }
+      };
+  
+      // Start polling
+      pollingforprojects();
+  
+      // Cleanup to ensure no ongoing polling after unmounting or stopping
+      return () => {
+        setShouldPollForProjects(false);
+      };
+    }
+  }, [shouldPollForProjects, refreshProjects]);
   
 
   useEffect(() => {
