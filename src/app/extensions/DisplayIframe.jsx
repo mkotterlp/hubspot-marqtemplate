@@ -1622,7 +1622,7 @@ const handleGetAccountToken = async (apiKey, userid, userEmail) => {
 
     // Step 3: If no account token exists, initiate the OAuth flow
     const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
-    const authorizationCode = await performOAuthFlow(authorizationUrl);
+    // const authorizationCode = await performOAuthFlow(authorizationUrl);
 
     if (authorizationCode) {
       // await handleOAuthCallback(authorizationCode);
