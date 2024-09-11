@@ -885,6 +885,14 @@ if (!currentRefreshToken) {
 
             } else {
               console.error("Failed to fetch project details or empty response");
+              actions.addAlert({
+                title: "Failed to fetch project",
+                variant: "danger",
+                message: `There was an error with creating the project. Please try again`
+              });
+              actions.closeIframeModal(); 
+              setIframeOpen(false);
+              setShouldPollForProjects(false);
             }
 
             try {
@@ -897,6 +905,9 @@ if (!currentRefreshToken) {
               });
             } catch (updateError) {
               console.error("Error occurred while trying to update HubDB:", updateError);
+              actions.closeIframeModal(); 
+              setIframeOpen(false);
+              setShouldPollForProjects(false);
             }
 
     //       } else {
