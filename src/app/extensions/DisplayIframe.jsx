@@ -383,7 +383,14 @@ const deleteRecord = async (recordId, objectType) => {
     });
 
     // Remove the deleted record from the projects state
-    setProjects((prevProjects) => prevProjects.filter(project => project.objectId !== recordId));
+    setProjects((prevProjects) => {
+      const updatedProjects = prevProjects.filter(project => project.objectId !== recordId);
+      
+      // Update the previous project count reference after deletion
+      previousProjectCountRef.current = updatedProjects.length;
+
+      return updatedProjects;
+    });
     
     // Add success alert
     actions.addAlert({
@@ -402,6 +409,7 @@ const deleteRecord = async (recordId, objectType) => {
     });
   }
 };
+
 
 
   
