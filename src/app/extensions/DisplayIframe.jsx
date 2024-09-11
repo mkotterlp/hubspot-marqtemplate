@@ -984,15 +984,21 @@ if (!currentRefreshToken) {
         const pollingforprojects = async () => {
             console.log("Polling for projects");
 
-            const previousProjectCount = previousProjectCountRef.current; // Use ref for previous project count
-            console.log("Previous project count:", previousProjectCount);
+            if (hasSyncedOnce) {
+                const previousProjectCount = previousProjectCountRef.current; // Use ref for previous project count
+                console.log("Previous project count:", previousProjectCount);
+            }
 
             await refreshProjects(); // Fetch new projects
 
             const fetchedProjectCount = projects.length; // Capture the updated project count after refresh
             console.log("Fetched project count:", fetchedProjectCount);
 
-            if (fetchedProjectCount > previousProjectCount) {
+            if (!hasSyncedOnce) {
+                console.log("First sync completed, setting previous project count");
+                previousProjectCountRef.current = fetchedProjectCount; // Set project count after first sync
+                setHasSyncedOnce(true); // Mark that the first sync is done
+            } else if (fetchedProjectCount > previousProjectCountRef.current) {
                 console.log("New projects detected, stopping polling");
                 setShouldPollForProjects(false); // Stop polling if new projects are found
             } else {
@@ -1018,7 +1024,8 @@ if (!currentRefreshToken) {
             setShouldPollForProjects(false);
         };
     }
-}, [shouldPollForProjects, refreshProjects, projects.length]);
+}, [shouldPollForProjects, refreshProjects, projects.length, hasSyncedOnce]);
+
 
 
   
