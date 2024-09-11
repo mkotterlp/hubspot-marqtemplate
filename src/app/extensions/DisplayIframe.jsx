@@ -971,24 +971,37 @@ if (!currentRefreshToken) {
   
   useEffect(() => {
     if (shouldPollForProjects) {
-      console.log("Polling for projects started");
-  
-      // Define the polling function
-      const pollingforprojects = async () => {
-        await refreshProjects();  // This will now stop polling if new projects are detected
-      };
-  
-      // Start polling every 20 seconds
-      const intervalId = setInterval(pollingforprojects, 20000);
-  
-      // Cleanup to clear polling when unmounted or polling is stopped
-      return () => {
-        console.log("Stopping polling for projects");
-        clearInterval(intervalId);
-        setShouldPollForProjects(false);  // Stop polling
-      };
+        const pollingforprojects = async () => {
+            console.log("Polling for projects");
+            
+            const previousProjectCount = projects.length;  // Capture the previous project count
+            
+            await refreshProjects(); // Fetch new projects
+            
+            const fetchedProjectCount = projects.length;  // Capture the updated project count
+            
+            console.log("Previous project count:", previousProjectCount);
+            console.log("Fetched project count:", fetchedProjectCount);
+            
+            if (fetchedProjectCount > previousProjectCount) {
+                console.log("New projects detected, stopping polling");
+                setShouldPollForProjects(false); // Stop polling when new projects are detected
+            } else {
+                console.log("No new projects detected, continuing polling");
+                setTimeout(pollingforprojects, 20000); // Continue polling every 20 seconds if no new projects
+            }
+        };
+
+        // Start polling
+        pollingforprojects();
+
+        // Cleanup to ensure no ongoing polling after unmounting or stopping
+        return () => {
+            setShouldPollForProjects(false);
+        };
     }
-  }, [shouldPollForProjects, refreshProjects]);
+}, [shouldPollForProjects, refreshProjects, projects.length]);
+
   
   
   
