@@ -1743,7 +1743,7 @@ const handleOAuthCallback = async (code) => {
   try {
     // Step 1: Exchange the authorization code for a token
     const tokenResponse = await runServerless({
-      name: 'exchangeAuthCodeForToken', // DO WE NEED TO CREATE ANOTHER SCRIPT FOR SENDING THE DATA TO UPDATE-DATASET API?
+      name: 'exchangeAuthCodeForToken', // DO WE NEED TO CREATE ANOTHER SCRIPT FOR SENDING THE DATA TO UPDATE-DATASET API LIKE THE REDIRECT URI IN THIS FUNCTION??
       parameters: { code }
     });
 
