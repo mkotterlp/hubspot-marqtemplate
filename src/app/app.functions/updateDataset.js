@@ -1,3 +1,4 @@
+const hubspot = require('@hubspot/api-client');
 const axios = require('axios');
 
 exports.main = async (context) => {
