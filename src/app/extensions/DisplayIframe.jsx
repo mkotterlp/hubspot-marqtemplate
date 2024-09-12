@@ -729,8 +729,12 @@ const deleteRecord = async (recordId, objectType) => {
     setIframeOpen(true);
   
     try {
-      console.log("Template clicked:", template.id, template.title);
-      const userId = context.user.id;
+      if (template && template.id) {
+        console.log("Template clicked:", template.id, template.title);
+      } else {
+        console.error("Template is undefined or missing id.");
+      }
+            const userId = context.user.id;
   
       // Step 1: Check for existing refresh token
       if (!currentRefreshToken) {
