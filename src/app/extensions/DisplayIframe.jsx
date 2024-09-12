@@ -1927,6 +1927,7 @@ return (
   <>
     {showAccountTokenButton && (
         <Button
+          href={authurl}
           variant="primary"
           size="small"
           type="button"
