@@ -20,7 +20,11 @@ const Extension = ({ context, actions, runServerless }) => {
   const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
-  const [authurl, setauth] = useState('');
+  // const [authurl, setauth] = useState(''); //setauthConnectToMarq
+  const [authurlConnectToMarq, setauthConnectToMarq] = useState(''); //setauthConnectToMarq
+  const [authurlAccountToken, setauthAccountToken] = useState(''); //setauthAccountToken
+
+
   const [templates, setTemplates] = useState([]);
   const [allTemplates, setAllTemplates] = useState([]);
   const [fulltemplatelist, setfullTemplates] = useState([]);
@@ -630,12 +634,12 @@ const deleteRecord = async (recordId, objectType) => {
           // If this is the "Connect to Marq" flow, handle the connection process
           if (isConnectToMarq) {
             const authorizationUrl = handleConnectToMarq(apiKey, userid, userEmail);  // Call handleConnectToMarq for initial connection
-            setauth(authorizationUrl);  // Set the authorization URL for redirect
+            setauthConnectToMarq(authorizationUrl);  // Set the authorization URL for redirect
 
           } else {
             // If this is the "Account Token" flow, handle getting the account token
             const authorizationUrl = handleGetAccountToken(apiKey, userid, userEmail);  // Call handleGetAccountToken for account token flow
-            setauth(authorizationUrl);  // Set the authorization URL for redirect
+            setauthAccountToken(authorizationUrl);  // Set the authorization URL for redirect
           }
   
           return apiKey;  // Return the API key after success
@@ -1927,7 +1931,8 @@ return (
   <>
     {showAccountTokenButton && (
         <Button
-          href={authurl}
+          // href={authurl}
+          href={authurlAccountToken}
           variant="primary"
           size="small"
           type="button"
@@ -2060,7 +2065,8 @@ return (
 } else {
   return (
     <Button
-      href={authurl}
+      // href={authurl}
+      href={authurlConnectToMarq}
       variant="primary"
       size="med"
       type="button"
