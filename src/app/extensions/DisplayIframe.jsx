@@ -20,7 +20,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
-  // const [authurl, setauth] = useState(''); //setauthConnectToMarq
+  const [authurl, setauth] = useState(''); //setauthConnectToMarq
   const [authurlConnectToMarq, setauthConnectToMarq] = useState(''); //setauthConnectToMarq
   const [authurlAccountToken, setauthAccountToken] = useState(''); //setauthAccountToken
 
