@@ -1943,7 +1943,7 @@ if (showTemplates) {
 
 return (
   <>
-    {/* {showAccountTokenButton && (
+    {showAccountTokenButton && (
         <Button
           // href={authurl}
           href={authurlAccountToken}
@@ -1954,7 +1954,7 @@ return (
         >
           Account Token
         </Button>
-      )} */}
+      )}
 
 
     
