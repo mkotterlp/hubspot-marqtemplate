@@ -1603,45 +1603,45 @@ const handleConnectToMarq = (apiKey, userid, userEmail) => {
   }
 };
 
-// const handleGetAccountToken = async (apiKey, userid, userEmail) => {
-//   try {
-//     // Step 1: Check if the account token exists
-//     const response = await runServerless({
-//       name: 'dataTableHandler',
-//       parameters: {
-//         checkExistingToken: true,
-//         userid: userid,
-//       }
-//     });
+const handleGetAccountToken = async (apiKey, userid, userEmail) => {
+  try {
+    // Step 1: Check if the account token exists
+    const response = await runServerless({
+      name: 'dataTableHandler',
+      parameters: {
+        checkExistingToken: true,
+        userid: userid,
+      }
+    });
 
-//     if (response?.response?.body) {
-//       const body = JSON.parse(response.response.body);
-//       const existingToken = body.refreshToken;
+    if (response?.response?.body) {
+      const body = JSON.parse(response.response.body);
+      const existingToken = body.refreshToken;
 
-//       if (existingToken) {
-//         console.log("Account token already exists:", existingToken);
-//         createOrUpdateDataset(existingToken);
+      if (existingToken) {
+        console.log("Account token already exists:", existingToken);
+        createOrUpdateDataset(existingToken);
 
-//         // Hide the Account Token button once the token is retrieved
-//         setShowAccountTokenButton(false); // Hide the button
-//         return;
-//       }
-//     }
+        // Hide the Account Token button once the token is retrieved
+        setShowAccountTokenButton(false); // Hide the button
+        return;
+      }
+    }
 
-//     // Step 3: If no account token exists, initiate the OAuth flow
-//     const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
-//     // const authorizationCode = await performOAuthFlow(authorizationUrl);
+    // Step 3: If no account token exists, initiate the OAuth flow
+    const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
+    // const authorizationCode = await performOAuthFlow(authorizationUrl);
 
-//     if (authorizationUrl) {
-//        await handleOAuthCallback(authorizationUrl);
+    if (authorizationUrl) {
+       await handleOAuthCallback(authorizationUrl);
 
-//       // Hide the Account Token button after successful OAuth flow
-//       setShowAccountTokenButton(false); // Hide the button
-//     }
-//   } catch (error) {
-//     console.error('Error handling account token click:', error.message);
-//   }
-// };
+      // Hide the Account Token button after successful OAuth flow
+      setShowAccountTokenButton(false); // Hide the button
+    }
+  } catch (error) {
+    console.error('Error handling account token click:', error.message);
+  }
+};
 
 
 //----------------------------------------------------------------------------------------------------------
