@@ -1838,7 +1838,7 @@ async function saveTokenToTable(refreshToken) {
     console.error('Error saving refresh token:', error.message);
   }
 }
-const createOrUpdateDataset = async (refreshToken, marquserId, dataSetId) => {
+const createOrUpdateDataset = async (refreshToken) => {
   try {
     // Define the schema for the dataset
     const schema = [
