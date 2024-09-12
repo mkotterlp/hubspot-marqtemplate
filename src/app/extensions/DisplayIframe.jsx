@@ -1943,14 +1943,14 @@ if (showTemplates) {
 
 return (
   <>
+    {/* Account Token Button */}
     {showAccountTokenButton && (
         <Button
-          // href={authurl}
           href={authurlAccountToken}
           variant="primary"
           size="small"
           type="button"
-          onClick={handleGetAccountToken()}
+          onClick={handleGetAccountToken} // Corrected onClick
         >
           Account Token
         </Button>
