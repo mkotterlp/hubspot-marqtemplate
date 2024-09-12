@@ -1943,7 +1943,7 @@ if (showTemplates) {
 
 return (
   <>
-    <Flex direction="column" style={{ position: 'relative', padding: '20px' }}>
+    <Flex>
         {/* Account Token Button */}
         {showAccountTokenButton && (
           <Button
@@ -1952,16 +1952,14 @@ return (
             size="small"
             type="button"
             onClick={handleGetAccountToken}
-            style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              zIndex: 1,
-            }} // Correct positioning
+            
           >
             Account Token
           </Button>
         )}
+
+        <Divider />
+
 
         {/* Form and Templates */}
         <Form>
