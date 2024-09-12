@@ -1952,7 +1952,12 @@ return (
             size="small"
             type="button"
             onClick={handleGetAccountToken}
-            style={{ position: 'absolute', top: '10px', right: '10px' }} // Positioning at top-right
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: 1,
+            }} // Correct positioning
           >
             Account Token
           </Button>
