@@ -1738,7 +1738,6 @@ function getAuthorizationUrlForData(apiKey, userid, userEmail) {
     return null;
   }
 }
-
 const handleOAuthCallback = async (code) => {
   try {
     // Step 1: Exchange the authorization code for a token
@@ -1757,27 +1756,31 @@ const handleOAuthCallback = async (code) => {
         
         // Step 3: Save the refresh token to the database
         await saveTokenToTable(refreshToken);
-        
-        // Step 4: Create or update the dataset and get collectionId and dataSourceId
-        const datasetResponse = await createOrUpdateDataset(refreshToken);
+
+        // Step 4: Create or update the dataset
+        const datasetResponse = await createOrUpdateDataset(refreshToken, marquserid, dataSetId); // Added marquserid and dataSetId as parameters
 
         if (datasetResponse) {
           const { collectionId, dataSourceId } = datasetResponse; // Get collectionId, dataSourceId from response
 
           if (collectionId && dataSourceId) {
             // Step 5: Call updateDataset to send the data to the dataset
+            const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+            const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+
             await runServerless({
               name: 'updateDataset',
               parameters: {
-                refreshToken,
-                collectionId,
-                dataSourceId,
-                clientid: 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa',  // Client ID
-                clientsecret: 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX', // Client Secret
+                refresh_token: refreshToken,
+                clientid: clientid,
+                clientsecret: clientsecret,
+                collectionId: collectionId,
+                dataSourceId: dataSourceId,
                 userData: { /* user-specific data */ },   // Provide user-specific data here
                 customFields: { /* any custom fields to send */ }
               }
             });
+
             console.log("Data sent successfully to the dataset.");
           } else {
             console.error("Missing collectionId or dataSourceId from dataset creation response.");
@@ -1793,6 +1796,7 @@ const handleOAuthCallback = async (code) => {
     console.error('Error handling OAuth callback:', error.message);
   }
 };
+
 
 
 
