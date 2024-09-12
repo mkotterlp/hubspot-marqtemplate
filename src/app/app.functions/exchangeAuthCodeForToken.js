@@ -15,7 +15,7 @@ exports.main = async (context) => {
     const tokenEndpoint = 'https://marq.com/oauth2/token';
     const clientId = process.env.CLIENT_ID;  // Your client ID
     const clientSecret = process.env.CLIENT_SECRET;  // Your client secret
-    const redirectUri = 'https://info.marq.com/crm-oauth-hubspot';  // The redirect URI used in the authorization flow
+    const redirectUri = 'https://info.marq.com/crm-oauth-hubspot';  // DO WE NEED TO CREATE ANOTHER SCRIPT FOR SENDING THE DATA TO UPDATE-DATASET API?
 
     // Prepare the request payload
     const payload = new URLSearchParams();

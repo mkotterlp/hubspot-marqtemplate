@@ -1625,15 +1625,15 @@ const handleGetAccountToken = async (apiKey, userid, userEmail) => {
     }
 
     // Step 3: If no account token exists, initiate the OAuth flow
-    // const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
+    const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
     // const authorizationCode = await performOAuthFlow(authorizationUrl);
 
-    // if (authorizationCode) {
-    //   // await handleOAuthCallback(authorizationCode);
+    if (authorizationUrl) {
+       await handleOAuthCallback(authorizationUrl);
 
-    //   // Hide the Account Token button after successful OAuth flow
-    //   setShowAccountTokenButton(false); // Hide the button
-    // }
+      // Hide the Account Token button after successful OAuth flow
+      setShowAccountTokenButton(false); // Hide the button
+    }
   } catch (error) {
     console.error('Error handling account token click:', error.message);
   }
@@ -1738,11 +1738,12 @@ function getAuthorizationUrlForData(apiKey, userid, userEmail) {
     return null;
   }
 }
+
 const handleOAuthCallback = async (code) => {
   try {
     // Step 1: Exchange the authorization code for a token
     const tokenResponse = await runServerless({
-      name: 'exchangeAuthCodeForToken',
+      name: 'exchangeAuthCodeForToken', // DO WE NEED TO CREATE ANOTHER SCRIPT FOR SENDING THE DATA TO UPDATE-DATASET API?
       parameters: { code }
     });
 
