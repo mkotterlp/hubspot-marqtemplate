@@ -638,8 +638,8 @@ const deleteRecord = async (recordId, objectType) => {
 
           } else {
             // If this is the "Account Token" flow, handle getting the account token
-            const authorizationUrl = handleGetAccountToken(apiKey, userid, userEmail);  // Call handleGetAccountToken for account token flow
-            setauthAccountToken(authorizationUrl);  // Set the authorization URL for redirect
+            // const authorizationUrl = handleGetAccountToken(apiKey, userid, userEmail);  // Call handleGetAccountToken for account token flow
+            // setauthAccountToken(authorizationUrl);  // Set the authorization URL for redirect
           }
   
           return apiKey;  // Return the API key after success
