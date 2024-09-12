@@ -1152,7 +1152,7 @@ if (!currentRefreshToken) {
           console.log("Refresh token found:", currentRefreshToken);
           setIsPolling(false); // Stop polling
           fetchPropertiesAndLoadConfig(objectType);
-          setIsConnectedToMarq(true); // Blake added this
+          // setIsConnectedToMarq(true); // Blake added this
         } else {
           console.log("Refresh token not found yet, continuing to poll...");
           setShowTemplates(false);
@@ -1943,7 +1943,7 @@ if (showTemplates) {
 
 return (
   <>
-    {showAccountTokenButton && (
+    {/* {showAccountTokenButton && (
         <Button
           // href={authurl}
           href={authurlAccountToken}
@@ -1954,7 +1954,7 @@ return (
         >
           Account Token
         </Button>
-      )}
+      )} */}
 
 
     
