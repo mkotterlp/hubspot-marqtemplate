@@ -1938,12 +1938,11 @@ if (iframeLoading || isLoading) {
 // }
 
 
-
 if (showTemplates) {
-
-return (
-  <>
-    <Flex>
+  return (
+    <>
+      {/* Wrapping the top section (Account Token Button and Search Bar) in a Flex container */}
+      <Flex direction="column" style={{ position: 'relative', padding: '20px' }}>
         {/* Account Token Button */}
         {showAccountTokenButton && (
           <Button
@@ -1952,168 +1951,147 @@ return (
             size="small"
             type="button"
             onClick={handleGetAccountToken}
-            
+            style={{ marginBottom: '10px' }} // Add margin for space
           >
             Account Token
           </Button>
         )}
 
+        {/* Divider for clear separation */}
         <Divider />
 
+        {/* Search bar */}
+        <Box flex={1} style={{ marginTop: '10px' }}>
+          <Input
+            type="text"
+            placeholder="⌕ Search all templates"
+            value={searchTerm}
+            onInput={handleSearch}
+            style={{ width: '100%' }}
+          />
+        </Box>
 
-        {/* Form and Templates */}
-        <Form>
-          <Flex direction="row" justify="center" gap="small">
-            <Box flex={1}>
-              <Input
-                type="text"
-                placeholder="⌕ Search all templates"
-                value={searchTerm}
-                onInput={handleSearch}
-                style={{ width: '100%' }}
-              />
-            </Box>
-          </Flex>
+        {/* Divider between the search bar and the rest of the content */}
+        <Divider />
 
-          <Divider />
-
-          <Flex direction="column" align="start" gap="small">
-            <Box />
-            <Box>
-              <Text format={{ fontWeight: 'bold' }}>{title}</Text>
-            </Box>
-          </Flex>
-        </Form>
-
-        <Table
-          paginated
-          page={currentPage}
-          pageCount={totalPages}
-          maxVisiblePageButtons={5}
-          showButtonLabels
-          showFirstLastButtons={false}
-          onPageChange={handlePageChange}
-        >
-          <TableBody>
-            {paginatedTemplates.map((template, index) => {
-              const matchingProject = projects.find(
-                project => project.originaltemplateid === template.id
-              );
-
-              return matchingProject ? (
-                <TableRow key={matchingProject.objectId || index}>
-                  <TableCell>
-                    <Image
-                      alt="File Preview"
-                      src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
-                      onClick={() =>
-                        editClick(
-                          matchingProject.projectid,
-                          matchingProject.fileid,
-                          matchingProject.encodedoptions
-                        )
-                      }
-                      preventDefault
-                      width={100}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href="#"
-                      onClick={() =>
-                        editClick(
-                          matchingProject.projectid,
-                          matchingProject.fileid,
-                          matchingProject.encodedoptions
-                        )
-                      }
-                      preventDefault
-                      variant="primary"
-                    >
-                      {matchingProject.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
-                  <TableCell>
-                    <ButtonRow disableDropdown={false}>
-                      <Button
-                        onClick={() =>
-                          editClick(
-                            matchingProject.projectid,
-                            matchingProject.fileid,
-                            matchingProject.encodedoptions
-                          )
-                        }
-                      >
-                        Open
-                      </Button>
-                      <CrmActionButton
-                        actionType="EXTERNAL_URL"
-                        actionContext={{ href: matchingProject.fileurl }}
-                        variant="secondary"
-                      >
-                        Copy Published URL
-                      </CrmActionButton>
-                      <CrmActionButton
-                        actionType="SEND_EMAIL"
-                        actionContext={{
-                          objectTypeId: context.crm.objectTypeId,
-                          objectId: context.crm.objectId,
-                        }}
-                        variant="secondary"
-                      >
-                        Send email
-                      </CrmActionButton>
-                      <Button
-                        variant="destructive"
-                        onClick={() => deleteRecord(matchingProject.objectId, 'projects')}
-                      >
-                        Delete
-                      </Button>
-                    </ButtonRow>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                <TableRow
-                  key={template.id || index}
-                  onClick={() => setSelectedRow(selectedRow === index ? null : index)}
-                >
-                  <TableCell>
-                    <Image
-                      alt="Template Preview"
-                      src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
-                      onClick={() => handleClick(template)}
-                      preventDefault
-                      width={100}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href="#"
-                      onClick={() => handleClick(template)}
-                      preventDefault
-                      variant="primary"
-                    >
-                      {template.title}
-                    </Link>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell>
-                    <Button onClick={() => handleClick(template)}>Create with Marq</Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        {/* Content after the search bar */}
+        <Flex direction="column" align="start" gap="small">
+          <Box />
+          <Box>
+            <Text format={{ fontWeight: 'bold' }}>{title}</Text>
+          </Box>
+        </Flex>
       </Flex>
-  </>
-);
 
+      {/* Table for templates */}
+      <Table
+        paginated
+        page={currentPage}
+        pageCount={totalPages}
+        maxVisiblePageButtons={5}
+        showButtonLabels
+        showFirstLastButtons={false}
+        onPageChange={handlePageChange}
+      >
+        <TableBody>
+          {paginatedTemplates.map((template, index) => {
+            const matchingProject = projects.find(
+              project => project.originaltemplateid === template.id
+            );
+
+            return matchingProject ? (
+              <TableRow key={matchingProject.objectId || index}>
+                <TableCell>
+                  <Image
+                    alt="File Preview"
+                    src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
+                    onClick={() =>
+                      editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)
+                    }
+                    preventDefault
+                    width={100}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href="#"
+                    onClick={() =>
+                      editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)
+                    }
+                    preventDefault
+                    variant="primary"
+                  >
+                    {matchingProject.name}
+                  </Link>
+                </TableCell>
+                <TableCell>{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
+                <TableCell>
+                  <ButtonRow disableDropdown={false}>
+                    <Button
+                      onClick={() =>
+                        editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)
+                      }
+                    >
+                      Open
+                    </Button>
+                    <CrmActionButton
+                      actionType="EXTERNAL_URL"
+                      actionContext={{ href: matchingProject.fileurl }}
+                      variant="secondary"
+                    >
+                      Copy Published URL
+                    </CrmActionButton>
+                    <CrmActionButton
+                      actionType="SEND_EMAIL"
+                      actionContext={{
+                        objectTypeId: context.crm.objectTypeId,
+                        objectId: context.crm.objectId,
+                      }}
+                      variant="secondary"
+                    >
+                      Send email
+                    </CrmActionButton>
+                    <Button variant="destructive" onClick={() => deleteRecord(matchingProject.objectId, 'projects')}>
+                      Delete
+                    </Button>
+                  </ButtonRow>
+                </TableCell>
+              </TableRow>
+            ) : (
+              <TableRow key={template.id || index} onClick={() => setSelectedRow(selectedRow === index ? null : index)}>
+                <TableCell>
+                  <Image
+                    alt="Template Preview"
+                    src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
+                    onClick={() => handleClick(template)}
+                    preventDefault
+                    width={100}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href="#"
+                    onClick={() => handleClick(template)}
+                    preventDefault
+                    variant="primary"
+                  >
+                    {template.title}
+                  </Link>
+                </TableCell>
+                <TableCell />
+                <TableCell>
+                  <Button onClick={() => handleClick(template)}>Create with Marq</Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </>
+  );
 } else {
   return (
     <Button
-      // href={authurl}
       href={authurl}
       variant="primary"
       size="med"
@@ -2124,6 +2102,7 @@ return (
     </Button>
   );
 }
+
 }
 
 export default Extension;
