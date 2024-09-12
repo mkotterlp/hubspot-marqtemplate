@@ -783,16 +783,16 @@ const deleteRecord = async (recordId, objectType) => {
       let dataSetId;
       if (dataSetType === 'custom') {
         // Call the createDataset serverless function to create or get a dataset
-        const createDatasetResponse = await runServerless({
-          name: 'createDataset',
-          parameters: {
-            refreshToken: currentRefreshToken,
-            schema: [
-              { name: "Id", fieldType: "STRING", isPrimary: true },
-              // Add other fields as required
-            ]
-          }
-        });
+        // const createDatasetResponse = await runServerless({
+        //   name: 'createDataset',
+        //   parameters: {
+        //     refreshToken: currentRefreshToken,
+        //     schema: [
+        //       { name: "Id", fieldType: "STRING", isPrimary: true },
+        //       // Add other fields as required
+        //     ]
+        //   }
+        // });
   
         if (createDatasetResponse?.response?.body) {
           const datasetData = JSON.parse(createDatasetResponse.response.body);
