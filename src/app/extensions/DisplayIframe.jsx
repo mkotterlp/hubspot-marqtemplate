@@ -1478,7 +1478,12 @@ const initialize = async () => {
         showTemplates(true);
         setShowAccountTokenButton(false);
 
-        await createOrUpdateDataset(currentAccountRefreshToken);
+        try {
+          const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
+          console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
+        } catch (error) {
+          console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
+        }
 
       } else {
         setShowAccountTokenButton(true);
