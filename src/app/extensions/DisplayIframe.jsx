@@ -1217,7 +1217,7 @@ if (!currentRefreshToken) {
           console.log("Account Refresh token found:", currentAccountRefreshToken);
           setAccountIsPolling(false); // Stop polling
           fetchPropertiesAndLoadConfig(objectType);
-          setShowAccountTokenButton(false);
+          setShowAccountTokenButton(false); 
           // setIsConnectedToMarq(true); // Blake added this
         } else {
           console.log("Account Refresh token not found yet, continuing to poll...");
@@ -1474,17 +1474,17 @@ const initialize = async () => {
 
       currentAccountRefreshToken = accountData?.refreshToken || null;
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
-      await createOrUpdateDataset(currentAccountRefreshToken)
+      // await createOrUpdateDataset(currentAccountRefreshToken)
       if (currentAccountRefreshToken) {
         showTemplates(true);
-        setShowAccountTokenButton(false);
+        // setShowAccountTokenButton(false); its already defined as false no need to make it false again at this point
 
-        // try {
-        //   const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
-        //   console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
-        // } catch (error) {
-        //   console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
-        // }
+        try {
+          const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
+          console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
+        } catch (error) {
+          console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
+        }
 
       } else {
         setShowAccountTokenButton(true);
@@ -1955,40 +1955,39 @@ async function saveTokenToTable(refreshToken) {
 
 const createOrUpdateDataset = async (refreshToken) => {
   try {
-    // Log all the important parameters
-    console.log("Starting createOrUpdateDataset with the following parameters:");
-    console.log("Refresh Token:", refreshToken);
-    
+
     // Define the schema for the dataset
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true },
-      // Add additional fields as required
+      // Add additional fields as required, ensuring fieldType is a string
     ];
-    
+
     const marqAccountId = "163559625"; 
-    const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa'; // Replace with actual Client ID
-    const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX'; // Replace with actual Client Secret
+    const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+    const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
     console.log("marqAccountId:", marqAccountId, "clientid:", clientid, "refreshToken:", refreshToken);
 
-    // Ensure parameters are valid
     if (!refreshToken || !clientid || !clientsecret || !marqAccountId) {
       console.error("Missing required parameters for createOrUpdateDataset");
       return;
     }
 
-    // Step 1: Call the createDataset serverless function to create or update the dataset
+    // Call the createDataset serverless function to create or update the dataset
     let createDatasetResponse;
     try {
       createDatasetResponse = await runServerless({
         name: 'createDataset',
         parameters: {
-          refresh_token: refreshToken,             // Pass the refresh token
-          clientid: clientid,                      // Client ID
-          clientsecret: clientsecret,              // Client Secret
-          marqAccountId: marqAccountId,            // Pass the Marq Account ID
-          properties: { },                         // Add any additional properties if needed
-          schema: schema                           // Pass the schema for the dataset
+          refresh_token: refreshToken,             
+          clientid: clientid,                      
+          clientsecret: clientsecret,              
+          marqAccountId: marqAccountId,            
+          properties: { },                         
+          schema: schema.map(item => ({
+            ...item,
+            fieldType: item.fieldType.toString() // Ensure fieldType is a string
+          }))
         }
       });
     } catch (apiError) {
