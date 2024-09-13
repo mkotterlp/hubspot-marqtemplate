@@ -1477,7 +1477,8 @@ const initialize = async () => {
       if (currentAccountRefreshToken) {
         showTemplates(true);
         setShowAccountTokenButton(false);
-        createOrUpdateDataset(currentAccountRefreshToken)
+
+        await createOrUpdateDataset(currentAccountRefreshToken);
 
       } else {
         setShowAccountTokenButton(true);
