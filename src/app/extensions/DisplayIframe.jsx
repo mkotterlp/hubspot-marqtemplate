@@ -1762,7 +1762,7 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
 
     // Determine the correct scopes and URL based on the metadata type
     if (metadataType.toLowerCase() === 'data') {
-      scopes = 'project.templates project.content data-service.admin offline_access';
+      scopes = 'data-service.admin project.content offline_access';
       authorizationURLBase = 'https://marq.com/oauth2/authorizeAccount';
     } else {
       scopes = 'project.templates project.content offline_access';
