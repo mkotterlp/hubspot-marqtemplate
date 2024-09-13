@@ -1186,7 +1186,6 @@ if (!currentRefreshToken) {
 
 
   const startPollingForAccountRefreshToken = () => {
-    setIsLoading(true);
     setAccountIsPolling(true); // Start polling when the button is clicked
   };
   
@@ -1736,8 +1735,8 @@ const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
 
 function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
   try {
-    const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
-    const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+    const clientId = 'ewn_nCMA1Hr6I0mNLtu4irzVzt29cWn4eqHL2ZnN';
+    const clientSecret = 'LPzHZo2GTtzWYPGL-lu_GxpxGCL_7RDDumN0rAmM_WxiFEhFglAE8MM0EnoDHKXJbJ0k1abBdfOqdZjyhx-Q';
     const redirectUri = 'https://info.marq.com/crm-oauth-hubspot';
 
     const encodedRedirectUri = encodeURIComponent(redirectUri);
