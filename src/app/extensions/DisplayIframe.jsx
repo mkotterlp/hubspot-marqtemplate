@@ -1956,44 +1956,34 @@ async function saveTokenToTable(refreshToken) {
 const createOrUpdateDataset = async (refreshToken) => {
   try {
 
-    // Define the schema for the dataset
-    const schema = [
-      { name: "Id", fieldType: "STRING", isPrimary: true },
-      // Add additional fields as required, ensuring fieldType is a string
-    ];
-
+    // Ensure all necessary fields are converted to strings
     const marqAccountId = "163559625"; 
     const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
     const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
-    console.log("marqAccountId:", marqAccountId, "clientid:", clientid, "refreshToken:", refreshToken);
+    // Log parameters
+    console.log("refreshToken:", refreshToken);
+    console.log("marqAccountId:", marqAccountId);
+    console.log("clientid:", clientid);
+    console.log("clientsecret:", clientsecret);
 
-    if (!refreshToken || !clientid || !clientsecret || !marqAccountId) {
-      console.error("Missing required parameters for createOrUpdateDataset");
-      return;
-    }
+    // Ensure all required fields are strings (except properties)
+    const parameters = {
+      refresh_token: refreshToken.toString(),     // Convert to string if not already
+      clientid: clientid.toString(),
+      clientsecret: clientsecret.toString(),
+      marqAccountId: marqAccountId.toString(),    // Ensure this is a string
+      schema: [
+        { name: "Id", fieldType: "STRING", isPrimary: true },  // Keep schema as array of objects
+      ],
+      properties: {} // Add any properties as an object (this can remain as an object)
+    };
 
-    // Call the createDataset serverless function to create or update the dataset
-    let createDatasetResponse;
-    try {
-      createDatasetResponse = await runServerless({
-        name: 'createDataset',
-        parameters: {
-          refresh_token: refreshToken,             
-          clientid: clientid,                      
-          clientsecret: clientsecret,              
-          marqAccountId: marqAccountId,            
-          properties: { },                         
-          schema: schema.map(item => ({
-            ...item,
-            fieldType: item.fieldType.toString() // Ensure fieldType is a string
-          }))
-        }
-      });
-    } catch (apiError) {
-      console.error("Error during the API call to createDataset:", apiError);
-      throw new Error("API call to createDataset failed");
-    }
+    // Step 1: Call the createDataset serverless function
+    const createDatasetResponse = await runServerless({
+      name: 'createDataset',
+      parameters: parameters,  // Pass the parameters object
+    });
 
     // Validate the response structure
     if (createDatasetResponse?.response?.statusCode === 200) {
