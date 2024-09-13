@@ -57,7 +57,10 @@ exports.main = async (context) => {
 
         const allObjectTypes = [...standardObjectTypes.map(type => type.toLowerCase()), ...customObjectTypes];
 
-        let existingObjectTypes = rowsResponse.results.map(row => row.values.objectType.toLowerCase());
+        let existingObjectTypes = rowsResponse.results
+            .filter(row => row.values.objectType) // Filter out rows without objectType
+            .map(row => row.values.objectType.toLowerCase());
+
 
         for (const objectType of allObjectTypes) {
             if (!existingObjectTypes.includes(objectType.toLowerCase())) {
@@ -84,8 +87,9 @@ exports.main = async (context) => {
 
         // Assuming context.parameters contains necessary keys for filtering config
         const objectType = context.parameters?.objectType?.toLowerCase() || 'default'; // Default object type if not provided
-        let matchedRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === objectType);
-        let dataRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === 'data');
+        let matchedRow = rowsResponse.results.find(row => row.values.objectType && row.values.objectType.toLowerCase() === objectType);
+        let dataRow = rowsResponse.results.find(row => row.values.objectType && row.values.objectType.toLowerCase() === 'data');
+
 
         if (!matchedRow && !dataRow) {
             throw new Error(`No configuration found for object type: ${objectType} or 'data'`);
