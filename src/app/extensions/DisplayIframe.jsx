@@ -10,11 +10,12 @@ const Extension = ({ context, actions, runServerless }) => {
   const [iframeUrl, setIframeUrl] = useState('');
   const [marquserid, setMarquserid] = useState('');
   const [isPolling, setIsPolling] = useState(false);
+  const [isAccountPolling, setAccountIsPolling] = useState(false);
 
   const [isConnectToMarq, setIsConnectToMarq] = useState(false);  // New state to track connection flow
   const [isConnectedToMarq, setIsConnectedToMarq] = useState(false); // Set to true when user connects to Marq
-  const [showAccountTokenButton, setShowAccountTokenButton] = useState(true);
-  const [authorizationUrl, setAuthorizationUrl] = useState('');
+  const [showAccountTokenButton, setShowAccountTokenButton] = useState(false);
+  const [accountoauthUrl, setAccountAuthorizationUrl] = useState('');
 
 
   const [showTemplates, setShowTemplates] = useState(true);
@@ -63,6 +64,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let configData = {};
   let templateLink;
   let currentRefreshToken = "";
+  let currentAccountRefreshToken = "";
   let lastTemplateSyncDate;
   // let marquserid
 
@@ -688,8 +690,10 @@ const deleteRecord = async (recordId, objectType) => {
           const apiKey = body.key;
           setAPIkey(apiKey);
           // console.log("API Key loaded:", apiKey);
-          const authorizationUrl = handleConnectToMarq(apiKey, userid, userEmail);  // Pass the API key, userid, and userEmail
+          const authorizationUrl = await handleConnectToMarq(apiKey, userid, userEmail, "user");  // Pass the API key, userid, and userEmail
           setauth(authorizationUrl);
+          const accountauthorizationUrl = await handleConnectToMarq(apiKey, userid, userEmail, "data");
+          setAccountAuthorizationUrl(accountauthorizationUrl);
           return apiKey;  // Return the API key
         } else {
           console.error("No API key found in response.");
@@ -1165,9 +1169,7 @@ if (!currentRefreshToken) {
       console.error("Error while polling for refresh token:", error);
     }
   };
-  
-  
-  
+
   useEffect(() => {
     let pollInterval;
   
@@ -1180,7 +1182,73 @@ if (!currentRefreshToken) {
       console.log("Stopping the polling for refresh token.");
       clearInterval(pollInterval); // Clean up interval when component unmounts or polling stops
     };
-  }, [isPolling]);
+  }, [setIsPolling]);
+
+
+  const startPollingForAccountRefreshToken = () => {
+    setIsLoading(true);
+    setAccountIsPolling(true); // Start polling when the button is clicked
+  };
+  
+  const pollForAccountRefreshToken = async () => {
+    console.log("Attempting poll");
+
+    try {
+      console.log("Polling for account refresh token...");
+      const userId = context.user.id;
+      const createaccounttable = await runServerless({
+        name: 'dataTableHandler',
+        parameters: { objectType: objectType }
+      });
+      console.log("Response from serverless function:", createaccounttable); 
+  
+      if (createaccounttable?.response?.body) {
+        console.log("Received response from serverless function:", createaccounttable);
+  
+        // Access row and values properly
+        const responseBody = JSON.parse(createaccounttable.response.body);
+        const accountData = responseBody?.row?.values || {};
+        
+        console.log("accountData:", accountData);
+  
+        currentAccountRefreshToken = accountData?.refreshToken || null;
+
+        console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+  
+        if (currentAccountRefreshToken && currentAccountRefreshToken !== 'null' && currentAccountRefreshToken !== '') {
+          console.log("Account Refresh token found:", currentAccountRefreshToken);
+          setAccountIsPolling(false); // Stop polling
+          fetchPropertiesAndLoadConfig(objectType);
+          setShowAccountTokenButton(false);
+          // setIsConnectedToMarq(true); // Blake added this
+        } else {
+          console.log("Account Refresh token not found yet, continuing to poll...");
+          setShowTemplates(false);
+          setShowAccountTokenButton(true);
+        }
+      } else {
+        console.log("No response body from serverless function.");
+      }
+    } catch (error) {
+      console.error("Error while polling for account refresh token:", error);
+    }
+  };
+  
+  
+  
+  useEffect(() => {
+    let pollAccountInterval;
+  
+    if (isAccountPolling) {
+      console.log("Starting to poll for account refresh token every 5 seconds.");
+      pollAccountInterval = setInterval(pollForAccountRefreshToken, 5000); // Poll every 5 seconds
+    }
+  
+    return () => {
+      console.log("Stopping the polling for account refresh token.");
+      clearInterval(pollAccountInterval); // Clean up interval when component unmounts or polling stops
+    };
+  }, [setAccountIsPolling]);
   
   
 
@@ -1393,6 +1461,26 @@ const initialize = async () => {
       console.error("Failed to create or fetch user table.");
     }
 
+     // Fetch Marq user data and update refresh token if necessary
+     const createaccounttable = await runServerless({
+      name: 'dataTableHandler',
+      parameters: { objectType: objectType }
+    });
+
+    if (createaccounttable?.response?.body) {
+      const accountData = JSON.parse(createaccounttable.response.body).values || {};
+      const currentAccountRefreshToken = accountData.refreshToken;
+      console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
+      if (currentAccountRefreshToken) {
+        showTemplates(true);
+        setShowAccountTokenButton(false);
+      } else {
+        setShowAccountTokenButton(true);
+      }
+    } else {
+      console.error("Failed to create or fetch user table.");
+    }
+
   } else if (
     hasInitialized.current &&
     fieldsArray.length > 0 &&
@@ -1588,9 +1676,8 @@ useEffect(() => {
 </Flex> */}
 
 
-const handleConnectToMarq = (apiKey, userid, userEmail) => {
+const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
   try {
-    const metadataType = 'user'; // Customize this as needed
     const authorizationUrl = getAuthorizationUrl(metadataType, apiKey, userid, userEmail);  // Pass userid and userEmail
 
     if (!authorizationUrl) {
@@ -1604,45 +1691,45 @@ const handleConnectToMarq = (apiKey, userid, userEmail) => {
   }
 };
 
-const handleGetAccountToken = async (apiKey, userid, userEmail) => {
-  try {
-    // Step 1: Check if the account token exists
-    const response = await runServerless({
-      name: 'dataTableHandler',
-      parameters: {
-        checkExistingToken: true,
-        userid: userid,
-      }
-    });
+// const handleGetAccountToken = async (apiKey, userid, userEmail) => {
+//   try {
+//     // Step 1: Check if the account token exists
+//     const response = await runServerless({
+//       name: 'dataTableHandler',
+//       parameters: {
+//         checkExistingToken: true,
+//         userid: userid,
+//       }
+//     });
 
-    if (response?.response?.body) {
-      const body = JSON.parse(response.response.body);
-      const existingToken = body.refreshToken;
+//     if (response?.response?.body) {
+//       const body = JSON.parse(response.response.body);
+//       const existingToken = body.refreshToken;
 
-      if (existingToken) {
-        console.log("Account token already exists:", existingToken);
-        createOrUpdateDataset(existingToken);
+//       if (existingToken) {
+//         console.log("Account token already exists:", existingToken);
+//         createOrUpdateDataset(existingToken);
 
-        // Hide the Account Token button once the token is retrieved
-        setShowAccountTokenButton(false); // Hide the button
-        return;
-      }
-    }
+//         // Hide the Account Token button once the token is retrieved
+//         setShowAccountTokenButton(false); // Hide the button
+//         return;
+//       }
+//     }
 
-    // Step 3: If no account token exists, initiate the OAuth flow
-    const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
-    // const authorizationCode = await performOAuthFlow(authorizationUrl);
+//     // Step 3: If no account token exists, initiate the OAuth flow
+//     const authorizationUrl = getAuthorizationUrlForData(apiKey, userid, userEmail);
+//     // const authorizationCode = await performOAuthFlow(authorizationUrl);
 
-    if (authorizationUrl) {
-       await handleOAuthCallback(authorizationUrl);
+//     if (authorizationUrl) {
+//        await handleOAuthCallback(authorizationUrl);
 
-      // Hide the Account Token button after successful OAuth flow
-      setShowAccountTokenButton(false); // Hide the button
-    }
-  } catch (error) {
-    console.error('Error handling account token click:', error.message);
-  }
-};
+//       // Hide the Account Token button after successful OAuth flow
+//       setShowAccountTokenButton(false); // Hide the button
+//     }
+//   } catch (error) {
+//     console.error('Error handling account token click:', error.message);
+//   }
+// };
 
 
 //----------------------------------------------------------------------------------------------------------
@@ -1671,18 +1758,21 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
 
     let scopes;
     let authorizationUrl;
+    let authorizationURLBase;
 
     // Determine the correct scopes and URL based on the metadata type
     if (metadataType.toLowerCase() === 'data') {
       scopes = 'project.templates project.content data-service.admin offline_access';
+      authorizationURLBase = 'https://marq.com/oauth2/authorizeAccount';
     } else {
       scopes = 'project.templates project.content offline_access';
+      authorizationURLBase = 'https://marq.com/oauth2/authorize';
     }
 
     const encodedScopes = encodeURIComponent(scopes);
 
     // Construct the authorization URL
-    authorizationUrl = `https://app.marq.com/oauth2/authorize`
+    authorizationUrl = `${authorizationURLBase}`
                      + `?response_type=code`
                      + `&client_id=${clientId}`
                      + `&client_secret=${clientSecret}`
@@ -1701,107 +1791,107 @@ function getAuthorizationUrl(metadataType, apiKey, userid, userEmail) {
 //----------------------------------------------------------------------------------------------------------
 
 
-function getAuthorizationUrlForData(apiKey, userid, userEmail) {
-  try {
-    const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
-    const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-    const redirectUri = 'https://info.marq.com/crm-oauth-hubspot'; // Update as necessary
+// function getAuthorizationUrlForData(apiKey, userid, userEmail) {
+//   try {
+//     const clientId = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+//     const clientSecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+//     const redirectUri = 'https://info.marq.com/crm-oauth-hubspot'; // Update as necessary
 
-    const encodedRedirectUri = encodeURIComponent(redirectUri);
+//     const encodedRedirectUri = encodeURIComponent(redirectUri);
 
-    // Create the state map that includes the API key, userId, and email
-    const stateMap = {
-      apiKey: apiKey,
-      metadataType: 'data',  // Set metadata type to 'data'
-      clientId: clientId,
-      clientSecret: clientSecret,
-      redirectUri: encodedRedirectUri,
-      userid: userid,       // Include the userId
-      email: userEmail      // Include the userEmail
-    };
+//     // Create the state map that includes the API key, userId, and email
+//     const stateMap = {
+//       apiKey: apiKey,
+//       metadataType: 'data',  // Set metadata type to 'data'
+//       clientId: clientId,
+//       clientSecret: clientSecret,
+//       redirectUri: encodedRedirectUri,
+//       userid: userid,       // Include the userId
+//       email: userEmail      // Include the userEmail
+//     };
 
-    const stateJson = JSON.stringify(stateMap);
-    const stateParam = btoa(stateJson); // Encode the state parameter
+//     const stateJson = JSON.stringify(stateMap);
+//     const stateParam = btoa(stateJson); // Encode the state parameter
 
-    // Define the required scopes for "data" metadata type
-    const scopes = 'project.templates project.content data-service.admin offline_access';
-    const encodedScopes = encodeURIComponent(scopes);
+//     // Define the required scopes for "data" metadata type
+//     const scopes = 'project.templates project.content data-service.admin offline_access';
+//     const encodedScopes = encodeURIComponent(scopes);
 
-    // Construct the authorization URL for data
-    const authorizationUrl = `https://marq.com/oauth2/authorizeAccount`
-                           + `?response_type=code`
-                           + `&client_id=${clientId}`
-                           + `&client_secret=${clientSecret}`
-                           + `&scope=${encodedScopes}`
-                           + `&redirect_uri=${encodedRedirectUri}`
-                           + `&state=${stateParam}`;
+//     // Construct the authorization URL for data
+//     const authorizationUrl = `https://marq.com/oauth2/authorizeAccount`
+//                            + `?response_type=code`
+//                            + `&client_id=${clientId}`
+//                            + `&client_secret=${clientSecret}`
+//                            + `&scope=${encodedScopes}`
+//                            + `&redirect_uri=${encodedRedirectUri}`
+//                            + `&state=${stateParam}`;
 
-    return authorizationUrl;
+//     return authorizationUrl;
 
-  } catch (error) {
-    console.error('Error generating authorization URL:', error.message);
-    return null;
-  }
-}
+//   } catch (error) {
+//     console.error('Error generating authorization URL:', error.message);
+//     return null;
+//   }
+// }
 
-const handleOAuthCallback = async (code) => {
-  try {
-    // Step 1: Exchange the authorization code for a token
-    const tokenResponse = await runServerless({
-      name: 'exchangeAuthCodeForToken', // DO WE NEED TO CREATE ANOTHER SCRIPT FOR SENDING THE DATA TO UPDATE-DATASET API LIKE THE REDIRECT URI IN THIS FUNCTION??
-      parameters: { code }
-    });
+// const handleOAuthCallback = async (code) => {
+//   try {
+//     // Step 1: Exchange the authorization code for a token
+//     const tokenResponse = await runServerless({
+//       name: 'exchangeAuthCodeForToken', // DO WE NEED TO CREATE ANOTHER SCRIPT FOR SENDING THE DATA TO UPDATE-DATASET API LIKE THE REDIRECT URI IN THIS FUNCTION??
+//       parameters: { code }
+//     });
 
-    // Step 2: Parse the token response to get the refresh token
-    if (tokenResponse?.response?.body) {
-      const body = JSON.parse(tokenResponse.response.body);
-      const refreshToken = body.refresh_token;
+//     // Step 2: Parse the token response to get the refresh token
+//     if (tokenResponse?.response?.body) {
+//       const body = JSON.parse(tokenResponse.response.body);
+//       const refreshToken = body.refresh_token;
 
-      if (refreshToken) {
-        console.log("Received refresh token:", refreshToken);
+//       if (refreshToken) {
+//         console.log("Received refresh token:", refreshToken);
         
-        // Step 3: Save the refresh token to the database
-        await saveTokenToTable(refreshToken);
+//         // Step 3: Save the refresh token to the database
+//         await saveTokenToTable(refreshToken);
 
-        // Step 4: Create or update the dataset
-        const datasetResponse = await createOrUpdateDataset(refreshToken, marquserid, dataSetId); // Added marquserid and dataSetId as parameters
+//         // Step 4: Create or update the dataset
+//         const datasetResponse = await createOrUpdateDataset(refreshToken, marquserid, dataSetId); // Added marquserid and dataSetId as parameters
 
-        if (datasetResponse) {
-          const { collectionId, dataSourceId } = datasetResponse; // Get collectionId, dataSourceId from response
+//         if (datasetResponse) {
+//           const { collectionId, dataSourceId } = datasetResponse; // Get collectionId, dataSourceId from response
 
-          if (collectionId && dataSourceId) {
-            // Step 5: Call updateDataset to send the data to the dataset
-            const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
-            const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+//           if (collectionId && dataSourceId) {
+//             // Step 5: Call updateDataset to send the data to the dataset
+//             const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+//             const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
-            await runServerless({
-              name: 'updateDataset',
-              parameters: {
-                refresh_token: refreshToken,
-                clientid: clientid,
-                clientsecret: clientsecret,
-                collectionId: collectionId,
-                dataSourceId: dataSourceId,
-                userData: { /* user-specific data */ },   // Provide user-specific data here
-                customFields: { /* any custom fields to send */ }
-              }
-            });
+//             await runServerless({
+//               name: 'updateDataset',
+//               parameters: {
+//                 refresh_token: refreshToken,
+//                 clientid: clientid,
+//                 clientsecret: clientsecret,
+//                 collectionId: collectionId,
+//                 dataSourceId: dataSourceId,
+//                 userData: { /* user-specific data */ },   // Provide user-specific data here
+//                 customFields: { /* any custom fields to send */ }
+//               }
+//             });
 
-            console.log("Data sent successfully to the dataset.");
-          } else {
-            console.error("Missing collectionId or dataSourceId from dataset creation response.");
-          }
-        } else {
-          console.error("Failed to create or update dataset.");
-        }
-      }
-    } else {
-      console.error("Failed to exchange code for token.");
-    }
-  } catch (error) {
-    console.error('Error handling OAuth callback:', error.message);
-  }
-};
+//             console.log("Data sent successfully to the dataset.");
+//           } else {
+//             console.error("Missing collectionId or dataSourceId from dataset creation response.");
+//           }
+//         } else {
+//           console.error("Failed to create or update dataset.");
+//         }
+//       }
+//     } else {
+//       console.error("Failed to exchange code for token.");
+//     }
+//   } catch (error) {
+//     console.error('Error handling OAuth callback:', error.message);
+//   }
+// };
 
 
 
@@ -1947,11 +2037,11 @@ return (
     {/* Account Token Button */}
     {showAccountTokenButton && (
         <Button
-          href={authurlAccountToken}
+          href={accountoauthUrl}
           variant="primary"
           size="small"
           type="button"
-          onClick={handleGetAccountToken} // Corrected onClick
+          onClick={startPollingForAccountRefreshToken} // Corrected onClick
         >
           Account Token
         </Button>

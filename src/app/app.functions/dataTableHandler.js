@@ -53,7 +53,7 @@ exports.main = async (context) => {
         const customObjectTypes = objectTypesResponse.results.map(obj => obj.name.toLowerCase());
 
         // Including standard object types
-        const standardObjectTypes = ['contact', 'company', 'deal', 'ticket'];
+        const standardObjectTypes = ['contact', 'company', 'deal', 'ticket', 'data'];
 
         const allObjectTypes = [...standardObjectTypes.map(type => type.toLowerCase()), ...customObjectTypes];
 
