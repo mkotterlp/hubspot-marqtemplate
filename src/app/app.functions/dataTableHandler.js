@@ -84,16 +84,21 @@ exports.main = async (context) => {
 
         // Assuming context.parameters contains necessary keys for filtering config
         const objectType = context.parameters?.objectType?.toLowerCase() || 'default'; // Default object type if not provided
-        let relevantRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === objectType);
+        let matchedRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === objectType);
+        let dataRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === 'data');
 
-        if (!relevantRow) {
-            throw new Error(`No configuration found for object type: ${objectType}`);
+        if (!matchedRow && !dataRow) {
+            throw new Error(`No configuration found for object type: ${objectType} or 'data'`);
         }
 
         return {
-            body: JSON.stringify(relevantRow),
+            body: JSON.stringify({
+                objectTypeRow: matchedRow || null,
+                dataRow: dataRow || null
+            }),
             statusCode: 200,
         };
+
     } catch (error) {
         console.error('Error:', {
             message: error.message,

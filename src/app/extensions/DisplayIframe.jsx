@@ -1247,7 +1247,7 @@ if (!currentRefreshToken) {
       console.log("Stopping the polling for account refresh token.");
       clearInterval(pollAccountInterval); // Clean up interval when component unmounts or polling stops
     };
-  }, [setAccountIsPolling]);
+  }, [isAccountPolling]);
   
   
 
