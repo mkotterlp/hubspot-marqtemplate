@@ -1204,8 +1204,8 @@ if (!currentRefreshToken) {
         console.log("Received response from serverless function:", createaccounttable);
   
         // Access row and values properly
-        const responseBody = JSON.parse(createaccounttable.response.body);
-        const accountData = responseBody?.dataRow?.values || {};
+        const accountresponseBody = JSON.parse(createaccounttable.response.body);
+        const accountData = accountresponseBody?.dataRow?.values || {};
         
         console.log("accountData:", accountData);
   
@@ -1467,7 +1467,8 @@ const initialize = async () => {
 
     if (createaccounttable?.response?.body) {
 
-      const accountData = responseBody?.dataRow?.values || {};
+      const accountresponseBody = JSON.parse(createaccounttable.response.body);
+      const accountData = accountresponseBody?.dataRow?.values || {};
         
       console.log("accountData:", accountData);
 
