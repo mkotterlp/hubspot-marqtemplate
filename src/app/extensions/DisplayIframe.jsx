@@ -1955,6 +1955,8 @@ const createOrUpdateDataset = async (refreshToken) => {
   const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa'; // Replace with actual Client ID
   const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX'; // Replace with actual Client Secret
 
+  console.log("marqAccountId:", marqAccountId, "clientid:", clientid, "clientid:", clientid, "refreshToken:", refreshToken)
+
   // Step 1: Call the createDataset serverless function to create or update the dataset
   const createDatasetResponse = await runServerless({
     name: 'createDataset',
