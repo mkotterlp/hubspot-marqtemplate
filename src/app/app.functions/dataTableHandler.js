@@ -24,7 +24,7 @@ exports.main = async (context) => {
                 columns: [
                     { name: 'objectType', label: 'Object Type', type: 'TEXT' },
                     { name: 'accountId', label: 'Account ID', type: 'TEXT' },
-                    { name: 'refreshtoken', label: 'Refresh token', type: 'TEXT' },
+                    { name: 'refreshToken', label: 'Refresh token', type: 'TEXT' },
                     { name: 'datasetid', label: 'Data set ID', type: 'TEXT' },
                     { name: 'collectionid', label: 'Collection ID', type: 'TEXT' },
                     
@@ -33,10 +33,10 @@ exports.main = async (context) => {
             tableId = tableCreationResponse.id;
             marqembedTable = tableCreationResponse;
 
-            console.log('Table marqembed2 created and published');
+            console.log('Table account created and published');
         } else {
             tableId = marqembedTable.id;
-            console.log('Table marqembed2 found with ID:', tableId);
+            console.log('Table account found with ID:', tableId);
         }
 
         console.log('Fetching rows from table');
