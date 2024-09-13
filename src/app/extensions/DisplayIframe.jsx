@@ -1474,18 +1474,17 @@ const initialize = async () => {
 
       currentAccountRefreshToken = accountData?.refreshToken || null;
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
-      // await createOrUpdateDataset(currentAccountRefreshToken)
-      try {
-        const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
-        console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
-      } catch (error) {
-        console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
-      }
+      await createOrUpdateDataset(currentAccountRefreshToken)
       if (currentAccountRefreshToken) {
         showTemplates(true);
-        // setShowAccountTokenButton(false); its already defined as false no need to make it false again at this point
+         setShowAccountTokenButton(false);
 
-       
+        // try {
+        //   const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
+        //   console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
+        // } catch (error) {
+        //   console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
+        // }
 
       } else {
         setShowAccountTokenButton(true);
