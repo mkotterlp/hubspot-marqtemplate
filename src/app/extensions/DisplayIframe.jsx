@@ -1477,13 +1477,15 @@ const initialize = async () => {
       if (currentAccountRefreshToken) {
         showTemplates(true);
         setShowAccountTokenButton(false);
+        createOrUpdateDataset(currentAccountRefreshToken)
+
       } else {
         setShowAccountTokenButton(true);
       }
     } else {
       console.error("Failed to create or fetch user table.");
     }
-    createOrUpdateDataset(currentAccountRefreshToken)
+    // createOrUpdateDataset(currentAccountRefreshToken)
 
   } else if (
     hasInitialized.current &&
