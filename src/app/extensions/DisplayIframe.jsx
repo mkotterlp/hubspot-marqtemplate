@@ -273,6 +273,7 @@ const Extension = ({ context, actions, runServerless }) => {
           
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
+            console.log("Applying templates");
             try {
               setIsLoading(true);
               const templatesResponse = await runServerless({
