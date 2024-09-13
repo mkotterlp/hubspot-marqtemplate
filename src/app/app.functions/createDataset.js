@@ -1,75 +1,85 @@
-const hubspot = require('@hubspot/api-client');
 const axios = require('axios');
 
 exports.main = async (context) => {
-  const { refreshToken, schema, properties, marqAccountId, clientid, clientsecret } = context.parameters;
+    // Extract parameters from the context
+    const refresh_token = context.parameters?.refresh_token;
+    const clientid = context.parameters?.clientid;
+    const clientsecret = context.parameters?.clientsecret;
+    const marqAccountId = context.parameters?.marqAccountId;
+    const schema = context.parameters?.schema;
+    const properties = context.parameters?.properties;
 
-  if (!refreshToken) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing refresh token' }),
-    };
-  }
-
-  if (!schema || !Array.isArray(schema)) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Invalid or missing schema' }),
-    };
-  }
-
-  if (!marqAccountId) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing marqAccountId' }),
-    };
-  }
-
-  try {
-    // Prepare the payload for the API call
-    const payload = {
-      refresh_token: refreshToken,
-      clientid: clientid || process.env.CLIENT_ID,  // Use passed clientid or default to env variable
-      clientsecret: clientsecret || process.env.CLIENT_SECRET,  // Use passed clientsecret or default to env variable
-      marqAccountId: marqAccountId,  // Ensure marqAccountId is sent
-      properties: properties,
-      schema: schema,
-    };
-
-    // Make the API call to the dataset creation endpoint
-    const apiResponse = await axios.post('https://marqembed.fastgenapp.com/create-dataset', payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    // Log the parameters for debugging
+    console.log("Received parameters for createOrUpdateDataset:", {
+        refresh_token,
+        clientid,
+        clientsecret,
+        marqAccountId,
+        schema,
+        properties
     });
 
-    if (apiResponse.status === 200) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          collectionId: apiResponse.data.collectionId,
-          dataSourceId: apiResponse.data.dataSourceId,
-          new_refresh_token: apiResponse.data.new_refresh_token,
-          success: true,
-        }),
-      };
-    } else {
-      return {
-        statusCode: apiResponse.status,
-        body: JSON.stringify({
-          error: 'Failed to create or update dataset',
-          details: apiResponse.data,
-        }),
-      };
+    // Validate required parameters
+    if (!refresh_token || !clientid || !clientsecret || !marqAccountId || !schema || !Array.isArray(schema)) {
+        console.error("Missing or invalid parameters in createOrUpdateDataset");
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                message: "Missing or invalid parameters",
+                refresh_token,
+                clientid,
+                clientsecret,
+                marqAccountId,
+                schema,
+                properties
+            })
+        };
     }
-  } catch (error) {
-    console.error('Error creating or updating dataset:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: 'Internal Server Error',
-        details: error.message,
-      }),
-    };
-  }
+
+    try {
+        // Step 1: Make a POST request to the Fastgen API with the individual parameters
+        const response = await axios.post('https://marqembed.fastgenapp.com/create-dataset', {
+            refresh_token: refresh_token,
+            clientid: clientid,
+            clientsecret: clientsecret,
+            marqAccountId: marqAccountId,
+            schema: schema,
+            properties: properties || {} // Default to an empty object if properties are not provided
+        });
+
+        // Step 2: Check the response from the Fastgen API
+        if (response.status === 200 && response.data.success) {
+            const { collectionId, dataSourceId, new_refresh_token } = response.data;
+            console.log("Dataset created or updated successfully:", response.data);
+
+            // Step 3: Return the dataset details and new refresh token
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    collectionId: collectionId,
+                    dataSourceId: dataSourceId,
+                    new_refresh_token: new_refresh_token,
+                    success: true
+                })
+            };
+        } else {
+            console.error("Failed to create or update dataset:", response.data);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    message: "Failed to create or update dataset",
+                    error: response.data
+                })
+            };
+        }
+    } catch (error) {
+        console.error("Error in createOrUpdateDataset:", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                message: "Internal Server Error",
+                error: error.message
+            })
+        };
+    }
 };

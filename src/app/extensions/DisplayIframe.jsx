@@ -1949,6 +1949,10 @@ async function saveTokenToTable(refreshToken) {
 
 const createOrUpdateDataset = async (refreshToken) => {
   try {
+    // Log all the important parameters
+    console.log("Starting createOrUpdateDataset with the following parameters:");
+    console.log("Refresh Token:", refreshToken);
+    
     // Define the schema for the dataset
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true },
@@ -1961,18 +1965,30 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     console.log("marqAccountId:", marqAccountId, "clientid:", clientid, "refreshToken:", refreshToken);
 
+    // Ensure parameters are valid
+    if (!refreshToken || !clientid || !clientsecret || !marqAccountId) {
+      console.error("Missing required parameters for createOrUpdateDataset");
+      return;
+    }
+
     // Step 1: Call the createDataset serverless function to create or update the dataset
-    const createDatasetResponse = await runServerless({
-      name: 'createDataset',
-      parameters: {
-        refresh_token: refreshToken,             // Pass the refresh token
-        clientid: clientid,                      // Client ID
-        clientsecret: clientsecret,              // Client Secret
-        marqAccountId: marqAccountId,            // Pass the Marq Account ID
-        properties: { },                         // Add any additional properties if needed
-        schema: schema                           // Pass the schema for the dataset
-      }
-    });
+    let createDatasetResponse;
+    try {
+      createDatasetResponse = await runServerless({
+        name: 'createDataset',
+        parameters: {
+          refresh_token: refreshToken,             // Pass the refresh token
+          clientid: clientid,                      // Client ID
+          clientsecret: clientsecret,              // Client Secret
+          marqAccountId: marqAccountId,            // Pass the Marq Account ID
+          properties: { },                         // Add any additional properties if needed
+          schema: schema                           // Pass the schema for the dataset
+        }
+      });
+    } catch (apiError) {
+      console.error("Error during the API call to createDataset:", apiError);
+      throw new Error("API call to createDataset failed");
+    }
 
     // Validate the response structure
     if (createDatasetResponse?.response?.statusCode === 200) {
