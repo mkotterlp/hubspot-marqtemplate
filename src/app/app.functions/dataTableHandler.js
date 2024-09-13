@@ -64,9 +64,10 @@ exports.main = async (context) => {
                 console.log(`Creating new row for object type: ${objectType}`);
                 const rowValues = {
                     objectType: objectType,
-                    textboxFields: "", 
-                    textboxFilters: "", 
-                    dataFields: "", 
+                    accountId: "", 
+                    refreshToken: "", 
+                    datasetid: "", 
+                    collectionid: "", 
                 };
                 await hubspotClient.cms.hubdb.rowsApi.createTableRow(tableId, { values: rowValues });
             }
