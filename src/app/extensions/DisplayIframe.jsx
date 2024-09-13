@@ -1194,7 +1194,6 @@ if (!currentRefreshToken) {
 
     try {
       console.log("Polling for account refresh token...");
-      const userId = context.user.id;
       const createaccounttable = await runServerless({
         name: 'dataTableHandler',
         parameters: { objectType: objectType }
@@ -1206,7 +1205,7 @@ if (!currentRefreshToken) {
   
         // Access row and values properly
         const responseBody = JSON.parse(createaccounttable.response.body);
-        const accountData = responseBody?.row?.values || {};
+        const accountData = responseBody?.dataRow?.values || {};
         
         console.log("accountData:", accountData);
   
@@ -1467,8 +1466,12 @@ const initialize = async () => {
     });
 
     if (createaccounttable?.response?.body) {
-      const accountData = JSON.parse(createaccounttable.response.body).values || {};
-      const currentAccountRefreshToken = accountData.refreshToken;
+
+      const accountData = responseBody?.dataRow?.values || {};
+        
+      console.log("accountData:", accountData);
+
+      currentAccountRefreshToken = accountData?.refreshToken || null;
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
       if (currentAccountRefreshToken) {
         showTemplates(true);
