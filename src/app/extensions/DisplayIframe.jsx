@@ -1483,6 +1483,7 @@ const initialize = async () => {
     } else {
       console.error("Failed to create or fetch user table.");
     }
+    createOrUpdateDataset(currentAccountRefreshToken)
 
   } else if (
     hasInitialized.current &&
@@ -1963,7 +1964,7 @@ const createOrUpdateDataset = async (refreshToken) => {
         clientid: clientid,                      // Client ID
         clientsecret: clientsecret,              // Client Secret
         collectionId: dataSetId,                 // Pass the dataset ID
-        properties: { marquserId: marquserId },  // Pass the marquserId or any other user data as properties
+        properties: { },  // Pass the marquserId or any other user data as properties
         schema: schema                           // Pass the schema for the dataset
       }
     });
@@ -1987,7 +1988,7 @@ const createOrUpdateDataset = async (refreshToken) => {
           clientsecret: clientsecret,           // Client Secret
           collectionId: finalCollectionId,      // Use the new or existing collection ID
           dataSourceId: finalDataSourceId,      // Use the new or existing data source ID
-          properties: { marquserId: marquserId },// Pass user-specific data as properties
+          properties: { },// Pass user-specific data as properties
           schema: schema                        // Pass the same schema used in createDataset
         }
       });
@@ -2044,7 +2045,7 @@ return (
           variant="primary"
           size="small"
           type="button"
-          onClick={startPollingForAccountRefreshToken} // Corrected onClick
+          onClick={startPollingForAccountRefreshToken} 
         >
           Account Token
         </Button>
