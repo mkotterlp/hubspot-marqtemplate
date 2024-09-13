@@ -1946,38 +1946,38 @@ async function saveTokenToTable(refreshToken) {
 
 
 const createOrUpdateDataset = async (refreshToken) => {
-  try {
-    // Define the schema for the dataset
-    const schema = [
-      { name: "Id", fieldType: "STRING", isPrimary: true },
-      // Add additional fields as required
-    ];
+  // Define the schema for the dataset
+  const schema = [
+    { name: "Id", fieldType: "STRING", isPrimary: true },
+    // Add additional fields as required
+  ];
+  const marqAccountId = "163559625"; 
+  const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa'; // Replace with actual Client ID
+  const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX'; // Replace with actual Client Secret
 
-    const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
-    const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
-    
-    // Step 1: Call the createDataset serverless function to create or update the dataset
-    const createDatasetResponse = await runServerless({
-      name: 'createDataset',
-      parameters: {
-        refresh_token: refreshToken,             // Pass the refresh token
-        clientid: clientid,                      // Client ID
-        clientsecret: clientsecret,              // Client Secret
-        collectionId: dataSetId,                 // Pass the dataset ID
-        properties: { },  // Pass the marquserId or any other user data as properties
-        schema: schema                           // Pass the schema for the dataset
-      }
-    });
-    
-    if (createDatasetResponse?.response?.statusCode === 200) {
-      console.log("Dataset created or updated successfully.");
+  // Step 1: Call the createDataset serverless function to create or update the dataset
+  const createDatasetResponse = await runServerless({
+    name: 'createDataset',
+    parameters: {
+      refresh_token: refreshToken,             // Pass the refresh token
+      clientid: clientid,                      // Client ID
+      clientsecret: clientsecret,              // Client Secret
+      marqAccountId: marqAccountId,            // Pass the Marq Account ID
+      // marqUserId: marqUserId,                  // Pass the Marq User ID
+      properties: { },                         // Add any additional properties if needed
+      schema: schema                           // Pass the schema for the dataset
+    }
+  });
 
-      // Step 2: Retrieve collectionId and dataSourceId from the createDataset response
-      const { collectionId: newCollectionId, dataSourceId: newDataSourceId } = createDatasetResponse.response.body; 
+  if (createDatasetResponse?.response?.statusCode === 200) {
+    console.log("Dataset created or updated successfully.");
 
-      // Update the collectionId and dataSourceId from the response if they are available
-      const finalCollectionId = newCollectionId || dataSetId;
-      const finalDataSourceId = newDataSourceId;
+    // Step 2: Retrieve collectionId and dataSourceId from the createDataset response
+    const { collectionId: newCollectionId, dataSourceId: newDataSourceId } = createDatasetResponse.response.body; 
+
+    // Update the collectionId and dataSourceId from the response if they are available
+    const finalCollectionId = newCollectionId || dataSetId;
+    const finalDataSourceId = newDataSourceId;
 
       // Step 3: Call the updateDataset serverless function to send data to the dataset
       const updateResponse = await runServerless({
