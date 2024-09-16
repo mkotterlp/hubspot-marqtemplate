@@ -1955,7 +1955,6 @@ async function saveTokenToTable(refreshToken) {
 
 const createOrUpdateDataset = async (refreshToken) => {
   try {
-
     // Define the schema for the dataset
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true },
@@ -1973,7 +1972,7 @@ const createOrUpdateDataset = async (refreshToken) => {
       return;
     }
 
-    // Call the createDataset serverless function to create or update the dataset
+    // Step 1: Call the createDataset serverless function to create or update the dataset
     let createDatasetResponse;
     try {
       createDatasetResponse = await runServerless({
@@ -1995,7 +1994,7 @@ const createOrUpdateDataset = async (refreshToken) => {
       throw new Error("API call to createDataset failed");
     }
 
-    // Validate the response structure
+    // Step 2: Validate the response and extract necessary data
     if (createDatasetResponse?.response?.statusCode === 200) {
       console.log("Dataset created or updated successfully.");
 
@@ -2004,6 +2003,59 @@ const createOrUpdateDataset = async (refreshToken) => {
       if (!responseBody) {
         console.error("Invalid response body from createDataset");
         return;
+      }
+
+      // Parse the response body
+      const datasetResult = JSON.parse(responseBody);
+
+      // Extract the new values to be updated in the table
+      const new_refresh_token = datasetResult.new_refresh_token;
+      const dataSourceId = datasetResult.dataSourceId;
+      const collectionId = datasetResult.collectionId;
+
+      console.log("New values:", { new_refresh_token, dataSourceId, collectionId });
+
+      // Step 3: Fetch the existing table data using dataTableHandler
+      const objectType = 'data'; // Use 'data' or the appropriate objectType
+
+      const accountTableResponse = await runServerless({
+        name: 'dataTableHandler',
+        parameters: { objectType: objectType }
+      });
+
+      if (accountTableResponse?.body) {
+        const accountResponseBody = JSON.parse(accountTableResponse.body);
+
+        // Get the table ID and the data row for 'data' objectType
+        const dataRow = accountResponseBody?.dataRow || null;
+        const tableId = accountResponseBody?.tableId || null;
+
+        if (dataRow && tableId) {
+          // Step 4: Update the dataRow with the new values
+          const hubspot = require('@hubspot/api-client');
+          const hubspotClient = new hubspot.Client({
+            accessToken: process.env['PRIVATE_APP_ACCESS_TOKEN'],
+          });
+
+          const rowId = dataRow.id;
+
+          const updatedValues = {
+            accountId: marqAccountId,          // Update with your account ID
+            refreshToken: new_refresh_token,   // Update with the new refresh token
+            datasetid: dataSourceId,           // Update with the new dataSourceId
+            collectionid: collectionId,        // Update with the new collectionId
+          };
+
+          // Update the row in the HubDB table
+          await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, rowId, { values: updatedValues });
+          await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
+
+          console.log('Updated marq_account_data table with new values.');
+        } else {
+          console.error('No data row found to update.');
+        }
+      } else {
+        console.error('Failed to fetch account table data.');
       }
 
       // Step 2: Retrieve collectionId and dataSourceId from the createDataset response
