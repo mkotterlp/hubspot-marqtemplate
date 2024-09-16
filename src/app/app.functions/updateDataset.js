@@ -2,10 +2,10 @@ const hubspot = require('@hubspot/api-client');
 
 exports.main = async (context) => {
     // Read the parameters from the request
-    const accountId = String(context.parameters?.accountId); // Read accountId instead of userID
-    const refreshToken = context.parameters?.refreshToken; 
+    const accountId = String(context.parameters?.marqAccountId); // Read accountId instead of userID
+    const refreshToken = context.parameters?.new_refresh_token; 
     const datatsetid = context.parameters?.datasetId;  
-    const collectionid = context.parameters?.collectionid;      
+    const collectionid = context.parameters?.collectionId;      
 
     console.log("accountId:", accountId);
     console.log("refreshToken:", refreshToken);
@@ -17,7 +17,7 @@ exports.main = async (context) => {
         console.error("Error: Missing required parameters.");
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'accountId, refreshToken, datatsetid, and collectionid are required but were not provided' }),
+            body: JSON.stringify({ "accountId:": accountId, "refreshToken:": refreshToken, "datatsetid:": datatsetid, "collectionid:": collectionid }),
         };
     }
 

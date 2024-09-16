@@ -2036,8 +2036,8 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
         updateDatasetResponse = await runServerless({
           name: 'updateDataset',
           parameters: {
-            accountId: marqAccountId,             // Pass the marqAccountId as accountId
-            refreshToken: new_refresh_token,      // Pass the new refresh token
+            marqAccountId: marqAccountId,             // Pass the marqAccountId as accountId
+            new_refresh_token: new_refresh_token,      // Pass the new refresh token
             datasetId: datasetId,               // Pass the document ID from the create-dataset response
             collectionId: collectionId                    // Pass the record ID from the create-dataset response
           }
