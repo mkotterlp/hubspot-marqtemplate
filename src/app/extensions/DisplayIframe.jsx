@@ -1997,11 +1997,11 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
           clientsecret: clientsecret,              
           marqAccountId: marqAccountId,   
           objectType: objectType,  // Pass the objectType         
-          properties: { },                         
           schema: schema.map(item => ({
             ...item,
             fieldType: item.fieldType.toString() // Ensure fieldType is a string
-          }))
+          })),
+          ...(Object.keys(crmProperties).length > 0 ? { crmProperties } : {}),
         }
       });
     } catch (apiError) {
