@@ -2028,7 +2028,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
       const documentId = datasetResult.dataSourceId;
       const collectionId = datasetResult.collectionId;
 
-      console.log("New values:", { new_refresh_token, documentId, recordId });
+      console.log("New values:", { new_refresh_token, documentId, collectionId });
 
       // Step 3: Call the updateDataset function to update the dataset with marqAccountId
       let updateDatasetResponse;
