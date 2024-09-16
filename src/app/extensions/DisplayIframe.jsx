@@ -1474,22 +1474,29 @@ const initialize = async () => {
 
       currentAccountRefreshToken = accountData?.refreshToken || null;
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
-      await createOrUpdateDataset(currentAccountRefreshToken)
-      pollForRefreshToken
-      if (currentAccountRefreshToken) {
-        showTemplates(true);
-         setShowAccountTokenButton(false);
-
-        // try {
-        //   const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
-        //   console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
-        // } catch (error) {
-        //   console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
-        // }
-
-      } else {
+      await createOrUpdateDataset(currentAccountRefreshToken, objectType);
+      startPollingForRefreshToken()
+      if (!currentAccountRefreshToken) {
         setShowAccountTokenButton(true);
+      } else {
+        setShowAccountTokenButton(false);
+        startPollingForRefreshToken();
       }
+
+      // if (currentAccountRefreshToken) {
+      //   showTemplates(true);
+      //    setShowAccountTokenButton(false);
+
+      //   // try {
+      //   //   const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
+      //   //   console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
+      //   // } catch (error) {
+      //   //   console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
+      //   // }
+
+      // } else {
+      //   setShowAccountTokenButton(true);
+      // }
     } else {
       console.error("Failed to create or fetch user table.");
     }
@@ -1954,7 +1961,7 @@ async function saveTokenToTable(refreshToken) {
 }
 
 
-const createOrUpdateDataset = async (refreshToken) => {
+const createOrUpdateDataset = async (refreshToken, objectType) => {
   try {
     // Define the schema for the dataset
     const schema = [
@@ -1973,6 +1980,7 @@ const createOrUpdateDataset = async (refreshToken) => {
       clientid: clientid,
       clientsecret: clientsecret,
       marqAccountId: marqAccountId,
+      objectType: objectType,  // Pass the objectType
       // properties: { },  // Print properties to ensure correctness
       schema: schema
     });
@@ -1987,7 +1995,8 @@ const createOrUpdateDataset = async (refreshToken) => {
           refresh_token: refreshToken,             
           clientid: clientid,                      
           clientsecret: clientsecret,              
-          marqAccountId: marqAccountId,            
+          marqAccountId: marqAccountId,   
+          objectType: objectType,  // Pass the objectType         
           // properties: { },                         
           schema: schema.map(item => ({
             ...item,
