@@ -1981,7 +1981,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
       clientsecret: clientsecret,
       marqAccountId: marqAccountId,
       objectType: objectType,  // Pass the objectType
-      // properties: { },  // Print properties to ensure correctness
+      properties: { },  // Print properties to ensure correctness
       schema: schema
     });
     
@@ -1997,7 +1997,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
           clientsecret: clientsecret,              
           marqAccountId: marqAccountId,   
           objectType: objectType,  // Pass the objectType         
-          // properties: { },                         
+          properties: { },                         
           schema: schema.map(item => ({
             ...item,
             fieldType: item.fieldType.toString() // Ensure fieldType is a string

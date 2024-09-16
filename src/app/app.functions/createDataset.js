@@ -8,7 +8,7 @@ exports.main = async (context) => {
     const marqAccountId = context.parameters?.marqAccountId;
     const objectName = context.parameters?.objectType;  // Pass the objectType
     const schema = context.parameters?.schema;
-    // const properties = context.parameters?.properties;
+    const properties = context.parameters?.properties;
 
     // Log the parameters for debugging
     console.log("Received parameters for createOrUpdateDataset:", {
@@ -17,8 +17,8 @@ exports.main = async (context) => {
         clientsecret,
         marqAccountId,
         objectName,
-        schema
-        // properties
+        schema,
+        properties
     });
 
     // Validate required parameters
@@ -33,8 +33,8 @@ exports.main = async (context) => {
                 clientsecret,
                 marqAccountId,
                 objectName,
-                schema
-                // properties
+                schema,
+                properties
             })
         };
     }
@@ -47,8 +47,8 @@ exports.main = async (context) => {
             clientsecret: clientsecret,
             marqAccountId: marqAccountId,
             objectName,
-            schema: schema
-            // properties: properties || {} // Default to an empty object if properties are not provided
+            schema: schema,
+            properties: properties || {} // Default to an empty object if properties are not provided
         });
 
         // Step 2: Check the response from the Fastgen API
