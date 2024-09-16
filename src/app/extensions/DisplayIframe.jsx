@@ -1482,6 +1482,8 @@ const initialize = async () => {
         setShowAccountTokenButton(false);
         startPollingForRefreshToken();
       }
+      showTemplates(true);
+
 
       // if (currentAccountRefreshToken) {
       //   showTemplates(true);

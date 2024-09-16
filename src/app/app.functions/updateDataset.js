@@ -42,6 +42,13 @@ exports.main = async (context) => {
         const tableId = accountTable.id;
         console.log('Table marq_account_data found with ID:', tableId);
 
+        try {
+          await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
+        } catch (error) {
+          console.error("Error updating row in HubDB:", error.response?.body || error.message);
+        }
+        
+
         // Fetch all rows from the marq_account_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
         if (!rowsResponse || !rowsResponse.results) {
