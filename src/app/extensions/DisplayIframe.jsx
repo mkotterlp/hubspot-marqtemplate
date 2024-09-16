@@ -2022,89 +2022,35 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
 
       // Parse the response body
       const datasetResult = JSON.parse(responseBody);
-
-      // Extract the new values to be updated in the table
       const new_refresh_token = datasetResult.new_refresh_token;
-      const dataSourceId = datasetResult.dataSourceId;
-      const collectionId = datasetResult.collectionId;
+      const documentId = datasetResult.dataSourceId;
+      const recordId = datasetResult.collectionId;
 
-      console.log("New values:", { new_refresh_token, dataSourceId, collectionId });
+      console.log("New values:", { new_refresh_token, documentId, recordId });
 
-      // Step 3: Fetch the existing table data using dataTableHandler
-      const objectType = 'data'; // Use 'data' or the appropriate objectType
-
-      const accountTableResponse = await runServerless({
-        name: 'dataTableHandler',
-        parameters: { objectType: objectType }
-      });
-
-      if (accountTableResponse?.body) {
-        const accountResponseBody = JSON.parse(accountTableResponse.body);
-
-        // Get the table ID and the data row for 'data' objectType
-        const dataRow = accountResponseBody?.dataRow || null;
-        const tableId = accountResponseBody?.tableId || null;
-
-        if (dataRow && tableId) {
-          // Step 4: Update the dataRow with the new values
-          const hubspot = require('@hubspot/api-client');
-          const hubspotClient = new hubspot.Client({
-            accessToken: process.env['PRIVATE_APP_ACCESS_TOKEN'],
-          });
-
-          const rowId = dataRow.id;
-
-          const updatedValues = {
-            accountId: marqAccountId,          // Update with your account ID
-            refreshToken: new_refresh_token,   // Update with the new refresh token
-            datasetid: dataSourceId,           // Update with the new dataSourceId
-            collectionid: collectionId,        // Update with the new collectionId
-          };
-
-          // Update the row in the HubDB table
-          await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, rowId, { values: updatedValues });
-          await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
-
-          console.log('Updated marq_account_data table with new values.');
-        } else {
-          console.error('No data row found to update.');
-        }
-      } else {
-        console.error('Failed to fetch account table data.');
+      // Step 3: Call the updateDataset function to update the dataset with marqAccountId
+      let updateDatasetResponse;
+      try {
+        updateDatasetResponse = await runServerless({
+          name: 'updateDataset',
+          parameters: {
+            accountId: marqAccountId,             // Pass the marqAccountId as accountId
+            refreshToken: new_refresh_token,      // Pass the new refresh token
+            documentId: documentId,               // Pass the document ID from the create-dataset response
+            recordId: recordId                    // Pass the record ID from the create-dataset response
+          }
+        });
+      } catch (updateError) {
+        console.error("Error during the API call to updateDataset:", updateError);
+        throw new Error("API call to updateDataset failed");
       }
 
-      // Step 2: Retrieve collectionId and dataSourceId from the createDataset response
-      // const { collectionId: newCollectionId, dataSourceId: newDataSourceId } = responseBody; 
-
-      // // Ensure collectionId and dataSourceId are defined before continuing
-      // if (!newCollectionId || !newDataSourceId) {
-      //   console.error("Missing collectionId or dataSourceId from the createDataset response");
-      //   return;
-      // }
-
-      // const finalCollectionId = newCollectionId;
-      // const finalDataSourceId = newDataSourceId;
-
-      // // Step 3: Call the updateDataset serverless function to send data to the dataset
-      // const updateResponse = await runServerless({
-      //   name: 'updateDataset',
-      //   parameters: {
-      //     refresh_token: refreshToken,          // Pass the refresh token
-      //     clientid: clientid,                   // Client ID
-      //     clientsecret: clientsecret,           // Client Secret
-      //     collectionId: finalCollectionId,      // Use the new or existing collection ID
-      //     dataSourceId: finalDataSourceId,      // Use the new or existing data source ID
-      //     properties: { },                      // Pass user-specific data as properties
-      //     schema: schema                        // Pass the same schema used in createDataset
-      //   }
-      // });
-
-      // // Step 4: Check the response from the updateDataset function
-      // if (updateResponse?.response?.statusCode === 200) {
-      //   console.log("Data sent successfully to the dataset.");
-      // } else {
-      //   console.error("Failed to send data to the dataset:", updateResponse?.response?.body);
-      // }
+      // Step 4: Check the response from the updateDataset function
+      if (updateDatasetResponse?.response?.statusCode === 200) {
+        console.log("Data sent successfully to the dataset.");
+      } else {
+        console.error("Failed to send data to the dataset:", updateDatasetResponse?.response?.body);
+      }
 
     } else {
       console.error("Failed to create or update dataset:", createDatasetResponse?.response?.body);
