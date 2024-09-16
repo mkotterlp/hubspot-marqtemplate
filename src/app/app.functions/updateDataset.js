@@ -4,20 +4,20 @@ exports.main = async (context) => {
     // Read the parameters from the request
     const accountId = String(context.parameters?.accountId); // Read accountId instead of userID
     const refreshToken = context.parameters?.refreshToken; 
-    const documentId = context.parameters?.documentId;  
-    const collectionId = context.parameters?.collectionId;      
+    const datatsetid = context.parameters?.datasetId;  
+    const collectionid = context.parameters?.collectionid;      
 
     console.log("accountId:", accountId);
     console.log("refreshToken:", refreshToken);
-    console.log("documentId:", documentId);
-    console.log("collectionId:", collectionId);
+    console.log("datatsetid:", datatsetid);
+    console.log("collectionid:", collectionid);
 
     // Check if all required parameters are provided
-    if (!accountId || !refreshToken || !documentId || !collectionId) {
+    if (!accountId || !refreshToken || !datatsetid || !collectionid) {
         console.error("Error: Missing required parameters.");
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'accountId, refreshToken, documentId, and collectionId are required but were not provided' }),
+            body: JSON.stringify({ error: 'accountId, refreshToken, datatsetid, and collectionid are required but were not provided' }),
         };
     }
 
@@ -61,16 +61,16 @@ exports.main = async (context) => {
             throw new Error(`Account ${accountId} not found in the table.`);
         }
 
-        // Update the row with the new refreshToken, documentId, and collectionId
+        // Update the row with the new refreshToken, datatsetid, and collectionid
         const rowValues = {
             refreshToken: refreshToken,
-            documentId: documentId,
-            collectionId: collectionId
+            datatsetid: datatsetid,
+            collectionid: collectionid
         };
 
         // Update the draft row with new values
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-        console.log(`Account ${accountId} updated in the table with new refreshToken, documentId, and collectionId.`);
+        console.log(`Account ${accountId} updated in the table with new refreshToken, datatsetid, and collectionid.`);
 
         // Publish the table after updating the row
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);

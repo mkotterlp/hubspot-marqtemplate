@@ -2025,7 +2025,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
       // Parse the response body
       const datasetResult = JSON.parse(responseBody);
       const new_refresh_token = datasetResult.new_refresh_token;
-      const documentId = datasetResult.dataSourceId;
+      const datasetId = datasetResult.dataSourceId;
       const collectionId = datasetResult.collectionId;
 
       console.log("New values:", { new_refresh_token, documentId, collectionId });
