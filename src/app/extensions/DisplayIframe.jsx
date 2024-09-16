@@ -1475,6 +1475,7 @@ const initialize = async () => {
       currentAccountRefreshToken = accountData?.refreshToken || null;
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
       await createOrUpdateDataset(currentAccountRefreshToken)
+      pollForRefreshToken
       if (currentAccountRefreshToken) {
         showTemplates(true);
          setShowAccountTokenButton(false);
