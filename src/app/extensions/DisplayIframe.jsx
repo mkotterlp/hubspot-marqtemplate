@@ -1965,7 +1965,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
   try {
     // Define the schema for the dataset
     const schema = [
-      { name: "Id", fieldType: "STRING", isPrimary: true },
+      { name: "Id", fieldType: "STRING", isPrimary: true , order: 1},
       // Add additional fields as required, ensuring fieldType is a string
     ];
 
