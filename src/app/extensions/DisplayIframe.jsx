@@ -1967,10 +1967,15 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     console.log("marqAccountId:", marqAccountId, "clientid:", clientid, "refreshToken:", refreshToken);
 
-    if (!refreshToken || !clientid || !clientsecret || !marqAccountId) {
-      console.error("Missing required parameters for createOrUpdateDataset");
-      return;
-    }
+    console.log("Payload sent to create-dataset:", {
+      refresh_token: refreshToken,
+      clientid: clientid,
+      clientsecret: clientsecret,
+      marqAccountId: marqAccountId,
+      properties: { },  // Print properties to ensure correctness
+      schema: schema
+    });
+    
 
     // Step 1: Call the createDataset serverless function to create or update the dataset
     let createDatasetResponse;
