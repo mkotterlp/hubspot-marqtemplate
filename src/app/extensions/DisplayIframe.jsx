@@ -2028,7 +2028,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
       const datasetId = datasetResult.dataSourceId;
       const collectionId = datasetResult.collectionId;
 
-      console.log("New values:", { new_refresh_token, documentId, collectionId });
+      console.log("New values:", { new_refresh_token, datasetId, collectionId });
 
       // Step 3: Call the updateDataset function to update the dataset with marqAccountId
       let updateDatasetResponse;
@@ -2038,7 +2038,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
           parameters: {
             accountId: marqAccountId,             // Pass the marqAccountId as accountId
             refreshToken: new_refresh_token,      // Pass the new refresh token
-            documentId: documentId,               // Pass the document ID from the create-dataset response
+            datasetId: datasetId,               // Pass the document ID from the create-dataset response
             collectionId: collectionId                    // Pass the record ID from the create-dataset response
           }
         });
