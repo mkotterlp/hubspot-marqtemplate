@@ -10,14 +10,14 @@ exports.main = async (context) => {
     console.log("accountId:", accountId);
     console.log("refreshToken:", refreshToken);
     console.log("documentId:", documentId);
-    console.log("recordId:", collectionId);
+    console.log("collectionId:", collectionId);
 
     // Check if all required parameters are provided
     if (!accountId || !refreshToken || !documentId || !collectionId) {
         console.error("Error: Missing required parameters.");
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'accountId, refreshToken, documentId, and recordId are required but were not provided' }),
+            body: JSON.stringify({ error: 'accountId, refreshToken, documentId, and collectionId are required but were not provided' }),
         };
     }
 
@@ -61,7 +61,7 @@ exports.main = async (context) => {
             throw new Error(`Account ${accountId} not found in the table.`);
         }
 
-        // Update the row with the new refreshToken, documentId, and recordId
+        // Update the row with the new refreshToken, documentId, and collectionId
         const rowValues = {
             refreshToken: refreshToken,
             documentId: documentId,
@@ -70,7 +70,7 @@ exports.main = async (context) => {
 
         // Update the draft row with new values
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-        console.log(`Account ${accountId} updated in the table with new refreshToken, documentId, and recordId.`);
+        console.log(`Account ${accountId} updated in the table with new refreshToken, documentId, and collectionId.`);
 
         // Publish the table after updating the row
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);

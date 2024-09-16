@@ -2039,7 +2039,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
             accountId: marqAccountId,             // Pass the marqAccountId as accountId
             refreshToken: new_refresh_token,      // Pass the new refresh token
             documentId: documentId,               // Pass the document ID from the create-dataset response
-            recordId: recordId                    // Pass the record ID from the create-dataset response
+            collectionId: collectionId                    // Pass the record ID from the create-dataset response
           }
         });
       } catch (updateError) {
