@@ -5,15 +5,15 @@ exports.main = async (context) => {
     const accountId = String(context.parameters?.accountId); // Read accountId instead of userID
     const refreshToken = context.parameters?.refreshToken; 
     const documentId = context.parameters?.documentId;  
-    const recordId = context.parameters?.recordId;      
+    const collectionId = context.parameters?.collectionId;      
 
     console.log("accountId:", accountId);
     console.log("refreshToken:", refreshToken);
     console.log("documentId:", documentId);
-    console.log("recordId:", recordId);
+    console.log("recordId:", collectionId);
 
     // Check if all required parameters are provided
-    if (!accountId || !refreshToken || !documentId || !recordId) {
+    if (!accountId || !refreshToken || !documentId || !collectionId) {
         console.error("Error: Missing required parameters.");
         return {
             statusCode: 400,
@@ -65,7 +65,7 @@ exports.main = async (context) => {
         const rowValues = {
             refreshToken: refreshToken,
             documentId: documentId,
-            recordId: recordId
+            collectionId: collectionId
         };
 
         // Update the draft row with new values

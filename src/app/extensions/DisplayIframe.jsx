@@ -2026,7 +2026,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
       const datasetResult = JSON.parse(responseBody);
       const new_refresh_token = datasetResult.new_refresh_token;
       const documentId = datasetResult.dataSourceId;
-      const recordId = datasetResult.collectionId;
+      const collectionId = datasetResult.collectionId;
 
       console.log("New values:", { new_refresh_token, documentId, recordId });
 
