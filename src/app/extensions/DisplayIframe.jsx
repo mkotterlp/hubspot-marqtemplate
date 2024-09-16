@@ -1955,7 +1955,7 @@ async function saveTokenToTable(refreshToken) {
 
 const createOrUpdateDataset = async (refreshToken) => {
   try {
-    // Define the schema for the dataset (commented out for now)
+    // Define the schema for the dataset
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true },
       // Add additional fields as required, ensuring fieldType is a string
@@ -1967,16 +1967,16 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     console.log("marqAccountId:", marqAccountId, "clientid:", clientid, "refreshToken:", refreshToken);
 
-    // Log the payload without the schema
     console.log("Payload sent to create-dataset:", {
       refresh_token: refreshToken,
       clientid: clientid,
       clientsecret: clientsecret,
       marqAccountId: marqAccountId,
-      // properties: { },  // Commented out for now
+      // properties: { },  // Print properties to ensure correctness
       schema: schema
     });
     
+
     // Step 1: Call the createDataset serverless function to create or update the dataset
     let createDatasetResponse;
     try {
@@ -1986,27 +1986,29 @@ const createOrUpdateDataset = async (refreshToken) => {
           refresh_token: refreshToken,             
           clientid: clientid,                      
           clientsecret: clientsecret,              
-          marqAccountId: marqAccountId,
+          marqAccountId: marqAccountId,            
+          // properties: { },                         
           schema: schema.map(item => ({
             ...item,
             fieldType: item.fieldType.toString() // Ensure fieldType is a string
           }))
         }
       });
+    } catch (apiError) {
+      console.error("Error during the API call to createDataset:", apiError);
+      throw new Error("API call to createDataset failed");
+    }
 
-      // Handle the response (logging or further processing)
-      if (createDatasetResponse?.response?.statusCode === 200) {
-        console.log("Dataset created or updated successfully.");
-      } else {
-        console.error("Failed to create or update dataset.");
-      }
+    // Step 2: Validate the response and extract necessary data
+    if (createDatasetResponse?.response?.statusCode === 200) {
+      console.log("Dataset created or updated successfully.");
 
       // Ensure that the response has the required fields
-      // const responseBody = createDatasetResponse.response.body;
-      // if (!responseBody) {
-      //   console.error("Invalid response body from createDataset");
-      //   return;
-      // }
+      const responseBody = createDatasetResponse.response.body;
+      if (!responseBody) {
+        console.error("Invalid response body from createDataset");
+        return;
+      }
 
       // Parse the response body
       const datasetResult = JSON.parse(responseBody);
