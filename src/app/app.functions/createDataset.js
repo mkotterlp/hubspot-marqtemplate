@@ -6,7 +6,7 @@ exports.main = async (context) => {
     const clientid = context.parameters?.clientid;
     const clientsecret = context.parameters?.clientsecret;
     const marqAccountId = context.parameters?.marqAccountId;
-    // const schema = context.parameters?.schema;
+    const schema = context.parameters?.schema;
     // const properties = context.parameters?.properties;
 
     // Log the parameters for debugging
@@ -14,8 +14,8 @@ exports.main = async (context) => {
         refresh_token,
         clientid,
         clientsecret,
-        marqAccountId
-        // schema,
+        marqAccountId,
+        schema
         // properties
     });
 
@@ -29,8 +29,8 @@ exports.main = async (context) => {
                 refresh_token,
                 clientid,
                 clientsecret,
-                marqAccountId
-                // schema,
+                marqAccountId,
+                schema
                 // properties
             })
         };
@@ -43,7 +43,7 @@ exports.main = async (context) => {
             clientid: clientid,
             clientsecret: clientsecret,
             marqAccountId: marqAccountId,
-            // schema: schema,
+            schema: schema
             // properties: properties || {} // Default to an empty object if properties are not provided
         });
 
