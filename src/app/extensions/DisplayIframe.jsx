@@ -1157,6 +1157,7 @@ if (!currentRefreshToken) {
             console.log("Refresh token found:", currentRefreshToken);
             setIsPolling(false);  // Stop polling once refresh token is found
             fetchPropertiesAndLoadConfig(objectType);
+            showTemplates(true);
             break;  // Exit the polling loop
           } else {
             console.log("Refresh token not found yet, continuing to poll...");
