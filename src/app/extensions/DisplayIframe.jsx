@@ -1449,13 +1449,13 @@ const initialize = async () => {
       const userData = JSON.parse(createusertable.response.body).values || {};
       const currentRefreshToken = userData.refreshToken;
       if (currentRefreshToken) {
-        showTemplates(true);
+        setShowTemplates(true);  // Show templates as soon as refresh token is found
       }
     } else {
       console.error("Failed to create or fetch user table.");
     }
 
-    // Fetch Marq user data and update refresh token if necessary
+    // Fetch account data
     const createaccounttable = await runServerless({
       name: 'dataTableHandler',
       parameters: { objectType: objectType }
@@ -1464,31 +1464,31 @@ const initialize = async () => {
     if (createaccounttable?.response?.body) {
       const accountresponseBody = JSON.parse(createaccounttable.response.body);
       const accountData = accountresponseBody?.dataRow?.values || {};
-        
       console.log("accountData:", accountData);
 
       currentAccountRefreshToken = accountData?.refreshToken || null;
-      console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
+      console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+
+      // Start polling for refresh token before processing object types
+      startPollingForRefreshToken();
 
       // Define the object types you want to loop through
       const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
-      
+
       // Loop through each object type
       for (const objType of objectTypes) {
-        await createOrUpdateDataset(currentAccountRefreshToken, objType);
+        try {
+          await createOrUpdateDataset(currentAccountRefreshToken, objType);
+        } catch (error) {
+          console.error(`Failed to process objectType: ${objType}`, error);
+        }
       }
-
-      // Await polling for refresh token until it's found
-      startPollingForRefreshToken();
 
       if (!currentAccountRefreshToken) {
         setShowAccountTokenButton(true);
       } else {
         setShowAccountTokenButton(false);
       }
-
-      setShowTemplates(true);
-
     } else {
       console.error("Failed to create or fetch account table.");
     }
@@ -1502,6 +1502,7 @@ const initialize = async () => {
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
 
 
 
