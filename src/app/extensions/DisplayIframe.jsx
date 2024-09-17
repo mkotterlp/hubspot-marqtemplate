@@ -1461,7 +1461,7 @@ const initialize = async () => {
       if (createusertable?.response?.body) {
         // Parse user data and extract refresh token
         const userData = JSON.parse(createusertable.response.body).values || {};
-        const currentRefreshToken = userData.refreshToken;
+        currentRefreshToken = userData.refreshToken;
 
         // Log and show templates if refresh token is available
         console.log("User refresh token:", currentRefreshToken);
