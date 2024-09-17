@@ -1445,7 +1445,12 @@ const initialize = async () => {
     });
 
     if (createusertable?.response?.body) {
-      const userData = JSON.parse(createusertable.response.body).values || {};
+      const responseBody = JSON.parse(createusertable.response.body);
+      const userData = responseBody.row?.values || {}; // Access values directly from row
+
+      // const userData = JSON.parse(createusertable.response.body).values || {};
+      console.log("Fetched User Data: in initialize()", JSON.stringify(userData));
+
       currentRefreshToken = userData.refreshToken; // Get the refresh token from marqouathhandler
       console.log("currentRefreshToken from marqouathhandler:", currentRefreshToken);
       if (currentRefreshToken) {
