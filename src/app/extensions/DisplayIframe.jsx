@@ -1122,56 +1122,73 @@ if (!currentRefreshToken) {
   
   const startPollingForAccountRefreshToken = () => {
     setAccountIsPolling(true); // Start polling when the button is clicked
-  };
-  
-  const pollForAccountRefreshToken = async () => {
+};
+
+const pollForAccountRefreshToken = async () => {
     console.log("Attempting poll for account refresh token");
-  
+
     try {
-      const createaccounttable = await runServerless({
-        name: 'dataTableHandler',
-        parameters: { objectType: objectType } // Or any valid objectType if needed
-      });
-  
-      if (createaccounttable?.response?.body) {
-        const accountresponseBody = JSON.parse(createaccounttable.response.body);
-        const accountData = accountresponseBody?.dataRow?.values || {};
-  
-        currentAccountRefreshToken = accountData?.refreshToken || null;
-        console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
-  
-        if (currentAccountRefreshToken) {
-          console.log("Account refresh token found:", currentAccountRefreshToken);
-          setAccountIsPolling(false); // Stop polling once we have the token
-          setShowAccountTokenButton(false);
-  
-          // Call the createOrUpdateDataset function with the account refresh token
-          await createOrUpdateDataset(currentAccountRefreshToken);
+        console.log("Polling for account refresh token...");
+
+        // Call the serverless function to get account data
+        const createaccounttable = await runServerless({
+            name: 'dataTableHandler',
+            parameters: { objectType: objectType } // Ensure objectType is valid
+        });
+
+        console.log("Response from serverless function:", createaccounttable); 
+
+        if (createaccounttable?.response?.body) {
+            console.log("Received response from serverless function");
+
+            // Parse the response body to access account data
+            const accountresponseBody = JSON.parse(createaccounttable.response.body);
+            const accountData = accountresponseBody?.dataRow?.values || {};
+            
+            console.log("accountData:", accountData);
+
+            // Retrieve the refresh token from the account data
+            currentAccountRefreshToken = accountData?.refreshToken || null;
+            console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+
+            // Check if the refresh token was found
+            if (currentAccountRefreshToken && currentAccountRefreshToken !== 'null' && currentAccountRefreshToken !== '') {
+                console.log("Account refresh token found:", currentAccountRefreshToken);
+
+                // Stop polling once we have the token
+                setAccountIsPolling(false);
+                setShowAccountTokenButton(false);
+
+                // Call the createOrUpdateDataset function with the found account refresh token
+                await createOrUpdateDataset(currentAccountRefreshToken);
+            } else {
+                console.log("Account refresh token not found, continuing to poll...");
+                setShowAccountTokenButton(true); // Display button to try again
+            }
         } else {
-          console.log("Account refresh token not found, continuing to poll...");
-          setShowAccountTokenButton(true);
+            console.log("No response body from serverless function.");
         }
-      } else {
-        console.log("No response body from serverless function.");
-      }
     } catch (error) {
-      console.error("Error while polling for account refresh token:", error);
+        console.error("Error while polling for account refresh token:", error);
     }
-  };
-  
-  useEffect(() => {
+};
+
+useEffect(() => {
     let pollAccountInterval;
-  
+
+    // Start polling if the account is set to be polling
     if (isAccountPolling) {
-      console.log("Starting to poll for account refresh token every 5 seconds.");
-      pollAccountInterval = setInterval(pollForAccountRefreshToken, 5000); // Poll every 5 seconds
+        console.log("Starting to poll for account refresh token every 5 seconds.");
+        pollAccountInterval = setInterval(pollForAccountRefreshToken, 5000); // Poll every 5 seconds
     }
-  
+
+    // Cleanup interval when polling stops or component unmounts
     return () => {
-      console.log("Stopping the polling for account refresh token.");
-      clearInterval(pollAccountInterval); // Clean up interval when component unmounts or polling stops
+        console.log("Stopping the polling for account refresh token.");
+        clearInterval(pollAccountInterval);
     };
-  }, [isAccountPolling]);
+}, [isAccountPolling]);
+
   
   
 
