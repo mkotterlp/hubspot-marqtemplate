@@ -1460,7 +1460,7 @@ const initialize = async () => {
       console.log("User refresh token:", currentRefreshToken);
 
       if (currentRefreshToken) {
-        setShowTemplates(true);  
+        showTemplates(true);  
         startPollingForAccountRefreshToken()
       }
     } else {
