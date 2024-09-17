@@ -1983,7 +1983,7 @@ async function saveTokenToTable(refreshToken) {
     console.error('Error saving refresh token:', error.message);
   }
 }
-const createOrUpdateDataset = async (initialRefreshToken) => {
+const createOrUpdateDataset = async (refreshToken) => {
   try {
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
@@ -1998,7 +1998,7 @@ const createOrUpdateDataset = async (initialRefreshToken) => {
     const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
 
     // Initialize the refresh token with the passed one
-    let currentRefreshToken = initialRefreshToken;
+    let currentRefreshToken = refreshToken;
 
     // Log the starting process
     console.log("Starting createOrUpdateDataset with initialRefreshToken:", currentRefreshToken);
