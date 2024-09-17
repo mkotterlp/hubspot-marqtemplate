@@ -1450,11 +1450,11 @@ const initialize = async () => {
     }
 
     // If we have a user refresh token, proceed with account data polling
-    // if (currentRefreshToken) {
-    //   startPollingForAccountRefreshToken(); // This will trigger polling for the account refresh token
-    // } else {
-    //   console.error("No refresh token found, stopping further actions.");
-    // }
+    if (currentRefreshToken) {
+      startPollingForAccountRefreshToken(); // This will trigger polling for the account refresh token
+    } else {
+      console.error("No refresh token found, stopping further actions.");
+    }
   } else if (fieldsArray.length > 0 && filtersArray.length > 0 && Object.keys(crmProperties).length > 0) {
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
