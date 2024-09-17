@@ -1485,8 +1485,14 @@ const initialize = async () => {
           setShowTemplates(true); // Show templates as soon as refresh token is found
         }
 
+        try {
+          await createOrUpdateDataset(currentAccountRefreshToken, objectType);
+        } catch (error) {
+          console.error(`Failed to process objectType: ${objectType}`, error);
+        }
+
         // Define the object types you want to loop through
-        const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
+        const objectTypes = ['contact', 'company', 'deal', 'ticket', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events']; // Took out 'data'
 
         // Loop through each object type and use the refresh token from marqouathhandler
         for (const objType of objectTypes) {
