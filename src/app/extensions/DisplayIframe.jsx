@@ -1461,6 +1461,7 @@ const initialize = async () => {
 
       if (currentRefreshToken) {
         setShowTemplates(true);  
+        startPollingForAccountRefreshToken()
       }
     } else {
       console.error("Failed to create or fetch user table.");
