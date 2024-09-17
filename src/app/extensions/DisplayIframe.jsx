@@ -1217,12 +1217,12 @@ if (!currentRefreshToken) {
           console.log("Account Refresh token found:", currentAccountRefreshToken);
           setAccountIsPolling(false); // Stop polling
           fetchPropertiesAndLoadConfig(objectType);
-          setShowAccountTokenButton(false);
+          // setShowAccountTokenButton(false);
           // setIsConnectedToMarq(true); // Blake added this
         } else {
           console.log("Account Refresh token not found yet, continuing to poll...");
           setShowTemplates(false);
-          setShowAccountTokenButton(true);
+          // setShowAccountTokenButton(true);
         }
       } else {
         console.log("No response body from serverless function.");
@@ -1476,9 +1476,9 @@ const initialize = async () => {
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
       if (currentAccountRefreshToken) {
         showTemplates(true);
-        setShowAccountTokenButton(false);
+        // setShowAccountTokenButton(false);
       } else {
-        setShowAccountTokenButton(true);
+        // setShowAccountTokenButton(true);
       }
     } else {
       console.error("Failed to create or fetch user table.");
