@@ -1450,11 +1450,11 @@ const initialize = async () => {
     }
 
     // If we have a user refresh token, proceed with account data polling
-    if (currentRefreshToken) {
-      startPollingForAccountRefreshToken(); // This will trigger polling for the account refresh token
-    } else {
-      console.error("No refresh token found, stopping further actions.");
-    }
+    // if (currentRefreshToken) {
+    //   startPollingForAccountRefreshToken(); // This will trigger polling for the account refresh token
+    // } else {
+    //   console.error("No refresh token found, stopping further actions.");
+    // }
   } else if (fieldsArray.length > 0 && filtersArray.length > 0 && Object.keys(crmProperties).length > 0) {
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
@@ -1984,7 +1984,6 @@ async function saveTokenToTable(refreshToken) {
   }
 }
 
-
 const createOrUpdateDataset = async (refreshToken) => {
   try {
     const schema = [
@@ -1997,12 +1996,29 @@ const createOrUpdateDataset = async (refreshToken) => {
     const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
     // Define the object types to loop through
-    const objectTypes = ['contact', 'company', 'deal', 'ticket', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events', 'data'];
+    const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
+
+    // Log the starting process
+    console.log("Starting createOrUpdateDataset with refreshToken:", refreshToken);
 
     for (const objectType of objectTypes) {
       console.log(`Processing object type: ${objectType}`);
 
       try {
+        // Log parameters being sent to the serverless function
+        console.log(`Sending createDataset request for ${objectType} with parameters:`, {
+          refresh_token: refreshToken,             
+          clientid: clientid,                      
+          clientsecret: clientsecret,              
+          marqAccountId: marqAccountId,   
+          objectType: objectType,
+          schema: schema.map(item => ({
+            ...item,
+            fieldType: item.fieldType.toString()
+          }))
+        });
+
+        // Call the createDataset serverless function
         const createDatasetResponse = await runServerless({
           name: 'createDataset',
           parameters: {
@@ -2010,7 +2026,7 @@ const createOrUpdateDataset = async (refreshToken) => {
             clientid: clientid,                      
             clientsecret: clientsecret,              
             marqAccountId: marqAccountId,   
-            objectType: objectType, // Pass each objectType         
+            objectType: objectType,         
             schema: schema.map(item => ({
               ...item,
               fieldType: item.fieldType.toString() // Ensure fieldType is a string
@@ -2018,7 +2034,9 @@ const createOrUpdateDataset = async (refreshToken) => {
           }
         });
 
-        // Step 2: Validate the response and extract necessary data
+        // Check and log the createDataset response
+        console.log(`Received createDataset response for ${objectType}:`, createDatasetResponse);
+
         if (createDatasetResponse?.response?.statusCode === 200) {
           console.log(`Dataset created successfully for ${objectType}`);
 
@@ -2027,19 +2045,30 @@ const createOrUpdateDataset = async (refreshToken) => {
           const datasetid = datasetResult.dataSourceId;   
           const collectionid = datasetResult.collectionId;
 
-          console.log("New values:", { new_refresh_token, datasetid, collectionid });
+          console.log(`New values for ${objectType}:`, { new_refresh_token, datasetid, collectionid });
 
-          // Call the updateDataset function to update the dataset with marqAccountId and objectType
+          // Call the updateDataset function to update the dataset
+          console.log(`Sending updateDataset request for ${objectType} with parameters:`, {
+            accountId: marqAccountId,
+            objectType: objectType,
+            refreshToken: refreshToken,   // Use the same refresh token throughout
+            datasetid: datasetid,
+            collectionid: collectionid
+          });
+
           const updateDatasetResponse = await runServerless({
             name: 'updateDataset',
             parameters: {
               accountId: marqAccountId,             
               objectType: objectType,               
-              refreshToken: new_refresh_token,     
+              refreshToken: refreshToken,   
               datasetid: datasetid,                
               collectionid: collectionid           
             }
           });
+
+          // Check and log the updateDataset response
+          console.log(`Received updateDataset response for ${objectType}:`, updateDatasetResponse);
 
           if (updateDatasetResponse?.response?.statusCode === 200) {
             console.log(`Data sent successfully to the dataset for ${objectType}`);
@@ -2057,6 +2086,7 @@ const createOrUpdateDataset = async (refreshToken) => {
     console.error('Error in createOrUpdateDataset:', error.message);
   }
 };
+
 
 
 
