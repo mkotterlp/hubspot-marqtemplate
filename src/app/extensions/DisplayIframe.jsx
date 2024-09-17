@@ -1460,8 +1460,10 @@ const initialize = async () => {
 
       if (createusertable?.response?.body) {
         // Parse user data and extract refresh token
-        const userData = JSON.parse(createusertable.response.body).values || {};
+        const responseBody = JSON.parse(createusertable.response.body);
+        const userData = responseBody.row?.values || {}; // Access values directly from row
         currentRefreshToken = userData.refreshToken;
+        console.log("Fetched User Data:", JSON.stringify(userData));
 
         // Log and show templates if refresh token is available
         console.log("User refresh token:", currentRefreshToken);
