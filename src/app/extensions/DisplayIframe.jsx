@@ -1423,7 +1423,6 @@ const paginatedTemplates = filteredTemplates.slice(
 //   }
 // };
 
-
 const initialize = async () => {
   if (!hasInitialized.current && objectType) {
     hasInitialized.current = true;
@@ -1445,9 +1444,11 @@ const initialize = async () => {
       parameters: { userID: userid }
     });
 
+    let currentRefreshToken;
     if (createusertable?.response?.body) {
       const userData = JSON.parse(createusertable.response.body).values || {};
-      const currentRefreshToken = userData.refreshToken;
+      currentRefreshToken = userData.refreshToken; // Get the refresh token from marqouathhandler
+      console.log("currentRefreshToken from marqouathhandler:", currentRefreshToken);
       if (currentRefreshToken) {
         setShowTemplates(true);  // Show templates as soon as refresh token is found
       }
@@ -1455,42 +1456,53 @@ const initialize = async () => {
       console.error("Failed to create or fetch user table.");
     }
 
-    // Fetch account data
-    const createaccounttable = await runServerless({
-      name: 'dataTableHandler',
-      parameters: { objectType: objectType }
-    });
+    // If we have a refresh token, proceed with account data fetching
+    if (currentRefreshToken) {
+      // Fetch account data
+      const createaccounttable = await runServerless({
+        name: 'dataTableHandler',
+        parameters: { objectType: objectType }
+      });
 
-    if (createaccounttable?.response?.body) {
-      const accountresponseBody = JSON.parse(createaccounttable.response.body);
-      const accountData = accountresponseBody?.dataRow?.values || {};
-      console.log("accountData:", accountData);
+      if (createaccounttable?.response?.body) {
+        const accountresponseBody = JSON.parse(createaccounttable.response.body);
+        const accountData = accountresponseBody?.dataRow?.values || {};
+        
+        console.log("accountData:", accountData);
 
-      currentAccountRefreshToken = accountData?.refreshToken || null;
-      console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+        // Use the token from marqouathhandler for creating/updating dataset
+        currentAccountRefreshToken = accountData?.refreshToken || currentRefreshToken;
+        console.log("currentAccountRefreshToken used:", currentAccountRefreshToken);
 
-      // Start polling for refresh token before processing object types
-      startPollingForRefreshToken();
+        // Start polling for refresh token before processing object types
+        startPollingForRefreshToken();
 
-      // Define the object types you want to loop through
-      const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
-
-      // Loop through each object type
-      for (const objType of objectTypes) {
-        try {
-          await createOrUpdateDataset(currentAccountRefreshToken, objType);
-        } catch (error) {
-          console.error(`Failed to process objectType: ${objType}`, error);
+        if (currentRefreshToken) {
+          setShowTemplates(true); // Show templates as soon as refresh token is found
         }
-      }
 
-      if (!currentAccountRefreshToken) {
-        setShowAccountTokenButton(true);
+        // Define the object types you want to loop through
+        const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
+
+        // Loop through each object type and use the refresh token from marqouathhandler
+        for (const objType of objectTypes) {
+          try {
+            await createOrUpdateDataset(currentAccountRefreshToken, objType);
+          } catch (error) {
+            console.error(`Failed to process objectType: ${objType}`, error);
+          }
+        }
+
+        if (!currentAccountRefreshToken) {
+          setShowAccountTokenButton(true);
+        } else {
+          setShowAccountTokenButton(false);
+        }
       } else {
-        setShowAccountTokenButton(false);
+        console.error("Failed to create or fetch account table.");
       }
     } else {
-      console.error("Failed to create or fetch account table.");
+      console.error("No refresh token found, stopping further actions.");
     }
 
   } else if (
@@ -1502,6 +1514,7 @@ const initialize = async () => {
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
 
 
 
