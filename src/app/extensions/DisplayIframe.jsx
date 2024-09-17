@@ -1424,10 +1424,6 @@ const paginatedTemplates = filteredTemplates.slice(
 // };
 
 
-
-
-
-// ORIGINAL INITIALIZE FUNCTION BEFORE THE adding HANDLEGETACCOUNTTOKEN FUNCTION
 const initialize = async () => {
   if (!hasInitialized.current && objectType) {
     hasInitialized.current = true;
@@ -1459,14 +1455,13 @@ const initialize = async () => {
       console.error("Failed to create or fetch user table.");
     }
 
-     // Fetch Marq user data and update refresh token if necessary
-     const createaccounttable = await runServerless({
+    // Fetch Marq user data and update refresh token if necessary
+    const createaccounttable = await runServerless({
       name: 'dataTableHandler',
       parameters: { objectType: objectType }
     });
 
     if (createaccounttable?.response?.body) {
-
       const accountresponseBody = JSON.parse(createaccounttable.response.body);
       const accountData = accountresponseBody?.dataRow?.values || {};
         
@@ -1474,12 +1469,17 @@ const initialize = async () => {
 
       currentAccountRefreshToken = accountData?.refreshToken || null;
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
-      await createOrUpdateDataset(currentAccountRefreshToken, objectType);
+
+      // Define the object types you want to loop through
+      const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
+      
+      // Loop through each object type
+      for (const objType of objectTypes) {
+        await createOrUpdateDataset(currentAccountRefreshToken, objType);
+      }
 
       // Await polling for refresh token until it's found
-      startPollingForRefreshToken();      
-      
-
+      startPollingForRefreshToken();
 
       if (!currentAccountRefreshToken) {
         setShowAccountTokenButton(true);
@@ -1489,27 +1489,9 @@ const initialize = async () => {
 
       setShowTemplates(true);
 
-
-
-
-      // if (currentAccountRefreshToken) {
-      //   showTemplates(true);
-      //    setShowAccountTokenButton(false);
-
-      //   // try {
-      //   //   const createDatasetResponse = await createOrUpdateDataset(currentAccountRefreshToken);
-      //   //   console.log("createOrUpdateDataset response:", createDatasetResponse); // Log the response
-      //   // } catch (error) {
-      //   //   console.error("Error in createOrUpdateDataset:", error); // Log any error that occurs
-      //   // }
-
-      // } else {
-      //   setShowAccountTokenButton(true);
-      // }
     } else {
-      console.error("Failed to create or fetch user table.");
+      console.error("Failed to create or fetch account table.");
     }
-    // createOrUpdateDataset(currentAccountRefreshToken)
 
   } else if (
     hasInitialized.current &&
@@ -1520,6 +1502,85 @@ const initialize = async () => {
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
+
+
+// ORIGINAL INITIALIZE FUNCTION 
+// const initialize = async () => {
+//   if (!hasInitialized.current && objectType) {
+//     hasInitialized.current = true;
+
+//     fetchPropertiesAndLoadConfig(objectType);
+//     fetchAssociatedProjectsAndDetails(objectType);
+
+//     // Fetch the userid and userEmail from context
+//     const userid = context.user.id;
+//     const userEmail = context.user.email; // Assuming context provides the user's email here
+
+//     // Fetch the API key and pass the userid and userEmail
+//     const apiKey = await setapi(userid, userEmail);
+//     setAPIkey(apiKey);
+
+//     // Fetch Marq user data and update refresh token if necessary
+//     const createusertable = await runServerless({
+//       name: 'marqouathhandler',
+//       parameters: { userID: userid }
+//     });
+
+//     if (createusertable?.response?.body) {
+//       const userData = JSON.parse(createusertable.response.body).values || {};
+//       const currentRefreshToken = userData.refreshToken;
+//       if (currentRefreshToken) {
+//         showTemplates(true);
+//       }
+//     } else {
+//       console.error("Failed to create or fetch user table.");
+//     }
+
+//      // Fetch Marq user data and update refresh token if necessary
+//      const createaccounttable = await runServerless({
+//       name: 'dataTableHandler',
+//       parameters: { objectType: objectType }
+//     });
+
+//     if (createaccounttable?.response?.body) {
+
+//       const accountresponseBody = JSON.parse(createaccounttable.response.body);
+//       const accountData = accountresponseBody?.dataRow?.values || {};
+        
+//       console.log("accountData:", accountData);
+
+//       currentAccountRefreshToken = accountData?.refreshToken || null;
+//       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
+//       await createOrUpdateDataset(currentAccountRefreshToken, objectType);
+
+//       // Await polling for refresh token until it's found
+//       startPollingForRefreshToken();      
+      
+
+
+//       if (!currentAccountRefreshToken) {
+//         setShowAccountTokenButton(true);
+//       } else {
+//         setShowAccountTokenButton(false);
+//       }
+
+//       setShowTemplates(true);
+
+//     } else {
+//       console.error("Failed to create or fetch user table.");
+//     }
+//     // createOrUpdateDataset(currentAccountRefreshToken)
+
+//   } else if (
+//     hasInitialized.current &&
+//     fieldsArray.length > 0 &&
+//     filtersArray.length > 0 &&
+//     Object.keys(crmProperties).length > 0
+//   ) {
+//     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
+//   }
+// };
 
 
 
