@@ -1466,7 +1466,7 @@ const initialize = async () => {
         // Log and show templates if refresh token is available
         console.log("User refresh token:", currentRefreshToken);
         if (currentRefreshToken) {
-          showTemplates(true);
+          setShowTemplates(true);
         }
       } else {
         console.error("Failed to create or fetch user table.");
@@ -1491,7 +1491,7 @@ const initialize = async () => {
 
         // Conditionally show templates and the account token button
         if (currentAccountRefreshToken) {
-          showTemplates(true);
+          setShowTemplates(true);
           setShowAccountTokenButton(false);
         } else {
           setShowAccountTokenButton(true);
