@@ -2086,6 +2086,11 @@ const createOrUpdateDataset = async (refreshToken) => {
           }
         } else {
           console.error(`Failed to create or update dataset for ${objectType}:`, createDatasetResponse?.response?.body);
+          console.log({refresh_token: currentRefreshToken,             
+            clientid: clientid,                      
+            clientsecret: clientsecret,              
+            marqAccountId: marqAccountId,   
+            objectType: objectType})
         }
       } catch (apiError) {
         console.error(`Error processing object type: ${objectType}`, apiError);
