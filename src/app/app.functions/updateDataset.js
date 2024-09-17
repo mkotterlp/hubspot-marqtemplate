@@ -2,22 +2,22 @@ const hubspot = require('@hubspot/api-client');
 
 exports.main = async (context) => {
     // Read the parameters from the request
-    const accountId = String(context.parameters?.marqAccountId); // Read accountId instead of userID
-    const refreshToken = context.parameters?.new_refresh_token; 
-    const datatsetid = context.parameters?.datasetId;  
-    const collectionid = context.parameters?.collectionId;      
+    const accountId = String(context.parameters?.accountId); // Use accountId
+    const refreshToken = context.parameters?.refreshToken; 
+    const datasetid = context.parameters?.datasetid;  
+    const collectionid = context.parameters?.collectionid;      
 
     console.log("accountId:", accountId);
     console.log("refreshToken:", refreshToken);
-    console.log("datatsetid:", datatsetid);
+    console.log("datasetid:", datasetid);
     console.log("collectionid:", collectionid);
 
     // Check if all required parameters are provided
-    if (!accountId || !refreshToken || !datatsetid || !collectionid) {
+    if (!accountId || !refreshToken || !datasetid || !collectionid) {
         console.error("Error: Missing required parameters.");
         return {
             statusCode: 400,
-            body: JSON.stringify({ "accountId:": accountId, "refreshToken:": refreshToken, "datatsetid:": datatsetid, "collectionid:": collectionid }),
+            body: JSON.stringify({ "accountId:": accountId, "refreshToken:": refreshToken, "datasetid:": datasetid, "collectionid:": collectionid }),
         };
     }
 
@@ -42,13 +42,6 @@ exports.main = async (context) => {
         const tableId = accountTable.id;
         console.log('Table marq_account_data found with ID:', tableId);
 
-        try {
-          await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-        } catch (error) {
-          console.error("Error updating row in HubDB:", error.response?.body || error.message);
-        }
-        
-
         // Fetch all rows from the marq_account_data table
         const rowsResponse = await hubspotClient.cms.hubdb.rowsApi.getTableRows(tableId);
         if (!rowsResponse || !rowsResponse.results) {
@@ -61,16 +54,16 @@ exports.main = async (context) => {
             throw new Error(`Account ${accountId} not found in the table.`);
         }
 
-        // Update the row with the new refreshToken, datatsetid, and collectionid
+        // Update the row with the new refreshToken, datasetid, and collectionid
         const rowValues = {
             refreshToken: refreshToken,
-            datatsetid: datatsetid,
+            datasetid: datasetid,  // Use correct spelling
             collectionid: collectionid
         };
 
         // Update the draft row with new values
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-        console.log(`Account ${accountId} updated in the table with new refreshToken, datatsetid, and collectionid.`);
+        console.log(`Account ${accountId} updated in the table with new refreshToken, datasetid, and collectionid.`);
 
         // Publish the table after updating the row
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
@@ -90,3 +83,4 @@ exports.main = async (context) => {
         };
     }
 };
+
