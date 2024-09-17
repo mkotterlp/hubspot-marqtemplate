@@ -1120,55 +1120,116 @@ if (!currentRefreshToken) {
     }
   };
   
-
-  
-  
-  const startPollingForRefreshToken = () => {
+  const startPollingForRefreshToken = async () => {
     setIsLoading(true);
-    setIsPolling(true); // Start polling when the button is clicked
+    setIsPolling(true); // Start polling
+    
+    await pollForRefreshToken();  // Wait until refresh token is found
   };
   
   const pollForRefreshToken = async () => {
     console.log("Attempting poll");
-
+  
     try {
-      console.log("Polling for refresh token...");
-      const userId = context.user.id;
-      const createusertable = await runServerless({
-        name: 'marqouathhandler',
-        parameters: { userID: userId }
-      });
-      console.log("Response from serverless function:", createusertable); 
+      while (isPolling) {
+        console.log("Polling for refresh token...");
+        const userId = context.user.id;
+        const createusertable = await runServerless({
+          name: 'marqouathhandler',
+          parameters: { userID: userId }
+        });
+        console.log("Response from serverless function:", createusertable); 
+    
+        if (createusertable?.response?.body) {
+          console.log("Received response from serverless function:", createusertable);
+    
+          // Access row and values properly
+          const responseBody = JSON.parse(createusertable.response.body);
+          const userData = responseBody?.row?.values || {};
+          
+          console.log("userData:", userData);
+    
+          currentRefreshToken = userData?.refreshToken || null;
   
-      if (createusertable?.response?.body) {
-        console.log("Received response from serverless function:", createusertable);
-  
-        // Access row and values properly
-        const responseBody = JSON.parse(createusertable.response.body);
-        const userData = responseBody?.row?.values || {};
-        
-        console.log("userData:", userData);
-  
-        currentRefreshToken = userData?.refreshToken || null;
-
-        console.log("currentRefreshToken:", currentRefreshToken);
-  
-        if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
-          console.log("Refresh token found:", currentRefreshToken);
-          setIsPolling(false); // Stop polling
-          fetchPropertiesAndLoadConfig(objectType);
-          // setIsConnectedToMarq(true); // Blake added this
+          console.log("currentRefreshToken:", currentRefreshToken);
+    
+          if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
+            console.log("Refresh token found:", currentRefreshToken);
+            setIsPolling(false);  // Stop polling once refresh token is found
+            fetchPropertiesAndLoadConfig(objectType);
+            break;  // Exit the polling loop
+          } else {
+            console.log("Refresh token not found yet, continuing to poll...");
+            setShowTemplates(false);
+          }
         } else {
-          console.log("Refresh token not found yet, continuing to poll...");
-          setShowTemplates(false);
+          console.log("No response body from serverless function.");
         }
-      } else {
-        console.log("No response body from serverless function.");
+  
+        // Wait for 5 seconds before polling again
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     } catch (error) {
       console.error("Error while polling for refresh token:", error);
+      setIsPolling(false);  // Stop polling in case of error
     }
   };
+  
+  // UseEffect to clean up polling when the component unmounts
+  useEffect(() => {
+    return () => {
+      console.log("Cleaning up polling when the component unmounts");
+      setIsPolling(false);
+    };
+  }, []);
+  
+  // ORIGINAL startPollingForRefreshToken
+  // const startPollingForRefreshToken = () => {
+  //   setIsLoading(true);
+  //   setIsPolling(true); // Start polling when the button is clicked
+  // };
+  
+  // const pollForRefreshToken = async () => {
+  //   console.log("Attempting poll");
+
+  //   try {
+  //     console.log("Polling for refresh token...");
+  //     const userId = context.user.id;
+  //     const createusertable = await runServerless({
+  //       name: 'marqouathhandler',
+  //       parameters: { userID: userId }
+  //     });
+  //     console.log("Response from serverless function:", createusertable); 
+  
+  //     if (createusertable?.response?.body) {
+  //       console.log("Received response from serverless function:", createusertable);
+  
+  //       // Access row and values properly
+  //       const responseBody = JSON.parse(createusertable.response.body);
+  //       const userData = responseBody?.row?.values || {};
+        
+  //       console.log("userData:", userData);
+  
+  //       currentRefreshToken = userData?.refreshToken || null;
+
+  //       console.log("currentRefreshToken:", currentRefreshToken);
+  
+  //       if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
+  //         console.log("Refresh token found:", currentRefreshToken);
+  //         setIsPolling(false); // Stop polling
+  //         fetchPropertiesAndLoadConfig(objectType);
+  //         // setIsConnectedToMarq(true); // Blake added this
+  //       } else {
+  //         console.log("Refresh token not found yet, continuing to poll...");
+  //         setShowTemplates(false);
+  //       }
+  //     } else {
+  //       console.log("No response body from serverless function.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error while polling for refresh token:", error);
+  //   }
+  // };
 
   useEffect(() => {
     let pollInterval;
@@ -1476,7 +1537,8 @@ const initialize = async () => {
       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
       await createOrUpdateDataset(currentAccountRefreshToken, objectType);
 
-      startPollingForRefreshToken();  
+      // Await polling for refresh token until it's found
+      await startPollingForRefreshToken();
 
       if (!currentAccountRefreshToken) {
         setShowAccountTokenButton(true);
@@ -2014,7 +2076,7 @@ const createOrUpdateDataset = async (refreshToken, objectType) => {
 
     // Step 2: Validate the response and extract necessary data
     if (createDatasetResponse?.response?.statusCode === 200) {
-      console.log("Dataset created or updated successfully.");
+      console.log("Dataset created and updated successfully.");
 
       // Ensure that the response has the required fields
       const responseBody = createDatasetResponse.response.body;
