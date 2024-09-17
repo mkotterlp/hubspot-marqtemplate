@@ -1983,8 +1983,7 @@ async function saveTokenToTable(refreshToken) {
     console.error('Error saving refresh token:', error.message);
   }
 }
-
-const createOrUpdateDataset = async (refreshToken) => {
+const createOrUpdateDataset = async (initialRefreshToken) => {
   try {
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
@@ -1998,8 +1997,11 @@ const createOrUpdateDataset = async (refreshToken) => {
     // Define the object types to loop through
     const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
 
+    // Initialize the refresh token with the passed one
+    let currentRefreshToken = initialRefreshToken;
+
     // Log the starting process
-    console.log("Starting createOrUpdateDataset with refreshToken:", refreshToken);
+    console.log("Starting createOrUpdateDataset with initialRefreshToken:", currentRefreshToken);
 
     for (const objectType of objectTypes) {
       console.log(`Processing object type: ${objectType}`);
@@ -2007,7 +2009,7 @@ const createOrUpdateDataset = async (refreshToken) => {
       try {
         // Log parameters being sent to the serverless function
         console.log(`Sending createDataset request for ${objectType} with parameters:`, {
-          refresh_token: refreshToken,             
+          refresh_token: currentRefreshToken,             
           clientid: clientid,                      
           clientsecret: clientsecret,              
           marqAccountId: marqAccountId,   
@@ -2022,7 +2024,7 @@ const createOrUpdateDataset = async (refreshToken) => {
         const createDatasetResponse = await runServerless({
           name: 'createDataset',
           parameters: {
-            refresh_token: refreshToken,             
+            refresh_token: currentRefreshToken,             
             clientid: clientid,                      
             clientsecret: clientsecret,              
             marqAccountId: marqAccountId,   
@@ -2047,11 +2049,17 @@ const createOrUpdateDataset = async (refreshToken) => {
 
           console.log(`New values for ${objectType}:`, { new_refresh_token, datasetid, collectionid });
 
+          // Update currentRefreshToken for the next objectType
+          currentRefreshToken = new_refresh_token || currentRefreshToken; // Update if new_refresh_token is present
+
+          // Log the updated refresh token
+          console.log(`Updated refresh token for next request: ${currentRefreshToken}`);
+
           // Call the updateDataset function to update the dataset
           console.log(`Sending updateDataset request for ${objectType} with parameters:`, {
             accountId: marqAccountId,
             objectType: objectType,
-            refreshToken: refreshToken,   // Use the same refresh token throughout
+            refreshToken: currentRefreshToken,   // Use the updated refresh token
             datasetid: datasetid,
             collectionid: collectionid
           });
@@ -2061,7 +2069,7 @@ const createOrUpdateDataset = async (refreshToken) => {
             parameters: {
               accountId: marqAccountId,             
               objectType: objectType,               
-              refreshToken: refreshToken,   
+              refreshToken: currentRefreshToken,   
               datasetid: datasetid,                
               collectionid: collectionid           
             }
@@ -2086,6 +2094,7 @@ const createOrUpdateDataset = async (refreshToken) => {
     console.error('Error in createOrUpdateDataset:', error.message);
   }
 };
+
 
 
 
