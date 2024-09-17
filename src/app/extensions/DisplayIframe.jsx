@@ -1444,10 +1444,9 @@ const initialize = async () => {
       parameters: { userID: userid }
     });
 
-    let currentRefreshToken;
     if (createusertable?.response?.body) {
       const userData = JSON.parse(createusertable.response.body).values || {};
-      currentRefreshToken = userData.refreshToken; // Get the refresh token from marqouathhandler
+      const currentRefreshToken = userData.refreshToken; // Get the refresh token from marqouathhandler
       console.log("currentRefreshToken from marqouathhandler:", currentRefreshToken);
       if (currentRefreshToken) {
         setShowTemplates(true);  // Show templates as soon as refresh token is found
@@ -1471,7 +1470,7 @@ const initialize = async () => {
         console.log("accountData:", accountData);
 
         // Use the token from marqouathhandler for creating/updating dataset
-        currentAccountRefreshToken = accountData?.refreshToken || currentRefreshToken;
+        currentAccountRefreshToken = accountData?.refreshToken || currentRefreshToken || null;
         console.log("currentAccountRefreshToken used:", currentAccountRefreshToken);
 
         // Start polling for refresh token before processing object types
