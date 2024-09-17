@@ -1431,52 +1431,96 @@ const paginatedTemplates = filteredTemplates.slice(
 //     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
 //   }
 // };
+
+
+
 const initialize = async () => {
-  if (!hasInitialized.current) {
+  // Ensure we haven't initialized already and that objectType is available
+  if (!hasInitialized.current && objectType) {
     hasInitialized.current = true;
 
+    // Fetch properties and associated projects for the objectType
     fetchPropertiesAndLoadConfig(objectType);
     fetchAssociatedProjectsAndDetails(objectType);
 
-    // Fetch the userid and userEmail from context
-    const userid = context.user.id;
-    const userEmail = context.user.email; 
+    try {
+      // Fetch the userid and userEmail from context
+      const userid = context.user.id;
+      const userEmail = context.user.email; // Assuming context provides the user's email here
 
-    // Fetch the API key
-    const apiKey = await setapi(userid, userEmail);
-    setAPIkey(apiKey);
+      // Fetch the API key and pass the userid and userEmail
+      const apiKey = await setapi(userid, userEmail);
+      setAPIkey(apiKey);
 
-    // Fetch Marq user data and update refresh token if necessary
-    const createusertable = await runServerless({
-      name: 'marqouathhandler',
-      parameters: { userID: userid }
-    });
+      // Fetch Marq user data and update refresh token if necessary
+      const createusertable = await runServerless({
+        name: 'marqouathhandler',
+        parameters: { userID: userid }
+      });
 
-    if (createusertable?.response?.body) {
-      const responseBody = JSON.parse(createusertable.response.body);
-      const userData = responseBody.row?.values || {};
-      
-      currentRefreshToken = userData.refreshToken;
-      console.log("User refresh token:", currentRefreshToken);
+      if (createusertable?.response?.body) {
+        // Parse user data and extract refresh token
+        const userData = JSON.parse(createusertable.response.body).values || {};
+        const currentRefreshToken = userData.refreshToken;
 
-      if (currentRefreshToken) {
-        showTemplates(true);  
-        startPollingForAccountRefreshToken()
+        // Log and show templates if refresh token is available
+        console.log("User refresh token:", currentRefreshToken);
+        if (currentRefreshToken) {
+          showTemplates(true);
+        }
+      } else {
+        console.error("Failed to create or fetch user table.");
       }
-    } else {
-      console.error("Failed to create or fetch user table.");
-    }
 
-    // If we have a user refresh token, proceed with account data polling
-    // if (currentRefreshToken) {
-    //   startPollingForAccountRefreshToken(); // This will trigger polling for the account refresh token
-    // } else {
-    //   console.error("No refresh token found, stopping further actions.");
-    // }
-  } else if (fieldsArray.length > 0 && filtersArray.length > 0 && Object.keys(crmProperties).length > 0) {
+      // Fetch Marq account data and update refresh token if necessary
+      const createaccounttable = await runServerless({
+        name: 'dataTableHandler',
+        parameters: { objectType: objectType }
+      });
+
+      if (createaccounttable?.response?.body) {
+        // Parse account data and extract refresh token
+        const accountresponseBody = JSON.parse(createaccounttable.response.body);
+        const accountData = accountresponseBody?.dataRow?.values || {};
+
+        // Log the account data and refresh token
+        console.log("accountData:", accountData);
+
+        const currentAccountRefreshToken = accountData?.refreshToken || null;
+        console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+
+        // Conditionally show templates and the account token button
+        if (currentAccountRefreshToken) {
+          showTemplates(true);
+          setShowAccountTokenButton(false);
+        } else {
+          setShowAccountTokenButton(true);
+        }
+
+        // Ensure templates are shown
+        setShowTemplates(true);
+
+        // Call the createOrUpdateDataset function with the refresh token
+        await createOrUpdateDataset(currentAccountRefreshToken);
+
+      } else {
+        console.error("Failed to create or fetch account table.");
+      }
+
+    } catch (error) {
+      console.error("Error in initialization:", error);
+    }
+  } else if (
+    hasInitialized.current &&
+    fieldsArray.length > 0 &&
+    filtersArray.length > 0 &&
+    Object.keys(crmProperties).length > 0
+  ) {
+    // If already initialized, filter templates based on search criteria
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
 
 
 
