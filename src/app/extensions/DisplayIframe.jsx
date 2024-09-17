@@ -1138,33 +1138,34 @@ if (!currentRefreshToken) {
           name: 'marqouathhandler',
           parameters: { userID: userId }
         });
-        console.log("Response from serverless function:", createusertable); 
-    
+        console.log("Response from serverless function:", createusertable);
+  
         if (createusertable?.response?.body) {
           console.log("Received response from serverless function:", createusertable);
-    
+  
           // Access row and values properly
           const responseBody = JSON.parse(createusertable.response.body);
           const userData = responseBody?.row?.values || {};
           
           console.log("userData:", userData);
-    
+  
           currentRefreshToken = userData?.refreshToken || null;
   
           console.log("currentRefreshToken:", currentRefreshToken);
-    
+  
           if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
             console.log("Refresh token found:", currentRefreshToken);
             setIsPolling(false);  // Stop polling once refresh token is found
             fetchPropertiesAndLoadConfig(objectType);
-            showTemplates(true);
+            setShowTemplates(true); // Show templates when the refresh token is found
             break;  // Exit the polling loop
           } else {
             console.log("Refresh token not found yet, continuing to poll...");
-            setShowTemplates(false);
+            setShowTemplates(false); // Hide templates if no refresh token found
           }
         } else {
           console.log("No response body from serverless function.");
+          setShowTemplates(false); // Hide templates if the response body is empty
         }
   
         // Wait for 5 seconds before polling again
@@ -1175,6 +1176,7 @@ if (!currentRefreshToken) {
       setIsPolling(false);  // Stop polling in case of error
     }
   };
+  
   
   // UseEffect to clean up polling when the component unmounts
   useEffect(() => {
@@ -1539,7 +1541,9 @@ const initialize = async () => {
       await createOrUpdateDataset(currentAccountRefreshToken, objectType);
 
       // Await polling for refresh token until it's found
-      await startPollingForRefreshToken();
+      await startPollingForRefreshToken();      
+      showTemplates(true);
+
 
       if (!currentAccountRefreshToken) {
         setShowAccountTokenButton(true);
@@ -1547,7 +1551,6 @@ const initialize = async () => {
         setShowAccountTokenButton(false);
       }
 
-      showTemplates(true);
 
 
 
