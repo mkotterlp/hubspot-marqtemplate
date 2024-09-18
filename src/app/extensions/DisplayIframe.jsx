@@ -1118,11 +1118,13 @@ if (!currentRefreshToken) {
   
           console.log("currentRefreshToken:", currentRefreshToken);
     
-          if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
-            console.log("Refresh token found:", currentRefreshToken);
-          } else {
-            console.log("Refresh token not found");
+          if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
+            console.log("Refresh token not found, starting polling...");
             setShowTemplates(false);
+
+            // Call the startPollingForRefreshToken function if refresh token is missing
+            startPollingForRefreshToken();
+            return;
           }
         } else {
           console.log("No response body from serverless function.");
