@@ -1499,11 +1499,13 @@ const initialize = async () => {
           setShowAccountTokenButton(true);
         }
 
-        // Ensure templates are shown
-        setShowTemplates(true);
+        
 
         // Call the createOrUpdateDataset function with the refresh token
         await createOrUpdateDataset(currentAccountRefreshToken);
+
+        // Ensure templates are shown
+        setShowTemplates(true);
 
       } else {
         console.error("Failed to create or fetch account table.");
