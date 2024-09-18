@@ -1299,7 +1299,8 @@ const pollForRefreshToken = async () => {
       name: 'marqouathhandler',
       parameters: { userID: userId }
     });
-    console.log("Response from serverless function:", createusertable); 
+
+    console.log("Response from serverless function:", createusertable);
 
     if (createusertable?.response?.body) {
       console.log("Received response from serverless function:", createusertable);
@@ -1307,18 +1308,18 @@ const pollForRefreshToken = async () => {
       // Access row and values properly
       const responseBody = JSON.parse(createusertable.response.body);
       const userData = responseBody?.row?.values || {};
-      
+
       console.log("userData:", userData);
 
+      // Assign to global `currentRefreshToken`
       currentRefreshToken = userData?.refreshToken || null;
-
       console.log("currentRefreshToken:", currentRefreshToken);
 
       if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
         console.log("Refresh token found:", currentRefreshToken);
         setIsPolling(false); // Stop polling
-        fetchPropertiesAndLoadConfig(objectType);
-        // setIsConnectedToMarq(true); // Blake added this
+        fetchPropertiesAndLoadConfig(objectType); // Ensure objectType is defined
+        setIsConnectedToMarq(true); // Assuming this should trigger some UI change
       } else {
         console.log("Refresh token not found yet, continuing to poll...");
         setShowTemplates(false);
@@ -1343,7 +1344,8 @@ useEffect(() => {
     console.log("Stopping the polling for refresh token.");
     clearInterval(pollInterval); // Clean up interval when component unmounts or polling stops
   };
-}, [setIsPolling]);
+}, [isPolling]);
+
 
 
 
@@ -1351,6 +1353,7 @@ useEffect(() => {
 
   const startPollingForAccountRefreshToken = () => {
     setAccountIsPolling(true); // Start polling when the button is clicked
+    setIsLoading(true)
 };
 
 const pollForAccountRefreshToken = async () => {
@@ -1762,75 +1765,75 @@ const initialize = async () => {
 
 
 // ORIGINAL INITIALIZE FUNCTION 
-const initialize = async () => {
-  if (!hasInitialized.current && objectType) {
-    hasInitialized.current = true;
+// const initialize = async () => {
+//   if (!hasInitialized.current && objectType) {
+//     hasInitialized.current = true;
 
-    fetchPropertiesAndLoadConfig(objectType);
-    fetchAssociatedProjectsAndDetails(objectType);
+//     fetchPropertiesAndLoadConfig(objectType);
+//     fetchAssociatedProjectsAndDetails(objectType);
 
-    // Fetch the userid and userEmail from context
-    const userid = context.user.id;
-    const userEmail = context.user.email; // Assuming context provides the user's email here
+//     // Fetch the userid and userEmail from context
+//     const userid = context.user.id;
+//     const userEmail = context.user.email; // Assuming context provides the user's email here
 
-    // Fetch the API key and pass the userid and userEmail
-    const apiKey = await setapi(userid, userEmail);
-    setAPIkey(apiKey);
+//     // Fetch the API key and pass the userid and userEmail
+//     const apiKey = await setapi(userid, userEmail);
+//     setAPIkey(apiKey);
 
-    // Fetch Marq user data and update refresh token if necessary
-    const createusertable = await runServerless({
-      name: 'marqouathhandler',
-      parameters: { userID: userid }
-    });
+//     // Fetch Marq user data and update refresh token if necessary
+//     const createusertable = await runServerless({
+//       name: 'marqouathhandler',
+//       parameters: { userID: userid }
+//     });
 
-    if (createusertable?.response?.body) {
-      const userData = JSON.parse(createusertable.response.body).values || {};
-      const currentRefreshToken = userData.refreshToken;
-      if (currentRefreshToken) {
-        showTemplates(true);
-      }
-    } else {
-      console.error("Failed to create or fetch user table.");
-    }
+//     if (createusertable?.response?.body) {
+//       const userData = JSON.parse(createusertable.response.body).values || {};
+//       const currentRefreshToken = userData.refreshToken;
+//       if (currentRefreshToken) {
+//         showTemplates(true);
+//       }
+//     } else {
+//       console.error("Failed to create or fetch user table.");
+//     }
 
-     // Fetch Marq user data and update refresh token if necessary
-     const createaccounttable = await runServerless({
-      name: 'dataTableHandler',
-      parameters: { objectType: objectType }
-    });
+//      // Fetch Marq user data and update refresh token if necessary
+//      const createaccounttable = await runServerless({
+//       name: 'dataTableHandler',
+//       parameters: { objectType: objectType }
+//     });
 
-    if (createaccounttable?.response?.body) {
+//     if (createaccounttable?.response?.body) {
 
-      const accountresponseBody = JSON.parse(createaccounttable.response.body);
-      const accountData = accountresponseBody?.dataRow?.values || {};
+//       const accountresponseBody = JSON.parse(createaccounttable.response.body);
+//       const accountData = accountresponseBody?.dataRow?.values || {};
         
-      console.log("accountData:", accountData);
+//       console.log("accountData:", accountData);
 
-      currentAccountRefreshToken = accountData?.refreshToken || null;
-      console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
-      if (currentAccountRefreshToken) {
-        showTemplates(true);
-        setShowAccountTokenButton(false);
-      } else {
-        setShowAccountTokenButton(true);
-      }
+//       currentAccountRefreshToken = accountData?.refreshToken || null;
+//       console.log("currentAccountRefreshToken:", currentAccountRefreshToken)
+//       if (currentAccountRefreshToken) {
+//         showTemplates(true);
+//         setShowAccountTokenButton(false);
+//       } else {
+//         setShowAccountTokenButton(true);
+//       }
 
-      setShowTemplates(true);
+//       setShowTemplates(true);
 
-    } else {
-      console.error("Failed to create or fetch user table.");
-    }
-    // createOrUpdateDataset(currentAccountRefreshToken)
+//     } else {
+//       console.error("Failed to create or fetch user table.");
+//     }
+//     // createOrUpdateDataset(currentAccountRefreshToken)
 
-  } else if (
-    hasInitialized.current &&
-    fieldsArray.length > 0 &&
-    filtersArray.length > 0 &&
-    Object.keys(crmProperties).length > 0
-  ) {
-    filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
-  }
-};
+//   } else if (
+//     hasInitialized.current &&
+//     fieldsArray.length > 0 &&
+//     filtersArray.length > 0 &&
+//     Object.keys(crmProperties).length > 0
+//   ) {
+//     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
+//   }
+// };
 
 
 
