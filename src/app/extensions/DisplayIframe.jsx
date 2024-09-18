@@ -996,8 +996,8 @@ const deleteRecord = async (recordId, objectType) => {
       const updateData3Response = await runServerless({
         name: 'updateData3',
         parameters: {
-        //   refresh_token: refresh_token,
-          refresh_token: currentRefreshToken,
+          refresh_token: refresh_token,
+          // refresh_token: currentRefreshToken,
           clientid: clientid,
           clientsecret: clientsecret,
           collectionId: collectionId,
