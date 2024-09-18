@@ -983,6 +983,7 @@ const deleteRecord = async (recordId, objectType) => {
 
       const collectionId = accountData?.collectionid || null;
       const dataSourceId = accountData?.datasetid || null;
+      const refresh_token = accountData?.refresh_token || null;
       const properties = accountData?.properties || {}; // Assuming the properties field exists
 
       if (!collectionId || !dataSourceId) {
@@ -991,16 +992,16 @@ const deleteRecord = async (recordId, objectType) => {
       }
 
       // Step 2: Call the updateData3 serverless function to update schema and data
-      console.log("Calling updateData3 with collectionId:", collectionId, "and dataSourceId:", dataSourceId);
+      console.log("Calling updateData3 with collectionId:", collectionId, " dataSourceId:", dataSourceId, "and refresh_token: ", refresh_token);
       const updateData3Response = await runServerless({
         name: 'updateData3',
         parameters: {
-          refresh_token: currentRefreshToken,
+          refresh_token: refresh_token,
           clientid: clientid,
           clientsecret: clientsecret,
           collectionId: collectionId,
           properties: properties,
-          schema: schema,  // Use the fixed schema here
+          schema: schema,  
           dataSourceId: dataSourceId
         }
       });
