@@ -1353,7 +1353,6 @@ useEffect(() => {
 
   const startPollingForAccountRefreshToken = () => {
     setAccountIsPolling(true); // Start polling when the button is clicked
-    setIsLoading(true)
 };
 
 const pollForAccountRefreshToken = async () => {
