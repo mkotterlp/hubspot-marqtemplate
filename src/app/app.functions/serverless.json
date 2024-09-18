@@ -60,8 +60,8 @@
     "updateDataset": {
       "file": "updateDataset.js"
     },
-    "exchangeAuthCodeForToken": {
-      "file": "exchangeAuthCodeForToken.js"
+    "updateData3": {
+      "file": "updateData3.js"
     }
 
 
