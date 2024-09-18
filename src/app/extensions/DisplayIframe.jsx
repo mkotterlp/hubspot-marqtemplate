@@ -878,8 +878,14 @@ const deleteRecord = async (recordId, objectType) => {
   //   }
   // };
   
+  
+  
   const handleClick = async (template) => {
     let iframeSrc = 'https://info.marq.com/loading';
+
+    const schema = [
+      { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+    ];
   
     // Set iframe to loading
     setIframeUrl(iframeSrc);
@@ -972,7 +978,7 @@ const deleteRecord = async (recordId, objectType) => {
           clientsecret: clientsecret,
           collectionId: collectionId,
           properties: properties,
-          schema: accountData.schema || [], // Assuming schema is part of the account data
+          schema: schema,  // Use the fixed schema here
           dataSourceId: dataSourceId
         }
       });
@@ -1019,7 +1025,7 @@ const deleteRecord = async (recordId, objectType) => {
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
   
-        const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userid}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
+        const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
         const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSourceId}`;
   
         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(iframeUrlWithImportData);
@@ -1039,6 +1045,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.error('Error in handleClick:', error);
     }
   };
+  
   
   
 
