@@ -886,7 +886,7 @@ const deleteRecord = async (recordId, objectType) => {
     const schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
     ];
-  
+
     // Set iframe to loading
     setIframeUrl(iframeSrc);
     actions.openIframeModal({
@@ -896,11 +896,11 @@ const deleteRecord = async (recordId, objectType) => {
       title: "Marq",
     });
     setIframeOpen(true);
-  
+
     try {
       console.log("Template clicked:", template.id, template.title);
       const userId = context.user.id;
-  
+
       // Check for refresh token or fetch if not available
       if (!currentRefreshToken) {
         try {
@@ -910,13 +910,13 @@ const deleteRecord = async (recordId, objectType) => {
             parameters: { userID: userId }
           });
           console.log("Response from serverless function:", createusertable);
-  
+
           if (createusertable?.response?.body) {
             const responseBody = JSON.parse(createusertable.response.body);
             const userData = responseBody?.row?.values || {};
             currentRefreshToken = userData?.refreshToken || null;
             console.log("currentRefreshToken:", currentRefreshToken);
-  
+
             if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
               console.log("Refresh token not found");
               setShowTemplates(false);
@@ -931,10 +931,10 @@ const deleteRecord = async (recordId, objectType) => {
           return;
         }
       }
-  
+
       // Log the next steps with IDs
       console.log(`User ID: ${userId}, Template ID: ${template?.id}, Template Title: ${template?.title}`);
-  
+
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid;
@@ -942,32 +942,54 @@ const deleteRecord = async (recordId, objectType) => {
       const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
-  
+      
+      // Fetch dealstage from CRM properties if objectType is 'DEAL'
+      let stageName = '';
+      if (objectType === 'DEAL') {
+        try {
+          console.log("Fetching CRM properties for dealstage...");
+          const propertiesResponse = await runServerless({
+            name: 'getObjectProperties',
+            parameters: { objectId: context.crm.objectId, objectType, properties: ['dealstage'] }
+          });
+
+          if (propertiesResponse?.response?.body) {
+            const crmProperties = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
+            stageName = crmProperties.dealstage || '';
+            console.log("Dealstage fetched:", stageName);
+          } else {
+            console.error("Failed to fetch CRM properties:", propertiesResponse);
+          }
+        } catch (propertiesError) {
+          console.error("Error occurred while fetching CRM properties:", propertiesError);
+        }
+      }
+
       // Step 1: Fetch data for the objectType using dataTableHandler
       console.log("Calling dataTableHandler for objectType:", objectType);
       const dataTableResponse = await runServerless({
         name: 'dataTableHandler',
         parameters: { objectType: objectType }
       });
-  
+
       if (!dataTableResponse?.response?.body) {
         console.error("Error: No data returned from dataTableHandler");
         return;
       }
-  
+
       const dataTableBody = JSON.parse(dataTableResponse.response.body);
       const accountData = dataTableBody?.dataRow?.values || {};
       console.log("Account Data from dataTableHandler:", accountData);
-  
+
       const collectionId = accountData?.collectionid || null;
       const dataSourceId = accountData?.datasetid || null;
       const properties = accountData?.properties || {}; // Assuming the properties field exists
-  
+
       if (!collectionId || !dataSourceId) {
         console.error("Error: Missing collectionId or dataSourceId");
         return;
       }
-  
+
       // Step 2: Call the updateData3 serverless function to update schema and data
       console.log("Calling updateData3 with collectionId:", collectionId, "and dataSourceId:", dataSourceId);
       const updateData3Response = await runServerless({
@@ -982,15 +1004,15 @@ const deleteRecord = async (recordId, objectType) => {
           dataSourceId: dataSourceId
         }
       });
-  
+
       if (!updateData3Response?.response?.body) {
         console.error("Error: No data returned from updateData3 serverless function");
         return;
       }
-  
+
       const updateResult = JSON.parse(updateData3Response.response.body);
       console.log("updateData3 Response:", updateResult);
-  
+
       // Step 3: Proceed with creating the project using the data
       console.log("Creating project with template ID:", templateid);
       const createProjectResponse = await runServerless({
@@ -1007,29 +1029,29 @@ const deleteRecord = async (recordId, objectType) => {
           dataSetId: dataSourceId
         }
       });
-  
+
       if (createProjectResponse?.response?.body) {
         const projectData = JSON.parse(createProjectResponse.response.body);
         console.log("Project created successfully:", projectData);
-  
+
         const projectId = projectData.documentid;
         console.log("Created Project ID:", projectId);
-  
+
         currentRefreshToken = projectData.new_refresh_token;
         console.log("Updated refresh_token after project creation:", currentRefreshToken);
-  
+
         // Step 4: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
           enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
           fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
-  
+
         const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
         const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSourceId}`;
-  
+
         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(iframeUrlWithImportData);
-  
+
         console.log("Opening iframe with URL:", iframeSrc);
         setIframeUrl(iframeSrc);
         actions.openIframeModal({
@@ -1045,6 +1067,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.error('Error in handleClick:', error);
     }
   };
+
   
   
   
