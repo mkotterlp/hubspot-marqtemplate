@@ -1710,7 +1710,8 @@ const initialize = async () => {
       const userid = context.user.id;
       const userEmail = context.user.email; // Assuming context provides the user's email here
 
-      console.log(userid, userid)
+      console.log(userid, userEmail);
+      
       // Fetch the API key and pass the userid and userEmail
       const apiKey = await setapi(userid, userEmail);
       setAPIkey(apiKey);
@@ -1749,7 +1750,7 @@ const initialize = async () => {
         const accountData = accountresponseBody?.dataRow?.values || {};
 
         // Log the account data and refresh token
-        console.log("accountData:", accountData);
+        console.log("Account Data:", accountData);
 
         const currentAccountRefreshToken = accountData?.refreshToken || null;
         console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
@@ -1760,12 +1761,10 @@ const initialize = async () => {
           setShowAccountTokenButton(false);
         } else {
           setShowAccountTokenButton(true);
+          // Call the createOrUpdateDataset function only if there's no refresh token
+          console.log("Calling createOrUpdateDataset as no account refresh token exists.");
+          await createOrUpdateDataset(currentAccountRefreshToken);
         }
-
-        
-
-        // Call the createOrUpdateDataset function with the refresh token
-        await createOrUpdateDataset(currentAccountRefreshToken);
 
         // Ensure templates are shown
         setShowTemplates(true);
@@ -1787,6 +1786,7 @@ const initialize = async () => {
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
 
 
 
