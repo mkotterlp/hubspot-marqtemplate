@@ -983,7 +983,7 @@ const deleteRecord = async (recordId, objectType) => {
 
       const collectionId = accountData?.collectionid || null;
       const dataSourceId = accountData?.datasetid || null;
-      const refresh_token = accountData?.refresh_token || null;
+      const refresh_token = accountData?.refreshToken || null;
       const properties = accountData?.properties || {}; // Assuming the properties field exists
 
       if (!collectionId || !dataSourceId) {
