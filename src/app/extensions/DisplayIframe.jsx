@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, RadioButton, Icon, Flex, Box, Heading, Image, Input, Dropdown, Link, Button, ButtonRow, Table, Form, TableHead, TableHeader, TableCell, TableBody, TableRow, Text, Divider, EmptyState, LoadingSpinner, hubspot } from "@hubspot/ui-extensions";
+import { Alert, LoadingButton, RadioButton, Icon, Flex, Box, Heading, Image, Input, Dropdown, Link, Button, ButtonRow, Table, Form, TableHead, TableHeader, TableCell, TableBody, TableRow, Text, Divider, EmptyState, LoadingSpinner, hubspot } from "@hubspot/ui-extensions";
 import { CrmActionButton, CrmActionLink, CrmCardActions, CrmAssociationTable } from '@hubspot/ui-extensions/crm';
 
 hubspot.extend(({ context, actions, runServerlessFunction }) => (
@@ -17,6 +17,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [showAccountTokenButton, setShowAccountTokenButton] = useState(false);
   const [accountoauthUrl, setAccountAuthorizationUrl] = useState('');
 
+  const [loadingaccounttoken, setloadingaccountrefreshtoken] = useState(false);
 
   const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
@@ -1407,6 +1408,7 @@ useEffect(() => {
 
 
   const startPollingForAccountRefreshToken = () => {
+    setloadingaccountrefreshtoken(true);
     setAccountIsPolling(true); // Start polling when the button is clicked
 };
 
@@ -1443,6 +1445,7 @@ const pollForAccountRefreshToken = async () => {
 
                 // Stop polling once we have the token
                 setAccountIsPolling(false);
+                setloadingaccountrefreshtoken(false);
                 setShowAccountTokenButton(false);
 
                 // Call the createOrUpdateDataset function with the found account refresh token
@@ -1456,6 +1459,7 @@ const pollForAccountRefreshToken = async () => {
         }
     } catch (error) {
         console.error("Error while polling for account refresh token:", error);
+        setloadingaccountrefreshtoken(false);
     }
 };
 
@@ -1781,7 +1785,6 @@ const initialize = async () => {
 
         // Conditionally show templates and the account token button
         if (currentAccountRefreshToken) {
-          setShowTemplates(true);
           setShowAccountTokenButton(false);
         } else {
           setShowAccountTokenButton(true);
@@ -1789,10 +1792,6 @@ const initialize = async () => {
           console.log("Calling createOrUpdateDataset as no account refresh token exists.");
           await createOrUpdateDataset(currentAccountRefreshToken);
         }
-
-        // Ensure templates are shown
-        setShowTemplates(true);
-
       } else {
         console.error("Failed to create or fetch account table.");
       }
@@ -2594,15 +2593,16 @@ return (
   <>
     {/* Account Token Button */}
     {showAccountTokenButton && (
-        <Button
-          href={accountoauthUrl}
-          variant="primary"
-          size="small"
-          type="button"
-          onClick={startPollingForAccountRefreshToken} 
-        >
-          Account Token
-        </Button>
+
+<LoadingButton
+    href={accountoauthUrl}
+    loading={loading}
+    variant="primary"
+    onClick={startPollingForAccountRefreshToken}
+>
+    {loading ? 'Syncing...' : 'Sync Marq account data'}
+</LoadingButton>
+
       )}
 
 
