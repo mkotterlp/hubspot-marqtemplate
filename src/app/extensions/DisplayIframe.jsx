@@ -978,11 +978,12 @@ const deleteRecord = async (recordId, objectType) => {
       }
   
       const dataTableBody = JSON.parse(dataTableResponse.response.body);
+      const objectData = dataTableBody?.objectTypeRow?.values || {};
       const accountData = dataTableBody?.dataRow?.values || {};
       console.log("Account Data from dataTableHandler:", accountData);
   
-      const collectionId = accountData?.collectionid || null;
-      const dataSourceId = accountData?.datasetid || null;
+      const collectionId = objectData?.collectionid || null;
+      const dataSourceId = objectData?.datasetid || null;
       const refresh_token = accountData?.refreshToken || null;
       const properties = accountData?.properties || {}; // Assuming the properties field exists
   
