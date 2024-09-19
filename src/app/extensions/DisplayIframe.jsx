@@ -11,6 +11,10 @@ const Extension = ({ context, actions, runServerless }) => {
   const [marquserid, setMarquserid] = useState('');
   const [isPolling, setIsPolling] = useState(false);
   const [isAccountPolling, setAccountIsPolling] = useState(false);
+  const [isAccountTokenClicked, setIsAccountTokenClicked] = useState(false);
+  const [isRefreshTokenClicked, setIsRefreshTokenClicked] = useState(false);
+
+
 
   const [isConnectToMarq, setIsConnectToMarq] = useState(false);  // New state to track connection flow
   const [isConnectedToMarq, setIsConnectedToMarq] = useState(false); // Set to true when user connects to Marq
@@ -1342,6 +1346,8 @@ const deleteRecord = async (recordId, objectType) => {
 //   };
 
 const startPollingForRefreshToken = () => {
+  setIsRefreshTokenClicked(true)
+
   setIsLoading(true);
   setIsPolling(true); // Start polling when the button is clicked
 };
@@ -1409,6 +1415,8 @@ useEffect(() => {
 
 
   const startPollingForAccountRefreshToken = () => {
+    setIsAccountTokenClicked(true);
+
     setloadingaccountrefreshtoken(true);
     setAccountIsPolling(true); // Start polling when the button is clicked
 };
@@ -1760,9 +1768,15 @@ const initialize = async () => {
 
         // Log and show templates if refresh token is available
         console.log("User refresh token:", currentRefreshToken);
-        if (currentRefreshToken) {
+        if (currentRefreshToken && isRefreshTokenClicked) {
           setShowTemplates(true);
+          console.log("setShowTemplates == true,")
+        } else{
+          setShowTemplates(false)
+          console.log("No refresh token availible. Not showing templates Connect to Marq...")
+          // startPollingForRefreshToken()
         }
+
       } else {
         console.error("Failed to create or fetch user table.");
       }
@@ -1785,14 +1799,21 @@ const initialize = async () => {
         console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
 
         // Conditionally show templates and the account token button
-        if (currentAccountRefreshToken) {
+        if (currentAccountRefreshToken && isAccountTokenClicked) {
+          // Refresh token exists and the account token button was clicked
           setShowAccountTokenButton(false);
         } else {
+          // No refresh token or the account token button has not been clicked
           setShowAccountTokenButton(true);
-          // Call the createOrUpdateDataset function only if there's no refresh token
-          console.log("Calling createOrUpdateDataset as no account refresh token exists.");
-          await createOrUpdateDataset(currentAccountRefreshToken);
+        
+          // Call the createOrUpdateDataset function only if there's no current refresh token
+          if (!currentAccountRefreshToken) {
+            console.log("Calling createOrUpdateDataset as no account refresh token exists.");
+            // Uncomment the following line when you want to call the function
+            // await createOrUpdateDataset(currentAccountRefreshToken);
+          }
         }
+        
       } else {
         console.error("Failed to create or fetch account table.");
       }
