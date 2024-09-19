@@ -1732,7 +1732,6 @@ const paginatedTemplates = filteredTemplates.slice(
 // };
 
 
-
 const initialize = async () => {
   // Ensure we haven't initialized already and that objectType is available
   if (!hasInitialized.current && objectType) {
@@ -1743,94 +1742,84 @@ const initialize = async () => {
     fetchAssociatedProjectsAndDetails(objectType);
 
     try {
-      // Fetch the userid and userEmail from context
+      // Fetch user ID and email from context
       const userid = context.user.id;
-      const userEmail = context.user.email; // Assuming context provides the user's email here
+      const userEmail = context.user.email;
+      console.log("User ID and Email:", userid, userEmail);
 
-      console.log(userid, userEmail);
-      
-      // Fetch the API key and pass the userid and userEmail
+      // Fetch API key and store it
       const apiKey = await setapi(userid, userEmail);
       setAPIkey(apiKey);
 
-      // Fetch Marq user data and update refresh token if necessary
+      // Step 1: Fetch Marq user data to retrieve the refresh token
       const createusertable = await runServerless({
         name: 'marqouathhandler',
         parameters: { userID: userid }
       });
 
       if (createusertable?.response?.body) {
-        // Parse user data and extract refresh token
-        const responseBody = JSON.parse(createusertable.response.body);
-        const userData = responseBody.row?.values || {}; // Access values directly from row
-        currentRefreshToken = userData.refreshToken;
-        console.log("Fetched User Data:", JSON.stringify(userData));
-
-        // Log and show templates if refresh token is available
+        const userData = JSON.parse(createusertable.response.body)?.row?.values || {};
+        currentRefreshToken = userData.refreshToken || null;
         console.log("User refresh token:", currentRefreshToken);
-        if (currentRefreshToken && isRefreshTokenClicked) {
+
+        // Validate refresh token and show templates if available
+        if (currentRefreshToken) {
+          setIsRefreshTokenClicked(true);
           setShowTemplates(true);
-          console.log("setShowTemplates == true,")
-        } else{
-          setShowTemplates(false)
-          console.log("No refresh token availible. Not showing templates Connect to Marq...")
-          // startPollingForRefreshToken()
-        }
+          console.log("Refresh token found. Showing templates.");
 
-      } else {
-        console.error("Failed to create or fetch user table.");
-      }
-
-      // Fetch Marq account data and update refresh token if necessary
-      const createaccounttable = await runServerless({
-        name: 'dataTableHandler',
-        parameters: { objectType: objectType }
-      });
-
-      if (createaccounttable?.response?.body) {
-        // Parse account data and extract refresh token
-        const accountresponseBody = JSON.parse(createaccounttable.response.body);
-        const accountData = accountresponseBody?.dataRow?.values || {};
-
-        // Log the account data and refresh token
-        console.log("Account Data:", accountData);
-
-        const currentAccountRefreshToken = accountData?.refreshToken || null;
-        console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
-
-        // Conditionally show templates and the account token button
-        if (currentAccountRefreshToken && isAccountTokenClicked) {
-          // Refresh token exists and the account token button was clicked
-          setShowAccountTokenButton(false);
+          // Step 2: Fetch Marq account data if refresh token is valid
+          await fetchMarqAccountData();
         } else {
-          // No refresh token or the account token button has not been clicked
-          setShowAccountTokenButton(true);
-        
-          // Call the createOrUpdateDataset function only if there's no current refresh token
-          if (!currentAccountRefreshToken) {
-            console.log("Calling createOrUpdateDataset as no account refresh token exists.");
-            // Uncomment the following line when you want to call the function
-            // await createOrUpdateDataset(currentAccountRefreshToken);
-          }
+          // No refresh token, handle polling or error case
+          console.log("No refresh token available. Not showing templates.");
+          setShowTemplates(false);
+          startPollingForRefreshToken();
         }
-        
       } else {
-        console.error("Failed to create or fetch account table.");
+        console.error("Failed to fetch user table for refresh token.");
       }
-
     } catch (error) {
-      console.error("Error in initialization:", error);
+      console.error("Error in fetching user data:", error);
     }
-  } else if (
-    hasInitialized.current &&
-    fieldsArray.length > 0 &&
-    filtersArray.length > 0 &&
-    Object.keys(crmProperties).length > 0
-  ) {
+  } else if (hasInitialized.current) {
     // If already initialized, filter templates based on search criteria
     filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
   }
 };
+
+// Separate function to fetch Marq account data
+const fetchMarqAccountData = async () => {
+  try {
+    const createaccounttable = await runServerless({
+      name: 'dataTableHandler',
+      parameters: { objectType: objectType }
+    });
+
+    if (createaccounttable?.response?.body) {
+      const accountData = JSON.parse(createaccounttable.response.body)?.dataRow?.values || {};
+      const currentAccountRefreshToken = accountData.refreshToken || null;
+      console.log("Account refresh token:", currentAccountRefreshToken);
+
+      // Validate account refresh token and show/hide button accordingly
+      if (currentAccountRefreshToken) {
+        setIsAccountTokenClicked(true);
+        setShowAccountTokenButton(false);
+        console.log("Account refresh token found. Hiding account token button.");
+      } else {
+        console.log("No account refresh token found. Showing account token button.");
+        setIsAccountTokenClicked(false);
+        setShowAccountTokenButton(true);
+        startPollingForAccountRefreshToken();
+      }
+    } else {
+      console.error("Failed to fetch Marq account data.");
+    }
+  } catch (error) {
+    console.error("Error in fetching Marq account data:", error);
+  }
+};
+
 
 
 
