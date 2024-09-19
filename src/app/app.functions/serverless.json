@@ -9,6 +9,9 @@
     "updateUserRefresh": {
       "file": "updateUserRefresh.js"
     },
+    "updateAccountRefresh": {
+      "file": "updateAccountRefresh.js"
+    },
     "updateUserTable": {
       "file": "updateUserTable.js"
     },

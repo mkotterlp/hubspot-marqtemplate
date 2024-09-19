@@ -2,26 +2,11 @@ const hubspot = require('@hubspot/api-client');
 
 exports.main = async (context) => {
     // Read the parameters from the request
-    const objectType = context.parameters?.objectType;  // Use objectType 
     const refreshToken = context.parameters?.refreshToken; 
-    const datasetid = context.parameters?.datasetid;  
-    const collectionid = context.parameters?.collectionid;  
-    const accountId = context.parameters?.accountId;  // Also include accountId
 
-    console.log("objectType:", objectType);
+
     console.log("refreshToken:", refreshToken);
-    console.log("datasetid:", datasetid);
-    console.log("collectionid:", collectionid);
-    console.log("accountId:", accountId);
 
-    // Check if all required parameters are provided
-    if (!objectType || !refreshToken || !datasetid || !collectionid || !accountId) {
-        console.error("Error: Missing required parameters.");
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ "objectType": objectType, "refreshToken": refreshToken, "datasetid": datasetid, "collectionid": collectionid, "accountId": accountId }),
-        };
-    }
 
     try {
         // Initialize the HubSpot client with the private app access token
@@ -51,20 +36,19 @@ exports.main = async (context) => {
         }
 
         // Find the row with the matching objectType
-        let existingRow = rowsResponse.results.find(row => row.values.objectType === objectType);
+        let existingRow = rowsResponse.results.find(row => row.values.objectType === 'data');
         if (!existingRow) {
-            throw new Error(`ObjectType ${objectType} not found in the table.`);
+            throw new Error(`Data row not found in the table.`);
         }
 
         // Update the row with the new refreshToken, datasetid, collectionid, and accountId
         const rowValues = {
-            datasetid: datasetid,  
-            collectionid: collectionid,
+            refreshToken: refreshToken,  
         };
 
         // Update the draft row with new values
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingRow.id, { values: rowValues });
-        console.log(`ObjectType ${objectType} updated in the table with new datasetid, collectionid.`);
+        console.log(`Data row updated in the table with new refresh token.`);
 
         // Publish the table after updating the row
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
@@ -73,7 +57,7 @@ exports.main = async (context) => {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: `ObjectType ${objectType} updated successfully in HubDB.`,
+                message: `Data row refresh token updated successfully in HubDB.`,
             }),
         };
     } catch (error) {
