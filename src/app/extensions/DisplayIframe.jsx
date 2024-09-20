@@ -23,7 +23,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
   const [loadingaccounttoken, setloadingaccountrefreshtoken] = useState(false);
 
-  const [showTemplates, setShowTemplates] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
   const [authurl, setauth] = useState(''); //setauthConnectToMarq
@@ -1765,15 +1765,15 @@ const initialize = async () => {
         // Validate refresh token and show templates if available
         if (currentRefreshToken) {
           setIsRefreshTokenClicked(true);
-          showTemplates;
+          setShowTemplates(true); // Use setShowTemplates to trigger the display of templates
           console.log("Refresh token found. Showing templates.");
-
+        
           // Step 2: Fetch Marq account data if refresh token is valid
           await fetchMarqAccountData();
         } else {
           // No refresh token, handle polling or error case
           console.log("No refresh token available. Not showing templates.");
-          setShowTemplates(false);
+          setShowTemplates(false); // Explicitly hide templates
           startPollingForRefreshToken();
         }
       } else {
