@@ -14,7 +14,7 @@ exports.main = async (context) => {
     const templatetitle = context.parameters?.templatetitle;
     const marqaccountid = context.parameters?.marqaccountid;
     // const datasetid = string(context.parameters?.datasetid);
-    const dataSetId = context.parameters?.dataSetId;
+    const datasetid = context.parameters?.dataSetId;
 
 
     // Log the parameters for debugging
@@ -27,17 +27,17 @@ exports.main = async (context) => {
         templateid,
         templatetitle,
         marqaccountid,
-        dataSetId
+        datasetid
     });
 
     // Check if all required parameters are available
-    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle || !marqaccountid || !dataSetId) {
+    if (!refresh_token || !clientid || !clientsecret || !marquserId || !recordid || !templateid || !templatetitle || !marqaccountid || !datasetid) {
         console.error("Missing required parameters in createProject");
 
         return {
             statusCode: 400,
 
-            body: JSON.stringify({ message: "Missing required parameters in createProject.", refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, dataSetId})
+            body: JSON.stringify({ message: "Missing required parameters in createProject.", refresh_token, clientid, clientsecret, marquserId, recordid, templateid, templatetitle, marqaccountid, datasetid})
         };
     }
 
@@ -52,7 +52,7 @@ exports.main = async (context) => {
             templateid: templateid,
             templatetitle: templatetitle,
             marqaccountid: marqaccountid,
-            dataSetId: dataSetId
+            datasetid: datasetid
         });
 
         // Step 2: Check the response from the Fastgen API
