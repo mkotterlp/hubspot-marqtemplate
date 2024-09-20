@@ -1059,29 +1059,48 @@ const deleteRecord = async (recordId, objectType) => {
           dataSetId: dataSourceId
         }
       });
-  
+
       if (createProjectResponse?.response?.body) {
         const projectData = JSON.parse(createProjectResponse.response.body);
         console.log("Project created successfully:", projectData);
-  
+
         const projectId = projectData.documentid;
         console.log("Created Project ID:", projectId);
-  
+
+        // Update refresh token after project creation
         currentRefreshToken = projectData.new_refresh_token;
         console.log("Updated refresh_token after project creation:", currentRefreshToken);
-  
+
+        // Call the serverless function to update the account refresh token in marq_account_data
+        // try {
+        //   const updateAccountRefreshResponse = await runServerless({
+        //     name: 'updateAccountRefresh',
+        //     parameters: {
+        //       refreshToken: currentRefreshToken, // Use the new refresh token
+        //     }
+        //   });
+
+        //   if (updateAccountRefreshResponse?.response?.statusCode === 200) {
+        //     console.log('Account refresh token updated successfully in marq_account_data table');
+        //   } else {
+        //     console.error('Failed to update refresh token in marq_account_data:', updateAccountRefreshResponse?.response?.body);
+        //   }
+        // } catch (error) {
+        //   console.error('Error updating account refresh token:', error);
+        // }
+
         // Step 4: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
           enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
           fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
-  
+
         const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
         const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSourceId}`;
-  
+
         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(iframeUrlWithImportData);
-  
+
         console.log("Opening iframe with URL:", iframeSrc);
         setIframeUrl(iframeSrc);
         actions.openIframeModal({
@@ -1093,6 +1112,7 @@ const deleteRecord = async (recordId, objectType) => {
       } else {
         console.error("Failed to create project.");
       }
+
     } catch (error) {
       console.error('Error in handleClick:', error);
     }
