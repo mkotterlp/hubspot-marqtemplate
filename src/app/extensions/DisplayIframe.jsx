@@ -978,7 +978,7 @@ const deleteRecord = async (recordId, objectType) => {
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken
       let dataSetId;
-      console.log("refreshTokenToUse:",refreshTokenToUse)
+      console.log("refreshTokenToUse:", refreshTokenToUse)
       // 1. Fetch the `objectType`
       // const objectType = await fetchObjectType();
       // if (!objectType) {
@@ -1006,6 +1006,7 @@ const deleteRecord = async (recordId, objectType) => {
           refreshTokenToUse = accountRefreshToken;  // Use account refresh token
           tokenSource = 'account';
         } else {
+          pollForAccountRefreshToken()
           console.log("No account refresh token found, falling back to user refresh token.");
         }
       } else {
@@ -1014,27 +1015,27 @@ const deleteRecord = async (recordId, objectType) => {
       }
   
       // 3. If no account token or fallback, use user token
-      // if (tokenSource === 'user' && currentRefreshToken) {
-      //   try {
-      //     console.log("Fetching user refresh token...");
-      //     const createusertable = await runServerless({
-      //       name: 'marqouathhandler',
-      //       parameters: { userID: userId }
-      //     });
-      //     const responseBody = JSON.parse(createusertable.response.body);
-      //     const userData = responseBody?.row?.values || {};
-      //     refreshTokenToUse = userData?.refreshToken || null;
+      if (tokenSource === 'user' && currentRefreshToken) {
+        try {
+          console.log("Fetching user refresh token...");
+          const createusertable = await runServerless({
+            name: 'marqouathhandler',
+            parameters: { userID: userId }
+          });
+          const responseBody = JSON.parse(createusertable.response.body);
+          const userData = responseBody?.row?.values || {};
+          refreshTokenToUse = userData?.refreshToken || null;
   
-      //     if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
-      //       console.log("User refresh token not found.");
-      //       setShowTemplates(false);
-      //       return;
-      //     }
-      //   } catch (error) {
-      //     console.error("Error while fetching user refresh token:", error);
-      //     return;
-      //   }
-      // }
+          if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
+            console.log("User refresh token not found.");
+            setShowTemplates(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Error while fetching user refresh token:", error);
+          return;
+        }
+      }
   
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
@@ -1043,6 +1044,8 @@ const deleteRecord = async (recordId, objectType) => {
       const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
+
+      console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
   
       // 4. Create the project using the appropriate refresh token
       console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
@@ -2059,6 +2062,7 @@ const initialize = async () => {
         
           // Step 2: Fetch Marq account data if refresh token is valid
           await fetchMarqAccountData();
+          console.log("fetched Marq AccountData")
         } else {
           // No refresh token, handle polling or error case
           console.log("No refresh token available. Not showing templates.");
