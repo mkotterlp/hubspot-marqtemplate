@@ -1071,23 +1071,41 @@ const deleteRecord = async (recordId, objectType) => {
         currentRefreshToken = projectData.new_refresh_token;
         console.log("Updated refresh_token after project creation:", currentRefreshToken);
 
-        // Call the serverless function to update the account refresh token in marq_account_data
-        // try {
-        //   const updateAccountRefreshResponse = await runServerless({
-        //     name: 'updateAccountRefresh',
-        //     parameters: {
-        //       refreshToken: currentRefreshToken, // Use the new refresh token
-        //     }
-        //   });
+        // Check if it's an account or user refresh token
+        if (currentRefreshToken.includes('account')) {
+          // Update account refresh token
+          try {
+            const updateAccountRefreshResponse = await runServerless({
+              name: 'updateAccountRefresh',
+              parameters: {
+                refreshToken: currentRefreshToken, // Use the new refresh token for account
+              }
+            });
 
-        //   if (updateAccountRefreshResponse?.response?.statusCode === 200) {
-        //     console.log('Account refresh token updated successfully in marq_account_data table');
-        //   } else {
-        //     console.error('Failed to update refresh token in marq_account_data:', updateAccountRefreshResponse?.response?.body);
-        //   }
-        // } catch (error) {
-        //   console.error('Error updating account refresh token:', error);
-        // }
+            if (updateAccountRefreshResponse?.response?.statusCode === 200) {
+              console.log('Account refresh token updated successfully in marq_account_data table');
+            } else {
+              console.error('Failed to update account refresh token:', updateAccountRefreshResponse?.response?.body);
+            }
+          } catch (error) {
+            console.error('Error updating account refresh token:', error);
+          }
+        } else if (currentRefreshToken.includes('oauth2-')) {
+          // Update user refresh token
+          try {
+            const updateUserRefreshResponse = await runServerless({
+              name: 'updateUserRefresh',
+              parameters: {
+                marqAccountId: marqaccountid,
+                newrefreshtoken: currentRefreshToken, // Use the new refresh token for user
+              }
+            });
+
+            console.log("User refresh token updated:", updateUserRefreshResponse);
+          } catch (error) {
+            console.error("Error occurred while updating user refresh token:", error);
+          }
+        }
 
         // Step 4: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
@@ -1112,6 +1130,7 @@ const deleteRecord = async (recordId, objectType) => {
       } else {
         console.error("Failed to create project.");
       }
+
 
     } catch (error) {
       console.error('Error in handleClick:', error);
