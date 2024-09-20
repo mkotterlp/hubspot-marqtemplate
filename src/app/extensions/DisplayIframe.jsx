@@ -925,12 +925,12 @@ const deleteRecord = async (recordId, objectType) => {
     }
   };
   
-  const updateUserRefreshToken = async (marqaccountid, currentRefreshToken) => {
+  const updateUserRefreshToken = async (marquserId, currentRefreshToken) => {
     try {
       const updateUserRefreshResponse = await runServerless({
         name: 'updateUserRefresh',
         parameters: {
-          marqaccountid: marqaccountid,
+          marquserId: marquserId,
           newrefreshtoken: currentRefreshToken,
         },
       });
@@ -1083,7 +1083,7 @@ const deleteRecord = async (recordId, objectType) => {
         } else {
           // Update user refresh token
           console.log(marqaccountid, newRefreshToken)
-          await updateUserRefreshToken(marqaccountid, newRefreshToken);
+          await updateUserRefreshToken(marquserId, newRefreshToken);
         }
   
         // Step 7: Set iframe URL and open the iframe

@@ -2,7 +2,7 @@ const hubspot = require('@hubspot/api-client');
 
 exports.main = async (context) => {
     // Read the parameters from the request
-    const userID = String(context.parameters?.marqaccountid);
+    const marqUserID = String(context.parameters?.marquserId);
     // const refreshToken = context.parameters?.refreshToken; newrefreshtoken
     const refreshToken = context.parameters?.newrefreshtoken; 
 
@@ -10,11 +10,11 @@ exports.main = async (context) => {
 
 
     // Check if all required parameters are provided
-    if (!userID) {
-        console.error("Error: Missing UserID.");
+    if (!marqUserID) {
+        console.error("Error: Missing marqUserID.");
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'userID, refreshToken, and templatesJsonUrl are required but were not provided' }),
+            body: JSON.stringify({ error: 'marqUserID, refreshToken, and templatesJsonUrl are required but were not provided' }),
         };
     }
 
@@ -43,7 +43,7 @@ exports.main = async (context) => {
 
         let existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
         if (!existingUserRow) {
-            throw new Error(`User ${userID} not found in the table.`);
+            throw new Error(`User ${marqUserID} not found in the table.`);
         }
 
         const rowValues = {
@@ -52,7 +52,7 @@ exports.main = async (context) => {
 
 
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-        console.log(`User ${userID} updated in the table with new refresh token and templates URL.`);
+        console.log(`User ${marqUserID} updated in the table with new refresh token and templates URL.`);
 
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
         console.log('Table user_data published after updating the row.');
@@ -60,7 +60,7 @@ exports.main = async (context) => {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: `User ${userID} updated successfully in HubDB.`,
+                message: `User ${marqUserID} updated successfully in HubDB.`,
             }),
         };
     } catch (error) {
