@@ -2080,7 +2080,7 @@ const fetchMarqAccountData = async () => {
         console.log("No account refresh token found. Showing account token button.");
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
-        // startPollingForAccountRefreshToken();
+        startPollingForAccountRefreshToken();
       }
     } else {
       console.error("Failed to fetch Marq account data.");
