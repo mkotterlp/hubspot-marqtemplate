@@ -1460,7 +1460,20 @@ const pollForAccountRefreshToken = async () => {
       setShowAccountTokenButton(false);
 
       // Call the function to create or update the dataset with the refresh token
-      await createOrUpdateDataset(currentAccountRefreshToken);
+      try {
+        // Call the function to create or update the dataset with the refresh token
+        await createOrUpdateDataset(currentAccountRefreshToken);
+    
+        // If successful, stop loading and show templates
+        setIsLoading(false);  // Stop loading
+        setShowTemplates(true);  // Show templates
+      } catch (error) {
+        console.error('Error creating or updating dataset:', error);
+        
+        // Stop loading but do not show templates in case of an error
+        setIsLoading(false);  // Stop loading
+        setShowTemplates(false);  // Hide templates (or handle error state)
+      }
   } catch (error) {
       console.error("Error while polling for account refresh token:", error.message || error);
       setloadingaccountrefreshtoken(false);
@@ -2495,17 +2508,17 @@ const createOrUpdateDataset = async (refreshToken) => {
             // Check if the response contains a success status
             if (updateAccountRefreshResponse?.response?.statusCode === 200) {
               console.log('Account refresh token updated successfully in marq_account_data table');
-              setIsLoading(false);  // Stop loading
-              setShowTemplates(true);  // Show templates
+              // setIsLoading(false);  // Stop loading
+              // setShowTemplates(true);  // Show templates
             } else {
               console.error('Failed to update refresh token:', updateAccountRefreshResponse?.response?.body);
-              setIsLoading(false);  // Stop loading
+              // setIsLoading(false);  // Stop loading
 
             }
 
           } catch (error) {
             console.error('Error updating account refresh:', error);
-            setIsLoading(false);  // Stop loading
+            // setIsLoading(false);  // Stop loading
             setShowAccountTokenButton(true); 
           }
 
