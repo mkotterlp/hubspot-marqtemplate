@@ -85,6 +85,8 @@ const Extension = ({ context, actions, runServerless }) => {
       if (objectTypeResponse && objectTypeResponse.response && objectTypeResponse.response.body) {
         const objectTypeResponseBody = JSON.parse(objectTypeResponse.response.body);
         setObjectType(objectTypeResponseBody.objectType);
+        console.log("Fetched objectType:", objectTypeResponseBody.objectType);
+
       } else {
         console.error("Error: Response body is undefined or not structured as expected.", objectTypeResponse);
       }
@@ -884,12 +886,41 @@ const deleteRecord = async (recordId, objectType) => {
   // };
   
   
-  const handleClick = async (template) => {
-    let iframeSrc = 'https://info.marq.com/loading';
+  const updateAccountRefreshToken = async (currentRefreshToken) => {
+    try {
+      const updateAccountRefreshResponse = await runServerless({
+        name: 'updateAccountRefresh',
+        parameters: { refreshToken: currentRefreshToken },
+      });
   
-    const schema = [
-      { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
-    ];
+      if (updateAccountRefreshResponse?.response?.statusCode === 200) {
+        console.log('Account refresh token updated successfully in marq_account_data table');
+      } else {
+        console.error('Failed to update account refresh token:', updateAccountRefreshResponse?.response?.body);
+      }
+    } catch (error) {
+      console.error('Error updating account refresh token:', error);
+    }
+  };
+  
+  const updateUserRefreshToken = async (marqaccountid, currentRefreshToken) => {
+    try {
+      const updateUserRefreshResponse = await runServerless({
+        name: 'updateUserRefresh',
+        parameters: {
+          marqAccountId: marqaccountid,
+          newrefreshtoken: currentRefreshToken,
+        },
+      });
+  
+      console.log("User refresh token updated:", updateUserRefreshResponse);
+    } catch (error) {
+      console.error("Error occurred while updating user refresh token:", error);
+    }
+  };
+  
+  const handleClick = async (template, isAccountToken) => {
+    let iframeSrc = 'https://info.marq.com/loading';
   
     // Set iframe to loading
     setIframeUrl(iframeSrc);
@@ -905,39 +936,65 @@ const deleteRecord = async (recordId, objectType) => {
       console.log("Template clicked:", template.id, template.title);
       const userId = context.user.id;
   
-      // Check for refresh token or fetch if not available
-      if (!currentRefreshToken) {
+      let tokenSource = 'user'; // Default to user token
+      let refreshTokenToUse = currentRefreshToken;
+      let dataSetId;
+  
+      // 1. Fetch the `objectType`
+      const objectType = await fetchObjectType();
+      if (!objectType) {
+        console.error("Failed to fetch objectType.");
+        return;
+      }
+  
+      // 2. Fetch the `datasetid` from the `dataTableHandler` based on the objectType
+      console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
+      const dataTableResponse = await runServerless({
+        name: 'dataTableHandler',
+        parameters: { objectType: objectType }, // Use the fetched objectType here
+      });
+  
+      if (dataTableResponse?.response?.body) {
+        const dataTableBody = JSON.parse(dataTableResponse.response.body);
+        dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
+        console.log("Fetched datasetid:", dataSetId);
+  
+        const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
+  
+        if (isAccountToken && accountRefreshToken) {
+          console.log("Using account refresh token:", accountRefreshToken);
+          refreshTokenToUse = accountRefreshToken;  // Use account refresh token
+          tokenSource = 'account';
+        } else {
+          console.log("No account refresh token found, falling back to user refresh token.");
+        }
+      } else {
+        console.error("Failed to fetch datasetid from dataTableHandler.");
+        return;
+      }
+  
+      // 3. If no account token or fallback, use user token
+      if (tokenSource === 'user' && !currentRefreshToken) {
         try {
-          console.log("Polling for refresh token...");
+          console.log("Fetching user refresh token...");
           const createusertable = await runServerless({
             name: 'marqouathhandler',
             parameters: { userID: userId }
           });
-          console.log("Response from serverless function:", createusertable);
+          const responseBody = JSON.parse(createusertable.response.body);
+          const userData = responseBody?.row?.values || {};
+          refreshTokenToUse = userData?.refreshToken || null;
   
-          if (createusertable?.response?.body) {
-            const responseBody = JSON.parse(createusertable.response.body);
-            const userData = responseBody?.row?.values || {};
-            currentRefreshToken = userData?.refreshToken || null;
-            console.log("currentRefreshToken:", currentRefreshToken);
-  
-            if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
-              console.log("Refresh token not found");
-              setShowTemplates(false);
-              return;
-            }
-          } else {
-            console.log("No response body from serverless function.");
+          if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
+            console.log("User refresh token not found.");
+            setShowTemplates(false);
             return;
           }
         } catch (error) {
-          console.error("Error while polling for refresh token:", error);
+          console.error("Error while fetching user refresh token:", error);
           return;
         }
       }
-  
-      // Log the next steps with IDs
-      console.log(`User ID: ${userId}, Template ID: ${template?.id}, Template Title: ${template?.title}`);
   
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
@@ -947,108 +1004,12 @@ const deleteRecord = async (recordId, objectType) => {
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
   
-      // Fetch dealstage from CRM properties if objectType is 'DEAL'
-      let stageName = '';
-      if (objectType === 'DEAL') {
-        try {
-          console.log("Fetching CRM properties for dealstage...");
-          const propertiesResponse = await runServerless({
-            name: 'getObjectProperties',
-            parameters: { objectId: context.crm.objectId, objectType, properties: ['dealstage'] }
-          });
-  
-          if (propertiesResponse?.response?.body) {
-            const crmProperties = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
-            stageName = crmProperties.dealstage || '';
-            console.log("Dealstage fetched:", stageName);
-          } else {
-            console.error("Failed to fetch CRM properties:", propertiesResponse);
-          }
-        } catch (propertiesError) {
-          console.error("Error occurred while fetching CRM properties:", propertiesError);
-        }
-      }
-  
-      // Step 1: Fetch data for the objectType using dataTableHandler
-      console.log("Calling dataTableHandler for objectType:", objectType);
-      const dataTableResponse = await runServerless({
-        name: 'dataTableHandler',
-        parameters: { objectType: objectType }
-      });
-  
-      if (!dataTableResponse?.response?.body) {
-        console.error("Error: No data returned from dataTableHandler");
-        return;
-      }
-  
-      const dataTableBody = JSON.parse(dataTableResponse.response.body);
-      const objectData = dataTableBody?.objectTypeRow?.values || {};
-      const accountData = dataTableBody?.dataRow?.values || {};
-      console.log("Account Data from dataTableHandler:", accountData);
-  
-      const collectionId = objectData?.collectionid || null;
-      const dataSourceId = objectData?.datasetid || null;
-      const refresh_token = accountData?.refreshToken || null;
-      const properties = accountData?.properties || {}; // Assuming the properties field exists
-  
-      if (!collectionId || !dataSourceId) {
-        console.error("Error: Missing collectionId or dataSourceId");
-        return;
-      }
-  
-      // Step 2: Call the updateData3 serverless function to update schema and data
-      console.log("Calling updateData3 with collectionId:", collectionId, " dataSourceId:", dataSourceId, "and refresh_token: ", refresh_token);
-      const updateData3Response = await runServerless({
-        name: 'updateData3',
-        parameters: {
-          refresh_token: refresh_token,
-          clientid: clientid,
-          clientsecret: clientsecret,
-          collectionId: collectionId,
-          properties: properties,
-          schema: schema,  
-          dataSourceId: dataSourceId
-        }
-      });
-  
-      if (!updateData3Response?.response?.body) {
-        console.error("Error: No data returned from updateData3 serverless function");
-        return;
-      }
-  
-      const updateResult = JSON.parse(updateData3Response.response.body);
-      console.log("updateData3 Response:", updateResult);
-  
-      // Extract the new_refresh_token from the update result
-      const new_refresh_token = updateResult.new_refresh_token;
-  
-      if (new_refresh_token) {
-        console.log("New refresh token received:", new_refresh_token);
-  
-        // Step 2.1: Update HubDB with the new refresh token
-        try {
-          const updateRefreshTokenResult = await runServerless({
-            name: 'updateUserRefresh',
-            parameters: {
-              marqAccountId: marqaccountid,
-              newrefreshtoken: new_refresh_token,
-            }
-          });
-          console.log("HubDB refresh token updated:", updateRefreshTokenResult);
-        } catch (error) {
-          console.error("Error occurred while updating HubDB with new refresh token:", error);
-        }
-  
-        // Update currentRefreshToken for further use
-        currentRefreshToken = new_refresh_token;
-      }
-  
-      // Step 3: Proceed with creating the project using the data
-      console.log("Creating project with template ID:", templateid);
+      // 4. Create the project using the appropriate refresh token
+      console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
       const createProjectResponse = await runServerless({
         name: 'createProject',
         parameters: {
-          refresh_token: currentRefreshToken,
+          refresh_token: refreshTokenToUse,
           clientid: clientid,
           clientsecret: clientsecret,
           marquserId: marquserId,
@@ -1056,8 +1017,8 @@ const deleteRecord = async (recordId, objectType) => {
           templateid: templateid,
           templatetitle: templatetitle,
           marqaccountid: marqaccountid,
-          dataSetId: dataSourceId
-        }
+          dataSetId: dataSetId,
+        },
       });
   
       if (createProjectResponse?.response?.body) {
@@ -1067,10 +1028,20 @@ const deleteRecord = async (recordId, objectType) => {
         const projectId = projectData.documentid;
         console.log("Created Project ID:", projectId);
   
-        currentRefreshToken = projectData.new_refresh_token;
-        console.log("Updated refresh_token after project creation:", currentRefreshToken);
+        // 5. Update refresh token after project creation
+        const newRefreshToken = projectData.new_refresh_token;
+        console.log("Updated refresh_token after project creation:", newRefreshToken);
   
-        // Step 4: Set iframe URL and open the iframe
+        // 6. Depending on which token was used, update the corresponding refresh token
+        if (tokenSource === 'account') {
+          // Update account refresh token
+          await updateAccountRefreshToken(newRefreshToken);
+        } else {
+          // Update user refresh token
+          await updateUserRefreshToken(marqaccountid, newRefreshToken);
+        }
+  
+        // Step 7: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
           enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
           fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
@@ -1078,11 +1049,9 @@ const deleteRecord = async (recordId, objectType) => {
         })));
   
         const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
-        const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSourceId}`;
+        const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSetId}`;
   
         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(iframeUrlWithImportData);
-  
-        console.log("Opening iframe with URL:", iframeSrc);
         setIframeUrl(iframeSrc);
         actions.openIframeModal({
           uri: iframeSrc,
@@ -1097,6 +1066,222 @@ const deleteRecord = async (recordId, objectType) => {
       console.error('Error in handleClick:', error);
     }
   };
+  
+
+
+//   const handleClick = async (template, ) => {
+//     let iframeSrc = 'https://info.marq.com/loading';
+  
+//     const schema = [
+//       { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+//     ];
+  
+//     // Set iframe to loading
+//     setIframeUrl(iframeSrc);
+//     actions.openIframeModal({
+//       uri: iframeSrc,
+//       height: 1500,
+//       width: 1500,
+//       title: "Marq",
+//     });
+//     setIframeOpen(true);
+  
+//     try {
+//       console.log("Template clicked:", template.id, template.title);
+//       const userId = context.user.id;
+  
+//       // Check for refresh token or fetch if not available
+//       if (!currentRefreshToken) {
+//         try {
+//           console.log("Polling for refresh token...");
+//           const createusertable = await runServerless({
+//             name: 'marqouathhandler',
+//             parameters: { userID: userId }
+//           });
+//           console.log("Response from serverless function:", createusertable);
+  
+//           if (createusertable?.response?.body) {
+//             const responseBody = JSON.parse(createusertable.response.body);
+//             const userData = responseBody?.row?.values || {};
+//             currentRefreshToken = userData?.refreshToken || null;
+//             console.log("currentRefreshToken:", currentRefreshToken);
+  
+//             if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
+//               console.log("Refresh token not found");
+//               setShowTemplates(false);
+//               return;
+//             }
+//           } else {
+//             console.log("No response body from serverless function.");
+//             return;
+//           }
+//         } catch (error) {
+//           console.error("Error while polling for refresh token:", error);
+//           return;
+//         }
+//       }
+  
+//       // Log the next steps with IDs
+//       console.log(`User ID: ${userId}, Template ID: ${template?.id}, Template Title: ${template?.title}`);
+  
+//       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
+//       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+//       const marquserId = marquserid;
+//       const marqaccountid = "163559625";
+//       const recordid = context.crm?.objectId?.toString() || '';
+//       const templateid = template?.id || '';
+//       const templatetitle = template?.title || '';
+  
+//       // Fetch dealstage from CRM properties if objectType is 'DEAL'
+//       let stageName = '';
+//       if (objectType === 'DEAL') {
+//         try {
+//           console.log("Fetching CRM properties for dealstage...");
+//           const propertiesResponse = await runServerless({
+//             name: 'getObjectProperties',
+//             parameters: { objectId: context.crm.objectId, objectType, properties: ['dealstage'] }
+//           });
+  
+//           if (propertiesResponse?.response?.body) {
+//             const crmProperties = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
+//             stageName = crmProperties.dealstage || '';
+//             console.log("Dealstage fetched:", stageName);
+//           } else {
+//             console.error("Failed to fetch CRM properties:", propertiesResponse);
+//           }
+//         } catch (propertiesError) {
+//           console.error("Error occurred while fetching CRM properties:", propertiesError);
+//         }
+//       }
+  
+//       // Step 1: Fetch data for the objectType using dataTableHandler
+//       console.log("Calling dataTableHandler for objectType:", objectType);
+//       const dataTableResponse = await runServerless({
+//         name: 'dataTableHandler',
+//         parameters: { objectType: objectType }
+//       });
+  
+//       if (!dataTableResponse?.response?.body) {
+//         console.error("Error: No data returned from dataTableHandler");
+//         return;
+//       }
+  
+//       const dataTableBody = JSON.parse(dataTableResponse.response.body);
+//       const objectData = dataTableBody?.objectTypeRow?.values || {};
+//       const accountData = dataTableBody?.dataRow?.values || {};
+//       console.log("Account Data from dataTableHandler:", accountData);
+  
+//       const collectionId = objectData?.collectionid || null;
+//       const dataSourceId = objectData?.datasetid || null;
+//       const refresh_token = accountData?.refreshToken || null;
+//       const properties = accountData?.properties || {}; // Assuming the properties field exists
+  
+//       if (!collectionId || !dataSourceId) {
+//         console.error("Error: Missing collectionId or dataSourceId");
+//         return;
+//       }
+  
+//       // Step 2: Call the updateData3 serverless function to update schema and data
+//       console.log("Calling updateData3 with collectionId:", collectionId, " dataSourceId:", dataSourceId, "and refresh_token: ", refresh_token);
+//       const updateData3Response = await runServerless({
+//         name: 'updateData3',
+//         parameters: {
+//           refresh_token: refresh_token,
+//           clientid: clientid,
+//           clientsecret: clientsecret,
+//           collectionId: collectionId,
+//           properties: properties,
+//           schema: schema,  
+//           dataSourceId: dataSourceId
+//         }
+//       });
+  
+//       if (!updateData3Response?.response?.body) {
+//         console.error("Error: No data returned from updateData3 serverless function");
+//         return;
+//       }
+  
+//       const updateResult = JSON.parse(updateData3Response.response.body);
+//       console.log("updateData3 Response:", updateResult);
+  
+//       // Extract the new_refresh_token from the update result
+//       const new_refresh_token = updateResult.new_refresh_token;
+  
+//       if (new_refresh_token) {
+//         console.log("New refresh token received:", new_refresh_token);
+  
+//         // Step 2.1: Update HubDB with the new refresh token
+//         try {
+//           const updateRefreshTokenResult = await runServerless({
+//             name: 'updateUserRefresh',
+//             parameters: {
+//               marqAccountId: marqaccountid,
+//               newrefreshtoken: new_refresh_token,
+//             }
+//           });
+//           console.log("HubDB refresh token updated:", updateRefreshTokenResult);
+//         } catch (error) {
+//           console.error("Error occurred while updating HubDB with new refresh token:", error);
+//         }
+  
+//         // Update currentRefreshToken for further use
+//         currentRefreshToken = new_refresh_token;
+//       }
+  
+//       // Step 3: Proceed with creating the project using the data
+//       console.log("Creating project with template ID:", templateid);
+//       const createProjectResponse = await runServerless({
+//         name: 'createProject',
+//         parameters: {
+//           refresh_token: currentRefreshToken,
+//           clientid: clientid,
+//           clientsecret: clientsecret,
+//           marquserId: marquserId,
+//           recordid: recordid,
+//           templateid: templateid,
+//           templatetitle: templatetitle,
+//           marqaccountid: marqaccountid,
+//           dataSetId: dataSourceId
+//         }
+//       });
+  
+//       if (createProjectResponse?.response?.body) {
+//         const projectData = JSON.parse(createProjectResponse.response.body);
+//         console.log("Project created successfully:", projectData);
+  
+//         const projectId = projectData.documentid;
+//         console.log("Created Project ID:", projectId);
+  
+//         currentRefreshToken = projectData.new_refresh_token;
+//         console.log("Updated refresh_token after project creation:", currentRefreshToken);
+  
+//         // Step 4: Set iframe URL and open the iframe
+//         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+//           enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
+//           fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
+//           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
+//         })));
+  
+//         const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
+//         const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSourceId}`;
+  
+//         iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(iframeUrlWithImportData);
+  
+//         console.log("Opening iframe with URL:", iframeSrc);
+//         setIframeUrl(iframeSrc);
+//         actions.openIframeModal({
+//           uri: iframeSrc,
+//           height: 1500,
+//           width: 1500,
+//           title: "Marq",
+//         });
+//       } else {
+//         console.error("Failed to create project.");
+//       }
+//     } catch (error) {
+//       console.error('Error in handleClick:', error);
+//     }
+//   };
   
 
   
@@ -2782,7 +2967,9 @@ return (
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
-                  onClick={() => handleClick(template)}
+                  // onClick={() => handleClick(template)}
+                  onClick={() => handleClick(template, false)}
+
                   preventDefault
                   width={100}
                 />
@@ -2790,7 +2977,9 @@ return (
               <TableCell>
                 <Link
                   href="#"
-                  onClick={() => handleClick(template)}
+                  // onClick={() => handleClick(template)}
+                  onClick={() => handleClick(template, false)}
+
                   preventDefault
                   variant="primary"
                 >
@@ -2799,7 +2988,7 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-                <Button onClick={() => handleClick(template)}>Create with Marq</Button>
+                <Button onClick={() => handleClick(template, false)}>Create with Marq</Button>
               </TableCell>
             </TableRow>
           );
