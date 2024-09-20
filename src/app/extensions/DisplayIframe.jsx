@@ -1765,7 +1765,7 @@ const initialize = async () => {
         // Validate refresh token and show templates if available
         if (currentRefreshToken) {
           setIsRefreshTokenClicked(true);
-          setShowTemplates(true);
+          showTemplates;
           console.log("Refresh token found. Showing templates.");
 
           // Step 2: Fetch Marq account data if refresh token is valid
