@@ -940,6 +940,8 @@ const deleteRecord = async (recordId, objectType) => {
       console.error("Error occurred while updating user refresh token:", error);
     }
   };
+
+
   const handleClick = async (template) => {
     let iframeSrc = 'https://info.marq.com/loading';
   
@@ -967,16 +969,16 @@ const deleteRecord = async (recordId, objectType) => {
       currentRefreshToken = userData?.refreshToken || null;
       console.log("currentRefreshToken:",currentRefreshToken)
 
-      if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
+      if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
         console.log("User refresh token not found.");
         setShowTemplates(false);
         return;
       }
   
       let tokenSource = 'user'; // Default to user token
-      let refreshTokenToUse = currentRefreshToken;
+      let refreshTokenToUse = currentRefreshToken
       let dataSetId;
-  
+      console.log("refreshTokenToUse:",refreshTokenToUse)
       // 1. Fetch the `objectType`
       const objectType = await fetchObjectType();
       if (!objectType) {
@@ -1012,27 +1014,27 @@ const deleteRecord = async (recordId, objectType) => {
       }
   
       // 3. If no account token or fallback, use user token
-      if (tokenSource === 'user' && !currentRefreshToken) {
-        try {
-          console.log("Fetching user refresh token...");
-          const createusertable = await runServerless({
-            name: 'marqouathhandler',
-            parameters: { userID: userId }
-          });
-          const responseBody = JSON.parse(createusertable.response.body);
-          const userData = responseBody?.row?.values || {};
-          refreshTokenToUse = userData?.refreshToken || null;
+      // if (tokenSource === 'user' && currentRefreshToken) {
+      //   try {
+      //     console.log("Fetching user refresh token...");
+      //     const createusertable = await runServerless({
+      //       name: 'marqouathhandler',
+      //       parameters: { userID: userId }
+      //     });
+      //     const responseBody = JSON.parse(createusertable.response.body);
+      //     const userData = responseBody?.row?.values || {};
+      //     refreshTokenToUse = userData?.refreshToken || null;
   
-          if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
-            console.log("User refresh token not found.");
-            setShowTemplates(false);
-            return;
-          }
-        } catch (error) {
-          console.error("Error while fetching user refresh token:", error);
-          return;
-        }
-      }
+      //     if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
+      //       console.log("User refresh token not found.");
+      //       setShowTemplates(false);
+      //       return;
+      //     }
+      //   } catch (error) {
+      //     console.error("Error while fetching user refresh token:", error);
+      //     return;
+      //   }
+      // }
   
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
