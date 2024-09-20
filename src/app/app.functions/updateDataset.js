@@ -1,21 +1,19 @@
 const hubspot = require('@hubspot/api-client');
 
 // Helper function for logging request parameters
-const logRequestParameters = (objectType, refreshToken, datasetid, collectionid, accountId) => {
+const logRequestParameters = (objectType, datasetid, collectionid) => {
     console.log("Received parameters:", {
-        objectType, refreshToken, datasetid, collectionid, accountId
+        objectType, datasetid, collectionid
     });
 };
 
 // Helper function for throwing errors if parameters are missing
-const validateParameters = (objectType, refreshToken, datasetid, collectionid, accountId) => {
-    if (!objectType || !refreshToken || !datasetid || !collectionid || !accountId) {
+const validateParameters = (objectType, datasetid, collectionid) => {
+    if (!objectType || !datasetid || !collectionid) {
         const missingParams = {
             objectType: objectType || 'missing',
-            refreshToken: refreshToken || 'missing',
             datasetid: datasetid || 'missing',
             collectionid: collectionid || 'missing',
-            accountId: accountId || 'missing'
         };
         throw new Error(`Missing required parameters: ${JSON.stringify(missingParams)}`);
     }
@@ -23,17 +21,15 @@ const validateParameters = (objectType, refreshToken, datasetid, collectionid, a
 
 exports.main = async (context) => {
     const objectType = context.parameters?.objectType;
-    const refreshToken = context.parameters?.refreshToken;
     const datasetid = context.parameters?.datasetid;
     const collectionid = context.parameters?.collectionid;
-    const accountId = context.parameters?.accountId;
 
     // Log the received parameters
-    logRequestParameters(objectType, refreshToken, datasetid, collectionid, accountId);
+    logRequestParameters(objectType, datasetid, collectionid);
 
     try {
         // Validate required parameters
-        validateParameters(objectType, refreshToken, datasetid, collectionid, accountId);
+        validateParameters(objectType, datasetid, collectionid);
 
         // Initialize the HubSpot client with the private app access token
         const hubspotClient = new hubspot.Client({ accessToken: process.env['PRIVATE_APP_ACCESS_TOKEN'] });
