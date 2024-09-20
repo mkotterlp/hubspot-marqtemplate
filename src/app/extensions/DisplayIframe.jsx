@@ -956,6 +956,22 @@ const deleteRecord = async (recordId, objectType) => {
     try {
       console.log("Template clicked:", template.id, template.title);
       const userId = context.user.id;
+
+      console.log("Fetching user refresh token...");
+      const createusertable = await runServerless({
+        name: 'marqouathhandler',
+        parameters: { userID: userId }
+      });
+      const responseBody = JSON.parse(createusertable.response.body);
+      const userData = responseBody?.row?.values || {};
+      currentRefreshToken = userData?.refreshToken || null;
+      console.log("currentRefreshToken:",currentRefreshToken)
+
+      if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
+        console.log("User refresh token not found.");
+        setShowTemplates(false);
+        return;
+      }
   
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken;
