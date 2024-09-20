@@ -930,7 +930,7 @@ const deleteRecord = async (recordId, objectType) => {
       const updateUserRefreshResponse = await runServerless({
         name: 'updateUserRefresh',
         parameters: {
-          marqAccountId: marqaccountid,
+          marqaccountid: marqaccountid,
           newrefreshtoken: currentRefreshToken,
         },
       });
@@ -1078,9 +1078,11 @@ const deleteRecord = async (recordId, objectType) => {
         // 6. Depending on which token was used, update the corresponding refresh token
         if (tokenSource === 'account') {
           // Update account refresh token
+          console.log(newRefreshToken)
           await updateAccountRefreshToken(newRefreshToken);
         } else {
           // Update user refresh token
+          console.log(marqaccountid, newRefreshToken)
           await updateUserRefreshToken(marqaccountid, newRefreshToken);
         }
   
