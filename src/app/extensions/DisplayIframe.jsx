@@ -208,17 +208,39 @@ const Extension = ({ context, actions, runServerless }) => {
 
               try {
                 setIsLoading(true);
+              
+                // Call the serverless function to update the user table
                 const updateResult = await runServerless({
                   name: 'updateUserTable',
                   parameters: {
                     userID: userid,
                     refreshToken: currentRefreshToken,
                     templatesJsonUrl: templateLink,
-                  }
+                  },
                 });
+              
+                // Parse the response
+                if (updateResult.statusCode === 200) {
+                  console.log("User table updated successfully:", updateResult);
+                  setResponseMessage('User data and refresh token updated successfully!');
+                } else if (updateResult.statusCode === 400) {
+                  console.error("Invalid request parameters:", updateResult.body);
+                  setResponseMessage('Invalid request. Please check the input parameters.');
+                } else if (updateResult.statusCode === 500) {
+                  console.error("Internal server error:", updateResult.body);
+                  setResponseMessage('Server error while updating user data. Please try again later.');
+                } else {
+                  console.error("Unexpected response:", updateResult);
+                  setResponseMessage('An unexpected error occurred. Please try again later.');
+                }
+              
               } catch (updateError) {
-                console.error("Error occurred while trying to update HubDB:", updateError);
+                console.error("Error occurred while trying to update user table:", updateError);
+                setResponseMessage('A network or server error occurred. Please try again later.');
+              } finally {
+                setIsLoading(false);
               }
+              
 
             } catch (fetchError) {
               console.error("Error occurred while fetching new template link:", fetchError);
@@ -696,7 +718,7 @@ const deleteRecord = async (recordId, objectType) => {
         if (body && body.key) {
           const apiKey = body.key;
           setAPIkey(apiKey);
-          // console.log("API Key loaded:", apiKey);
+           console.log("API Key loaded:", apiKey);
           const authorizationUrl = await handleConnectToMarq(apiKey, userid, userEmail, "user");  // Pass the API key, userid, and userEmail
           setauth(authorizationUrl);
           const accountauthorizationUrl = await handleConnectToMarq(apiKey, userid, userEmail, "data");
@@ -1996,6 +2018,7 @@ const initialize = async () => {
 
       // Fetch API key and store it
       const apiKey = await setapi(userid, userEmail);
+      
       setAPIkey(apiKey);
 
       // Step 1: Fetch Marq user data to retrieve the refresh token
@@ -2338,6 +2361,7 @@ const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
     if (!authorizationUrl) {
       throw new Error('Failed to generate authorization URL.');
     }
+    console.log(authorizationUrl)
 
     return authorizationUrl; // Return the URL to be used in the href
   } catch (error) {
