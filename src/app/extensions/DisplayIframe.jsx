@@ -2396,6 +2396,8 @@ async function saveTokenToTable(refreshToken) {
   }
 }
 
+
+//UPDATED createOrUpdateDataset FUNCTION
 const createOrUpdateDataset = async (refreshToken) => {
   try {
     const schema = [
@@ -2407,20 +2409,15 @@ const createOrUpdateDataset = async (refreshToken) => {
     const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
     const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
-    // Define the object types to loop through
     const objectTypes = ['contact', 'company', 'deal', 'ticket', 'data', 'marq_account', 'mat', 'projects', 'lucidpress_subscription', 'feature_request', 'events'];
-
-    // Initialize the refresh token with the passed one
     let currentAccountRefreshToken = refreshToken;
 
-    // Log the starting process
     console.log("Starting createOrUpdateDataset with initialRefreshToken:", currentAccountRefreshToken);
 
     for (const objectType of objectTypes) {
       console.log(`Processing object type: ${objectType}`);
 
       try {
-        // Log parameters being sent to the serverless function
         console.log(`Sending createDataset request for ${objectType} with parameters:`, {
           refresh_token: currentAccountRefreshToken,             
           clientid: clientid,                      
@@ -2433,7 +2430,6 @@ const createOrUpdateDataset = async (refreshToken) => {
           }))
         });
 
-        // Call the createDataset serverless function
         const createDatasetResponse = await runServerless({
           name: 'createDataset',
           parameters: {
@@ -2444,12 +2440,11 @@ const createOrUpdateDataset = async (refreshToken) => {
             objectType: objectType,         
             schema: schema.map(item => ({
               ...item,
-              fieldType: item.fieldType.toString() // Ensure fieldType is a string
+              fieldType: item.fieldType.toString()
             })),
           }
         });
 
-        // Check and log the createDataset response
         console.log(`Received createDataset response for ${objectType}:`, createDatasetResponse);
 
         if (createDatasetResponse?.response?.statusCode === 200) {
@@ -2460,19 +2455,13 @@ const createOrUpdateDataset = async (refreshToken) => {
           const datasetid = datasetResult.dataSourceId;   
           const collectionid = datasetResult.collectionId;
 
-          console.log(`New values for ${objectType}:`, { new_refresh_token, datasetid, collectionid });
-
-          // Update currentRefreshToken for the next objectType
-          currentAccountRefreshToken = new_refresh_token || currentAccountRefreshToken; // Update if new_refresh_token is present
-
-          // Log the updated refresh token
+          currentAccountRefreshToken = new_refresh_token || currentAccountRefreshToken;
           console.log(`Updated refresh token for next request: ${currentAccountRefreshToken}`);
 
-          // Call the updateDataset function to update the dataset
           console.log(`Sending updateDataset request for ${objectType} with parameters:`, {
             accountId: marqAccountId,
             objectType: objectType,
-            refreshToken: currentAccountRefreshToken,   // Use the updated refresh token
+            refreshToken: currentAccountRefreshToken,
             datasetid: datasetid,
             collectionid: collectionid
           });
@@ -2486,101 +2475,52 @@ const createOrUpdateDataset = async (refreshToken) => {
             }
           });
 
-          // Check and log the updateDataset response
           console.log(`Received updateDataset response for ${objectType}:`, updateDatasetResponse);
 
           if (updateDatasetResponse?.response?.statusCode === 200) {
             console.log(`Data sent successfully to the dataset for ${objectType}`);
 
-            try {
-              const updateAccountRefreshResponse = await runServerless({
-                name: 'updateAccountRefresh',
-                parameters: {        
-                  refreshToken: currentAccountRefreshToken,       
-                }
-              });
-            } catch (error) {
-              console.error('Error updating account refresh:', error);
-              setShowAccountTokenButton(true);
+           // Update refresh token in marq_account_data table
+          try {
+            const updateAccountRefreshResponse = await runServerless({
+              name: 'updateAccountRefresh',
+              parameters: {        
+                refreshToken: currentAccountRefreshToken,       
+              }
+            });
+
+            // Log the entire response
+            console.log('Received updateAccountRefresh response:', updateAccountRefreshResponse);
+
+            // Check if the response contains a success status
+            if (updateAccountRefreshResponse?.response?.statusCode === 200) {
+              console.log('Account refresh token updated successfully in marq_account_data table');
+            } else {
+              console.error('Failed to update refresh token:', updateAccountRefreshResponse?.response?.body);
             }
-            
+
+          } catch (error) {
+            console.error('Error updating account refresh:', error);
+            setShowAccountTokenButton(true); 
+          }
+
 
           } else {
             console.error(`Failed to send data to the dataset for ${objectType}:`, updateDatasetResponse?.response?.body);
-
-            try {
-              const updateAccountRefreshResponse = await runServerless({
-                name: 'updateAccountRefresh',
-                parameters: {        
-                  refreshToken: "",       
-                }
-              });
-              setShowAccountTokenButton(true);
-            } catch (error) {
-              console.error('Error updating account refresh:', error);
-              setShowAccountTokenButton(true);
-            }
-            
           }
         } else {
           console.error(`Failed to create or update dataset for ${objectType}:`, createDatasetResponse?.response?.body);
-          console.log({refresh_token: currentRefreshToken,             
-            clientid: clientid,                      
-            clientsecret: clientsecret,              
-            marqAccountId: marqAccountId,   
-            objectType: objectType})
         }
 
-        try {
-          const updateAccountRefreshResponse = await runServerless({
-            name: 'updateAccountRefresh',
-            parameters: {        
-              refreshToken: "",       
-            }
-          });
-          setShowAccountTokenButton(true);
-        } catch (error) {
-          console.error('Error updating account refresh:', error);
-          setShowAccountTokenButton(true);
-        }
       } catch (apiError) {
         console.error(`Error processing object type: ${objectType}`, apiError);
-
-        try {
-          const updateAccountRefreshResponse = await runServerless({
-            name: 'updateAccountRefresh',
-            parameters: {        
-              refreshToken: "",       
-            }
-          });
-          setShowAccountTokenButton(true);
-        } catch (error) {
-          console.error('Error updating account refresh:', error);
-          setShowAccountTokenButton(true);
-        }
       }
     }
+
   } catch (error) {
     console.error('Error in createOrUpdateDataset:', error.message);
-
-    try {
-      const updateAccountRefreshResponse = await runServerless({
-        name: 'updateAccountRefresh',
-        parameters: {        
-          refreshToken: "",       
-        }
-      });
-      setShowAccountTokenButton(true);
-    } catch (error) {
-      console.error('Error updating account refresh:', error);
-      setShowAccountTokenButton(true);
-    }
   }
 };
-
-
-
-
 
 
 
