@@ -1613,6 +1613,7 @@ const pollForRefreshToken = async () => {
         setShowTemplates(true)
         fetchPropertiesAndLoadConfig(objectType); // Ensure objectType is defined
         setIsConnectedToMarq(true); // Assuming this should trigger some UI change
+        pollForAccountRefreshToken()
       } else {
         console.log("Refresh token not found yet, continuing to poll...");
         setShowTemplates(false);
