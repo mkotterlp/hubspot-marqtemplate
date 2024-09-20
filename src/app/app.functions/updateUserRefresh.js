@@ -41,9 +41,9 @@ exports.main = async (context) => {
             throw new Error('Failed to fetch rows from the table');
         }
 
-        let existingUserRow = rowsResponse.results.find(row => row.values.userID === userID);
+        let existingUserRow = rowsResponse.results.find(row => row.values.marqUserID === marqUserID);
         if (!existingUserRow) {
-            throw new Error(`User ${marqUserID} not found in the table.`);
+            throw new Error(`marqUserID ${marqUserID} not found in the table.`);
         }
 
         const rowValues = {
@@ -52,7 +52,7 @@ exports.main = async (context) => {
 
 
         await hubspotClient.cms.hubdb.rowsApi.updateDraftTableRow(tableId, existingUserRow.id, { values: rowValues });
-        console.log(`User ${marqUserID} updated in the table with new refresh token and templates URL.`);
+        console.log(`marqUserID ${marqUserID} updated in the table with new refresh token and templates URL.`);
 
         await hubspotClient.cms.hubdb.tablesApi.publishDraftTable(tableId);
         console.log('Table user_data published after updating the row.');
@@ -60,7 +60,7 @@ exports.main = async (context) => {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: `User ${marqUserID} updated successfully in HubDB.`,
+                message: `marqUserID ${marqUserID} updated successfully in HubDB.`,
             }),
         };
     } catch (error) {
