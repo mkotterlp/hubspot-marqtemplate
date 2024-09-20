@@ -980,11 +980,11 @@ const deleteRecord = async (recordId, objectType) => {
       let dataSetId;
       console.log("refreshTokenToUse:",refreshTokenToUse)
       // 1. Fetch the `objectType`
-      const objectType = await fetchObjectType();
-      if (!objectType) {
-        console.error("Failed to fetch objectType.");
-        return;
-      }
+      // const objectType = await fetchObjectType();
+      // if (!objectType) {
+      //   console.error("Failed to fetch objectType.");
+      //   return;
+      // }
   
       // 2. Fetch the `datasetid` from the `dataTableHandler` based on the objectType
       console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
@@ -2099,7 +2099,7 @@ const fetchMarqAccountData = async () => {
         console.log("No account refresh token found. Showing account token button.");
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
-        startPollingForAccountRefreshToken();
+        pollForAccountRefreshToken();
       }
     } else {
       console.error("Failed to fetch Marq account data.");
