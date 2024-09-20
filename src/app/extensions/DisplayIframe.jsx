@@ -1072,40 +1072,40 @@ const deleteRecord = async (recordId, objectType) => {
         console.log("Updated refresh_token after project creation:", currentRefreshToken);
 
         // Check if it's an account or user refresh token
-        if (currentRefreshToken.includes('account')) {
-          // Update account refresh token
-          try {
-            const updateAccountRefreshResponse = await runServerless({
-              name: 'updateAccountRefresh',
-              parameters: {
-                refreshToken: currentRefreshToken, // Use the new refresh token for account
-              }
-            });
+        // if (currentRefreshToken.includes('account')) {
+        //   // Update account refresh token
+        //   try {
+        //     const updateAccountRefreshResponse = await runServerless({
+        //       name: 'updateAccountRefresh',
+        //       parameters: {
+        //         refreshToken: currentRefreshToken, // Use the new refresh token for account
+        //       }
+        //     });
 
-            if (updateAccountRefreshResponse?.response?.statusCode === 200) {
-              console.log('Account refresh token updated successfully in marq_account_data table');
-            } else {
-              console.error('Failed to update account refresh token:', updateAccountRefreshResponse?.response?.body);
-            }
-          } catch (error) {
-            console.error('Error updating account refresh token:', error);
-          }
-        } else if (currentRefreshToken.includes('oauth2-')) {
-          // Update user refresh token
-          try {
-            const updateUserRefreshResponse = await runServerless({
-              name: 'updateUserRefresh',
-              parameters: {
-                marqAccountId: marqaccountid,
-                newrefreshtoken: currentRefreshToken, // Use the new refresh token for user
-              }
-            });
+        //     if (updateAccountRefreshResponse?.response?.statusCode === 200) {
+        //       console.log('Account refresh token updated successfully in marq_account_data table');
+        //     } else {
+        //       console.error('Failed to update account refresh token:', updateAccountRefreshResponse?.response?.body);
+        //     }
+        //   } catch (error) {
+        //     console.error('Error updating account refresh token:', error);
+        //   }
+        // } else if (currentRefreshToken.includes('oauth2-')) {
+        //   // Update user refresh token
+        //   try {
+        //     const updateUserRefreshResponse = await runServerless({
+        //       name: 'updateUserRefresh',
+        //       parameters: {
+        //         marqAccountId: marqaccountid,
+        //         newrefreshtoken: currentRefreshToken, // Use the new refresh token for user
+        //       }
+        //     });
 
-            console.log("User refresh token updated:", updateUserRefreshResponse);
-          } catch (error) {
-            console.error("Error occurred while updating user refresh token:", error);
-          }
-        }
+        //     console.log("User refresh token updated:", updateUserRefreshResponse);
+        //   } catch (error) {
+        //     console.error("Error occurred while updating user refresh token:", error);
+        //   }
+        // }
 
         // Step 4: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
