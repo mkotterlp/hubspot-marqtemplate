@@ -1381,6 +1381,7 @@ const pollForRefreshToken = async () => {
       if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
         console.log("Refresh token found:", currentRefreshToken);
         setIsPolling(false); // Stop polling
+        setShowTemplates(true)
         fetchPropertiesAndLoadConfig(objectType); // Ensure objectType is defined
         setIsConnectedToMarq(true); // Assuming this should trigger some UI change
       } else {
@@ -1422,55 +1423,103 @@ useEffect(() => {
 };
 
 const pollForAccountRefreshToken = async () => {
-    console.log("Attempting poll for account refresh token");
+  console.log("Starting poll for account refresh token");
 
-    try {
-        console.log("Polling for account refresh token...");
+  try {
+      // Fetch account data using the serverless function
+      const createaccounttable = await runServerless({
+          name: 'dataTableHandler',
+          parameters: { objectType: objectType }
+      });
 
-        // Call the serverless function to get account data
-        const createaccounttable = await runServerless({
-            name: 'dataTableHandler',
-            parameters: { objectType: objectType } // Ensure objectType is valid
-        });
+      if (!createaccounttable?.response?.body) {
+          console.error("No response body from serverless function. Aborting poll.");
+          return;
+      }
 
-        console.log("Response from serverless function:", createaccounttable); 
+      console.log("Successfully received account data from serverless function.");
 
-        if (createaccounttable?.response?.body) {
-            console.log("Received response from serverless function");
+      // Parse account data
+      const accountResponseBody = JSON.parse(createaccounttable.response.body);
+      const accountData = accountResponseBody?.dataRow?.values || {};
 
-            // Parse the response body to access account data
-            const accountresponseBody = JSON.parse(createaccounttable.response.body);
-            const accountData = accountresponseBody?.dataRow?.values || {};
-            
-            console.log("accountData:", accountData);
+      // Extract the refresh token
+      currentAccountRefreshToken = accountData?.refreshToken || null;
 
-            // Retrieve the refresh token from the account data
-            currentAccountRefreshToken = accountData?.refreshToken || null;
-            console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+      if (!currentAccountRefreshToken) {
+          console.warn("No valid account refresh token found, will continue polling.");
+          setShowAccountTokenButton(true); // Optionally allow the user to retry
+          return;
+      }
 
-            // Check if the refresh token was found
-            if (currentAccountRefreshToken && currentAccountRefreshToken !== 'null' && currentAccountRefreshToken !== '') {
-                console.log("Account refresh token found:", currentAccountRefreshToken);
+      console.log("Valid account refresh token found:", currentAccountRefreshToken);
 
-                // Stop polling once we have the token
-                setAccountIsPolling(false);
-                setloadingaccountrefreshtoken(false);
-                setShowAccountTokenButton(false);
+      // Stop polling and hide the account token button
+      setAccountIsPolling(false);
+      setloadingaccountrefreshtoken(false);
+      setShowAccountTokenButton(false);
 
-                // Call the createOrUpdateDataset function with the found account refresh token
-                await createOrUpdateDataset(currentAccountRefreshToken);
-            } else {
-                console.log("Account refresh token not found, continuing to poll...");
-                setShowAccountTokenButton(true); // Display button to try again
-            }
-        } else {
-            console.log("No response body from serverless function.");
-        }
-    } catch (error) {
-        console.error("Error while polling for account refresh token:", error);
-        setloadingaccountrefreshtoken(false);
-    }
+      // Call the function to create or update the dataset with the refresh token
+      await createOrUpdateDataset(currentAccountRefreshToken);
+  } catch (error) {
+      console.error("Error while polling for account refresh token:", error.message || error);
+      setloadingaccountrefreshtoken(false);
+  }
 };
+
+
+
+// ORIGINAL
+// const pollForAccountRefreshToken = async () => {
+//     console.log("Attempting poll for account refresh token");
+
+//     try {
+//         console.log("Polling for account refresh token...");
+
+//         // Call the serverless function to get account data
+//         const createaccounttable = await runServerless({
+//             name: 'dataTableHandler',
+//             parameters: { objectType: objectType } // Ensure objectType is valid
+//         });
+
+//         console.log("Response from serverless function:", createaccounttable); 
+
+//         if (createaccounttable?.response?.body) {
+//             console.log("Received response from serverless function");
+
+//             // Parse the response body to access account data
+//             const accountresponseBody = JSON.parse(createaccounttable.response.body);
+//             const accountData = accountresponseBody?.dataRow?.values || {};
+            
+//             console.log("accountData:", accountData);
+
+//             // Retrieve the refresh token from the account data
+//             currentAccountRefreshToken = accountData?.refreshToken || null;
+//             console.log("currentAccountRefreshToken:", currentAccountRefreshToken);
+
+//             // Check if the refresh token was found
+//             if (currentAccountRefreshToken && currentAccountRefreshToken !== 'null' && currentAccountRefreshToken !== '') {
+//                 console.log("Account refresh token found:", currentAccountRefreshToken);
+
+//                 // Stop polling once we have the token
+//                 setAccountIsPolling(false);
+//                 setloadingaccountrefreshtoken(false);
+//                 setShowAccountTokenButton(false);
+
+//                 // Call the createOrUpdateDataset function with the found account refresh token
+//                 await createOrUpdateDataset(currentAccountRefreshToken);
+//             } else {
+//                 console.log("Account refresh token not found, continuing to poll...");
+//                 setShowAccountTokenButton(true); // Display button to try again
+//             }
+//         } else {
+//             console.log("No response body from serverless function.");
+//         }
+//     } catch (error) {
+//         console.error("Error while polling for account refresh token:", error);
+//         setloadingaccountrefreshtoken(false);
+//     }
+// };
 
 useEffect(() => {
     let pollAccountInterval;
@@ -1774,7 +1823,7 @@ const initialize = async () => {
           // No refresh token, handle polling or error case
           console.log("No refresh token available. Not showing templates.");
           setShowTemplates(false); // Explicitly hide templates
-          startPollingForRefreshToken();
+          //startPollingForRefreshToken();
         }
       } else {
         console.error("Failed to fetch user table for refresh token.");
@@ -1810,7 +1859,7 @@ const fetchMarqAccountData = async () => {
         console.log("No account refresh token found. Showing account token button.");
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
-        startPollingForAccountRefreshToken();
+        // startPollingForAccountRefreshToken();
       }
     } else {
       console.error("Failed to fetch Marq account data.");
