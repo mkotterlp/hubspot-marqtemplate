@@ -940,8 +940,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.error("Error occurred while updating user refresh token:", error);
     }
   };
-  
-  const handleClick = async (template, isAccountToken) => {
+  const handleClick = async (template) => {
     let iframeSrc = 'https://info.marq.com/loading';
   
     // Set iframe to loading
@@ -983,7 +982,8 @@ const deleteRecord = async (recordId, objectType) => {
   
         const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
   
-        if (isAccountToken && accountRefreshToken) {
+        // Use account refresh token if available, otherwise fallback to user token
+        if (accountRefreshToken) {
           console.log("Using account refresh token:", accountRefreshToken);
           refreshTokenToUse = accountRefreshToken;  // Use account refresh token
           tokenSource = 'account';
@@ -1088,6 +1088,7 @@ const deleteRecord = async (recordId, objectType) => {
       console.error('Error in handleClick:', error);
     }
   };
+  
   
 
 
@@ -2991,8 +2992,7 @@ return (
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
-                  // onClick={() => handleClick(template)}
-                  onClick={() => handleClick(template, false)}
+                  onClick={() => handleClick(template)}
 
                   preventDefault
                   width={100}
@@ -3001,8 +3001,7 @@ return (
               <TableCell>
                 <Link
                   href="#"
-                  // onClick={() => handleClick(template)}
-                  onClick={() => handleClick(template, false)}
+                  onClick={() => handleClick(template)}
 
                   preventDefault
                   variant="primary"
@@ -3012,7 +3011,7 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-                <Button onClick={() => handleClick(template, false)}>Create with Marq</Button>
+                <Button onClick={() => handleClick(template)}>Create with Marq</Button>
               </TableCell>
             </TableRow>
           );
