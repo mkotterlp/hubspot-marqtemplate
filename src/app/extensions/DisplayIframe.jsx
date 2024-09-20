@@ -50,7 +50,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [filteredTemplates, setFilteredTemplates] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -2718,17 +2718,18 @@ return (
   <>
     {/* Account Token Button */}
     {showAccountTokenButton && (
-
-<LoadingButton
+  <LoadingButton
     href={accountoauthUrl}
-    loading={loading}
+    loading={isLoading} // Use isLoading to control the spinner
     variant="primary"
-    onClick={startPollingForAccountRefreshToken}
->
-    {loading ? 'Syncing...' : 'Sync Marq account data'}
-</LoadingButton>
-
-      )}
+    onClick={() => {
+      setIsLoading(true); // Set loading to true when polling starts
+      startPollingForAccountRefreshToken();
+    }}
+  >
+    {isLoading ? 'Syncing...' : 'Sync Marq account data'} 
+  </LoadingButton>
+)}
 
 
     
