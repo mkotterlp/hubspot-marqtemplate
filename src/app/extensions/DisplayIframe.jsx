@@ -2495,12 +2495,17 @@ const createOrUpdateDataset = async (refreshToken) => {
             // Check if the response contains a success status
             if (updateAccountRefreshResponse?.response?.statusCode === 200) {
               console.log('Account refresh token updated successfully in marq_account_data table');
+              setIsLoading(false);  // Stop loading
+              setShowTemplates(true);  // Show templates
             } else {
               console.error('Failed to update refresh token:', updateAccountRefreshResponse?.response?.body);
+              setIsLoading(false);  // Stop loading
+
             }
 
           } catch (error) {
             console.error('Error updating account refresh:', error);
+            setIsLoading(false);  // Stop loading
             setShowAccountTokenButton(true); 
           }
 
