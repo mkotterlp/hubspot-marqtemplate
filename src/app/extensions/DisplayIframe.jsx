@@ -2422,7 +2422,7 @@ const createOrUpdateDataset = async (refreshToken) => {
       try {
         // Log parameters being sent to the serverless function
         console.log(`Sending createDataset request for ${objectType} with parameters:`, {
-          refresh_token: currentRefreshToken,             
+          refresh_token: currentAccountRefreshToken,             
           clientid: clientid,                      
           clientsecret: clientsecret,              
           marqAccountId: marqAccountId,   
@@ -2437,7 +2437,7 @@ const createOrUpdateDataset = async (refreshToken) => {
         const createDatasetResponse = await runServerless({
           name: 'createDataset',
           parameters: {
-            refresh_token: currentRefreshToken,             
+            refresh_token: currentAccountRefreshToken,             
             clientid: clientid,                      
             clientsecret: clientsecret,              
             marqAccountId: marqAccountId,   
