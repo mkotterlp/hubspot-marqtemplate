@@ -23,7 +23,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
   const [loadingaccounttoken, setloadingaccountrefreshtoken] = useState(false);
 
-  const [showTemplates, setShowTemplates] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(true);
   const [apiKey, setAPIkey] = useState('');
   const [accessToken, setAccessToken] = useState(null);
   const [authurl, setauth] = useState(''); //setauthConnectToMarq
@@ -113,7 +113,6 @@ const Extension = ({ context, actions, runServerless }) => {
   
       // Fetch user data from the 'marqouathhandler' serverless function
       try {
-        setIsLoading(true);
         const createusertable = await runServerless({
           name: 'marqouathhandler',
           parameters: { userID: userid }
@@ -148,7 +147,6 @@ const Extension = ({ context, actions, runServerless }) => {
           if (((timeDifference > twentyFourHoursInMs) && currentRefreshToken) || (!templateLink && currentRefreshToken)) {
             console.log("More than 24 hours since the last sync or template link is null, fetching new templates...");
 
-            setIsLoading(true);
             try {
             
               const fetchResult = await runServerless({
@@ -159,7 +157,6 @@ const Extension = ({ context, actions, runServerless }) => {
                   refreshToken: currentRefreshToken 
                 }
               });
-              setIsLoading(true);
               
               // Log the full response object
               console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
@@ -206,7 +203,6 @@ const Extension = ({ context, actions, runServerless }) => {
               
 
               try {
-                setIsLoading(true);
               
                 // Call the serverless function to update the user table
                 const updateResult = await runServerless({
@@ -263,7 +259,6 @@ const Extension = ({ context, actions, runServerless }) => {
   
       // Fetch config data from 'hubdbHelper'
       try {
-        setIsLoading(true);
         const configDataResponse = await runServerless({
           name: 'hubdbHelper',
           parameters: { objectType }
@@ -304,7 +299,6 @@ const Extension = ({ context, actions, runServerless }) => {
           if (templateLink) {
             console.log("Applying templates");
             try {
-              setIsLoading(true);
               const templatesResponse = await runServerless({
                 name: 'fetchJsonData',
                 parameters: { templateLink }
@@ -332,11 +326,9 @@ const Extension = ({ context, actions, runServerless }) => {
                 }
               } else {
                 console.error("Error fetching templates:", templatesResponse);
-                setIsLoading(false);
               }
             } catch (templatesError) {
               console.error("Error occurred while fetching templates:", templatesError);
-              setIsLoading(false);
             }
           } else {
             console.error("Error: Missing template link to fetch templates.");
@@ -344,11 +336,9 @@ const Extension = ({ context, actions, runServerless }) => {
             if (currentRefreshToken) {
               console.log('Refresh token', currentRefreshToken)
               setShowTemplates(true);
-              setIsLoading(false);
             } else {
               console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
-              setIsLoading(false);
               actions.addAlert({
                 title: "Error with template sync",
                 variant: "danger",
@@ -358,17 +348,15 @@ const Extension = ({ context, actions, runServerless }) => {
           }
         } else {
           console.error("Failed to load config data:", configDataResponse);
-          setIsLoading(false);
         }
       } catch (configError) {
         console.error("Error occurred while fetching config data:", configError);
-        setIsLoading(false);
       }
   
     } catch (error) {
       console.error("Error in fetchConfigCrmPropertiesAndTemplates:", error);
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
   
 
@@ -1382,8 +1370,6 @@ const deleteRecord = async (recordId, objectType) => {
 
 const startPollingForRefreshToken = () => {
   setIsRefreshTokenClicked(true)
-
-  setIsLoading(true);
   setIsPolling(true); // Start polling when the button is clicked
 };
 
@@ -1501,13 +1487,13 @@ const pollForAccountRefreshToken = async () => {
         await createOrUpdateDataset(currentAccountRefreshToken);
     
         // If successful, stop loading and show templates
-        setIsLoading(false);  // Stop loading
+         // Stop loading
         setShowTemplates(true);  // Show templates
       } catch (error) {
         console.error('Error creating or updating dataset:', error);
         
         // Stop loading but do not show templates in case of an error
-        setIsLoading(false);  // Stop loading
+ // Stop loading
         setShowTemplates(false);  // Hide templates (or handle error state)
       }
   } catch (error) {
@@ -2795,7 +2781,6 @@ return (
     loading={isLoading} // Use isLoading to control the spinner
     variant="primary"
     onClick={() => {
-      setIsLoading(true); // Set loading to true when polling starts
       startPollingForAccountRefreshToken();
     }}
   >
