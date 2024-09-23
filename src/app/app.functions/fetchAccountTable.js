@@ -39,10 +39,10 @@ exports.main = async (context) => {
         }
 
         return {
-            body: JSON.stringify({
+            body: {
                 objectTypeRow: matchedRow || null,
                 dataRow: dataRow || null
-            }),
+            },
             statusCode: 200,
         };
 
@@ -54,7 +54,7 @@ exports.main = async (context) => {
             stack: error.stack,
         });
         return {
-            body: JSON.stringify({ error: 'An error occurred while processing your request.', details: error.message }),
+            body: { error: 'An error occurred while processing your request.', details: error.message },
             statusCode: 500,
         };
     }
