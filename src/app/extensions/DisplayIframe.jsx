@@ -2924,7 +2924,7 @@ return (
       handleClick(template);
     }}
   >
-    {loadingTemplateId === template.id ? 'Saving...' : 'Create with Marq'}
+    {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
   </LoadingButton>
 
   {/* Cancel Button */}
