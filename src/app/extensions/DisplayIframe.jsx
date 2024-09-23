@@ -13,7 +13,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [isAccountPolling, setAccountIsPolling] = useState(false);
   const [isAccountTokenClicked, setIsAccountTokenClicked] = useState(false);
   const [isRefreshTokenClicked, setIsRefreshTokenClicked] = useState(false);
-
+  const [loadingTemplateId, setLoadingTemplateId] = useState(null);
 
 
   const [isConnectToMarq, setIsConnectToMarq] = useState(false);  // New state to track connection flow
@@ -59,11 +59,11 @@ const Extension = ({ context, actions, runServerless }) => {
   const RECORDS_PER_PAGE = 10;
   const [hoveredRow, setHoveredRow] = useState(null);
   const [crmProperties, setCrmProperties] = useState({});
-  const [shouldPollForProjects, setShouldPollForProjects] = useState(false); // New state for polling
+  const [shouldPollForProjects, setShouldPollForProjects] = useState({ isPolling: false, templateId: null });
   const [prevProjectCount, setPrevProjectCount] = useState(0);
   const previousProjectCountRef = useRef(projects.length); 
   const pollingTimerRef = useRef(null);
-  const [hasSyncedOnce, setHasSyncedOnce] = useState(false);
+  const hasSyncedOnceRef = useRef(false); 
 
   let propertiesBody = {}; 
   let configData = {};
@@ -625,29 +625,47 @@ const deleteRecord = async (recordId, objectType) => {
 
 
 
+
   const refreshProjects = async () => {
     console.log("Calling refresh projects");
-  
-    if (objectType) {
-      // Get previous project count from ref
-      const previousProjectCount = previousProjectCountRef.current;
-      console.log(`Previous project count: ${previousProjectCount}`);
-  
-      // Fetch the new projects
-      const fetchedProjects = await fetchAssociatedProjectsAndDetails(objectType);
-      console.log(`Fetched project count: ${fetchedProjects.length}`);
-  
-      // Check if new projects have been added
-      if (fetchedProjects.length > previousProjectCount) {
-        console.log("New projects detected, stopping polling");
-        setShouldPollForProjects(false); // Stop polling
-      } else {
-        console.log("No new projects detected, continuing polling");
-      }
-    } else {
-      console.log("Object type not detected");
+
+    if (!shouldPollForProjects.isPolling) {
+        console.log("Polling stopped: shouldPollForProjects.isPolling is false in refreshProjects");
+        return;
     }
-  };
+
+    let templateIdToMatch;
+
+    templateIdToMatch = shouldPollForProjects.templateId;
+
+    if (objectType && templateIdToMatch) {
+        const projectsList = await fetchAssociatedProjectsAndDetails(objectType);
+
+        // Check for matching project
+        const matchingProject = projectsList.find(project => project.originaltemplateid === templateIdToMatch);
+
+        if (matchingProject) {
+            console.log(`Found matching project for template ID: ${templateIdToMatch}`);
+            setShouldPollForProjects({ isPolling: false, templateId: null });
+            setLoadingTemplateId(null)
+            templateIdToMatch = null;
+
+                      // Stop polling
+              if (pollingTimerRef.current) {
+                clearTimeout(pollingTimerRef.current);
+                pollingTimerRef.current = null;
+            }
+
+            return;
+        }
+
+        // Update the state to ensure `projects` reflects the latest data
+        setProjects(projectsList);
+    } else {
+        console.log("Object type not detected");
+    }
+};
+
 
   // const setapi = async (userid, userEmail, isConnectToMarq) => {
   //   try {
@@ -999,6 +1017,8 @@ const deleteRecord = async (recordId, objectType) => {
         console.log("Fetched datasetid:", dataSetId);
   
         const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
+        const marqaccountid = dataTableBody?.dataRow?.values?.accountId || null;
+
   
         // Use account refresh token if available, otherwise fallback to user token
         if (accountRefreshToken) {
@@ -1040,7 +1060,6 @@ const deleteRecord = async (recordId, objectType) => {
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid;
-      const marqaccountid = "163559625";
       const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
@@ -1633,53 +1652,35 @@ useEffect(() => {
   
 
   useEffect(() => {
-    if (shouldPollForProjects) {
-        const pollingForProjects = async () => {
-            console.log("Polling for projects");
+    const pollingForProjects = async () => {
+        if (shouldPollForProjects.isPolling && shouldPollForProjects.templateId) {
+            await refreshProjects();
+            pollingTimerRef.current = setTimeout(() => {
+                pollingForProjects();
+            }, 20000);
+        } else {
+            // Clear the timeout if polling should stop
+            console.log("Polling stopped");
+            clearTimeout(pollingTimerRef.current);
+            pollingTimerRef.current = null;
+        }
+    };
 
-            // Only consider previous project count if sync has happened
-            if (hasSyncedOnce) {
-                const previousProjectCount = previousProjectCountRef.current;
-                console.log("Previous project count:", previousProjectCount);
-            }
+    // Start polling only if shouldPollForProjects.isPolling is true
+    if (shouldPollForProjects.isPolling && shouldPollForProjects.templateId) {
+        pollingForProjects();
+    }
 
-            await refreshProjects(); // Fetch new projects
-
-            const fetchedProjectCount = projects.length;
-            console.log("Fetched project count:", fetchedProjectCount);
-
-            // Handle first sync
-            if (!hasSyncedOnce) {
-                console.log("First sync completed, setting previous project count");
-                previousProjectCountRef.current = fetchedProjectCount;
-                setHasSyncedOnce(true);
-            } else if (fetchedProjectCount > previousProjectCountRef.current) {
-                console.log("New projects detected, stopping polling");
-                setShouldPollForProjects(false); // Stop polling if new projects are found
-            } else {
-                console.log("No new projects detected, continuing polling");
-                previousProjectCountRef.current = fetchedProjectCount;
-                pollingTimerRef.current = setTimeout(pollingForProjects, 20000); // Continue polling every 20 seconds
-            }
-        };
-
-        // Clear any existing timer before starting a new one
+    // Cleanup on component unmount or when shouldPollForProjects changes
+    return () => {
         if (pollingTimerRef.current) {
             clearTimeout(pollingTimerRef.current);
+            pollingTimerRef.current = null;
         }
+    };
+}, [shouldPollForProjects]);
 
-        // Start polling
-        pollingForProjects();
 
-        // Cleanup to stop polling when unmounted or when polling stops
-        return () => {
-            if (pollingTimerRef.current) {
-                clearTimeout(pollingTimerRef.current);
-            }
-            setShouldPollForProjects(false);
-        };
-    }
-}, [shouldPollForProjects, refreshProjects, hasSyncedOnce, projects.length]);
 
 
   useEffect(() => {
@@ -2909,7 +2910,31 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-                <Button onClick={() => handleClick(template)}>Create with Marq</Button>
+              <Flex direction="row" gap="small" align="center">
+  <LoadingButton
+    loading={loadingTemplateId === template.id}
+    onClick={() => {
+      setLoadingTemplateId(template.id);
+      handleClick(template);
+    }}
+  >
+    {loadingTemplateId === template.id ? 'Saving...' : 'Create with Marq'}
+  </LoadingButton>
+
+  {/* Cancel Button */}
+  {loadingTemplateId === template.id && (
+    <Button
+    variant="destructive"
+    onClick={() => {
+      setLoadingTemplateId(null);
+      setShouldPollForProjects({ isPolling: false, templateId: null });
+    }}
+  >
+    Cancel
+  </Button>
+  
+  )}
+</Flex>
               </TableCell>
             </TableRow>
           );
