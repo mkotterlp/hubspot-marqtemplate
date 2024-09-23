@@ -108,6 +108,7 @@ const Extension = ({ context, actions, runServerless }) => {
       // Validate that userid is available before proceeding
       if (!userid) {
         console.error("Error: Missing user ID.");
+        setIsLoading(false);
         return;
       }
   
@@ -134,6 +135,7 @@ const Extension = ({ context, actions, runServerless }) => {
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
             setShowTemplates(false);
+            setIsLoading(false);
             return;
           }
   
@@ -254,6 +256,7 @@ const Extension = ({ context, actions, runServerless }) => {
       // Validate that objectType is available
       if (!objectType) {
         console.error("Error: Missing objectType.");
+        setIsLoading(false);
         return;
       }
   
@@ -320,9 +323,11 @@ const Extension = ({ context, actions, runServerless }) => {
                   });
                   setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
                   setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setIsLoading(false);
                 } else {
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
+                  setIsLoading(false);
                 }
               } else {
                 console.error("Error fetching templates:", templatesResponse);
@@ -336,9 +341,11 @@ const Extension = ({ context, actions, runServerless }) => {
             if (currentRefreshToken) {
               console.log('Refresh token', currentRefreshToken)
               setShowTemplates(true);
+              setIsLoading(false);
             } else {
               console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
+              setIsLoading(false);
               actions.addAlert({
                 title: "Error with template sync",
                 variant: "danger",
@@ -356,7 +363,6 @@ const Extension = ({ context, actions, runServerless }) => {
     } catch (error) {
       console.error("Error in fetchConfigCrmPropertiesAndTemplates:", error);
     }
-    setIsLoading(false);
   };
   
 
@@ -1878,7 +1884,6 @@ const fetchMarqAccountData = async () => {
         console.log("No account refresh token found. Showing account token button.");
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
-        pollForAccountRefreshToken();
       }
     } else {
       console.error("Failed to fetch Marq account data.");
