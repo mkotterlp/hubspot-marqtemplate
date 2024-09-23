@@ -29,6 +29,9 @@ exports.main = async (context) => {
             throw new Error('Failed to fetch rows from the table');
         }
 
+        // Log the rowsResponse for debugging purposes
+        console.log('Rows response:', JSON.stringify(rowsResponse, null, 2));
+
         // Filter the matched row based on provided objectType
         const objectType = context.parameters?.objectType?.toLowerCase() || 'default'; // Default object type if not provided
         let matchedRow = rowsResponse.results.find(row => row.values.objectType && row.values.objectType.toLowerCase() === objectType);
@@ -38,11 +41,15 @@ exports.main = async (context) => {
             throw new Error(`No configuration found for object type: ${objectType} or 'data'`);
         }
 
+        // Log the matched rows for further debugging
+        console.log('Matched row:', JSON.stringify(matchedRow, null, 2));
+        console.log('Data row:', JSON.stringify(dataRow, null, 2));
+
         return {
-            body: {
+            body: JSON.stringify({
                 objectTypeRow: matchedRow || null,
                 dataRow: dataRow || null
-            },
+            }),
             statusCode: 200,
         };
 
@@ -54,7 +61,7 @@ exports.main = async (context) => {
             stack: error.stack,
         });
         return {
-            body: { error: 'An error occurred while processing your request.', details: error.message },
+            body: JSON.stringify({ error: 'An error occurred while processing your request.', details: error.message }),
             statusCode: 500,
         };
     }
