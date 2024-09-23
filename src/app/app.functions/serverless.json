@@ -3,6 +3,9 @@
     "getApiKey": {
       "file": "getApiKey.js"
     },
+    "fetchAccountTable": {
+      "file": "fetchAccountTable.js"
+    },
     "dataTableHandler": {
       "file": "dataTableHandler.js"
     },

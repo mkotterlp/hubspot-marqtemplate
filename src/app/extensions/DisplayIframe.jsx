@@ -1456,7 +1456,7 @@ const pollForAccountRefreshToken = async () => {
   try {
       // Fetch account data using the serverless function
       const createaccounttable = await runServerless({
-          name: 'dataTableHandler',
+          name: 'fetchAccountTable',
           parameters: { objectType: objectType }
       });
 
