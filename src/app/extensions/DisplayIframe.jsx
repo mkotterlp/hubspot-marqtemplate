@@ -1005,11 +1005,12 @@ const deleteRecord = async (recordId, objectType) => {
         parameters: { objectType: objectType }, // Use the fetched objectType here
       });
   
+      let marqAccountId;
       if (dataTableResponse?.response?.body) {
         const dataTableBody = JSON.parse(dataTableResponse.response.body);
         const dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
         const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
-        const marqAccountId = dataTableBody?.dataRow?.values?.accountId || null;
+        marqAccountId = dataTableBody?.dataRow?.values?.accountId || null;
     
         console.log("Fetched datasetid:", dataSetId);
         console.log("Using account id:", marqAccountId);
@@ -2458,6 +2459,7 @@ const createOrUpdateDataset = async (refreshToken) => {
       parameters: {
         refresh_token: refreshToken,
         clientid: clientid,
+        marqAccountId: marqAccountId,
         clientsecret: clientsecret,
         objectType: objectType,
         schema: schema.map(item => ({
