@@ -1468,7 +1468,14 @@ const pollForAccountRefreshToken = async () => {
       console.log("Successfully received account data from serverless function.");
 
       // Parse account data
-      const accountResponseBody = JSON.parse(createaccounttable.response.body);
+      let accountResponseBody;
+      try {
+          accountResponseBody = JSON.parse(createaccounttable.response.body);
+      } catch (err) {
+          console.error("Failed to parse response body as JSON:", err);
+          return;
+      }
+
       const accountData = accountResponseBody?.dataRow?.values || {};
 
       // Extract the refresh token
@@ -1492,21 +1499,15 @@ const pollForAccountRefreshToken = async () => {
         // Call the function to create or update the dataset with the refresh token
         await createOrUpdateDataset(currentAccountRefreshToken);
     
-        // If successful, stop loading and show templates
-         // Stop loading
-        setShowTemplates(true);  // Show templates
       } catch (error) {
         console.error('Error creating or updating dataset:', error);
-        
-        // Stop loading but do not show templates in case of an error
- // Stop loading
-        setShowTemplates(false);  // Hide templates (or handle error state)
       }
   } catch (error) {
       console.error("Error while polling for account refresh token:", error.message || error);
       setloadingaccountrefreshtoken(false);
   }
 };
+
 
 
 
