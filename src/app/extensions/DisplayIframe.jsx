@@ -810,7 +810,7 @@ const accountData = accountResponseBody?.dataRow?.values || {};
 const accountRefreshToken = accountData?.refreshToken || null;
 marqAccountId = accountData?.accountId || null;
 dataSetId = accountData?.datasetid || null;
-collectionId = accountData?.collectionid || null;
+const collectionId = accountData?.collectionid || null;
 
 if (!marqAccountId) {
   console.error("marqAccountId is missing, cannot proceed.");
