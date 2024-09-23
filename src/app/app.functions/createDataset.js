@@ -21,23 +21,31 @@ exports.main = async (context) => {
         properties
     });
 
-    // Validate required parameters
-    if (!refresh_token || !clientid || !clientsecret || !marqAccountId || !schema || !Array.isArray(schema)) {
-        console.error("Missing or invalid parameters in createOrUpdateDataset");
-        return {
-            statusCode: 400,
-            body: JSON.stringify({
-                message: "Missing or invalid parameters",
-                refresh_token,
-                clientid,
-                clientsecret,
-                marqAccountId,
-                objectName,
-                schema,
-                properties
-            })
-        };
-    }
+   // Validate required parameters
+   if (!refresh_token || !clientid || !clientsecret || !marqAccountId || !schema || !Array.isArray(schema)) {
+    console.error("Missing or invalid parameters in createOrUpdateDataset");
+
+    // Log which specific parameter is missing
+    if (!refresh_token) console.error("Missing refresh_token");
+    if (!clientid) console.error("Missing clientid");
+    if (!clientsecret) console.error("Missing clientsecret");
+    if (!marqAccountId) console.error("Missing marqAccountId");
+    if (!schema || !Array.isArray(schema)) console.error("Missing or invalid schema");
+
+    return {
+        statusCode: 400,
+        body: JSON.stringify({
+            message: "Missing or invalid parameters",
+            refresh_token,
+            clientid,
+            clientsecret,
+            marqAccountId,
+            objectName,
+            schema,
+            properties
+        })
+    };
+}
 
     try {
         // Step 1: Make a POST request to the Fastgen API with the individual parameters
