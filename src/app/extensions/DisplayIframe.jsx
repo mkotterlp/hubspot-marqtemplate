@@ -1001,34 +1001,45 @@ const deleteRecord = async (recordId, objectType) => {
   
       // 2. Fetch the `datasetid` from the `dataTableHandler` based on the objectType
       console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
-      const dataTableResponse = await runServerless({
-        name: 'fetchAccountTable',
-        parameters: { objectType: objectType }, // Use the fetched objectType here
-      });
-  
-      if (dataTableResponse?.response?.body) {
-        const dataTableBody = JSON.parse(dataTableResponse.response.body);
-        const dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
-        const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
-        marqAccountId = dataTableBody?.dataRow?.values?.accountId || null;
-    
-        console.log("Fetched datasetid:", dataSetId);
-        console.log("Using account id:", marqAccountId);
-        console.log("Using account refresh token:", accountRefreshToken);
+// Inside createOrUpdateDataset function
+
+// Fetch marqAccountId before creating or updating the dataset
+const dataTableResponse = await runServerless({
+  name: 'fetchAccountTable',
+  parameters: {
+    objectType: objectType
+  }
+});
+
+let marqAccountId;
+if (dataTableResponse?.response?.body) {
+  const dataTableBody = JSON.parse(dataTableResponse.response.body);
+  marqAccountId = dataTableBody?.dataRow?.values?.accountId || null;
+  const dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
+  const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
+
+  if (!marqAccountId) {
+    console.error("marqAccountId is missing, cannot proceed.");
+    return;
+  }
+
+  if (accountRefreshToken) {
+    console.log("Using account refresh token:", accountRefreshToken);
+    refreshTokenToUse = accountRefreshToken;  // Use account refresh token
+    tokenSource = 'account';
+  } else {
+    console.log("No account refresh token found, falling back to user refresh token.");
+  }
+
+
+} else {
+  console.error("Failed to fetch marqAccountId from dataTableHandler.");
+  return;
+}
+
+
         
   
-        // Use account refresh token if available, otherwise fallback to user token
-        if (accountRefreshToken) {
-          console.log("Using account refresh token:", accountRefreshToken);
-          refreshTokenToUse = accountRefreshToken;  // Use account refresh token
-          tokenSource = 'account';
-        } else {
-          console.log("No account refresh token found, falling back to user refresh token.");
-        }
-      } else {
-        console.error("Failed to fetch datasetid from dataTableHandler.");
-        return;
-      }
   
       // 3. If no account token or fallback, use user token
       if (tokenSource === 'user' && currentRefreshToken) {
