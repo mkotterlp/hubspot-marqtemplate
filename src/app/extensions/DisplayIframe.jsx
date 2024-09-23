@@ -995,6 +995,7 @@ const deleteRecord = async (recordId, objectType) => {
   
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken
+      let marqaccountidtouse;
       let dataSetId;
       console.log("refreshTokenToUse:", refreshTokenToUse)
       // 1. Fetch the `objectType`
@@ -1017,7 +1018,12 @@ const deleteRecord = async (recordId, objectType) => {
         console.log("Fetched datasetid:", dataSetId);
   
         const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
-        const marqaccountid = dataTableBody?.dataRow?.values?.accountId || null;
+        const setmarqaccountid = dataTableBody?.dataRow?.values?.accountId || null;
+
+        if (setmarqaccountid) { 
+          console.log("Using account id:", setmarqaccountid);
+          marqaccountidtouse = setmarqaccountid;
+        }
 
   
         // Use account refresh token if available, otherwise fallback to user token
@@ -1078,7 +1084,7 @@ const deleteRecord = async (recordId, objectType) => {
           recordid: recordid,
           templateid: templateid,
           templatetitle: templatetitle,
-          marqaccountid: marqaccountid,
+          marqaccountid: marqaccountidtouse,
           dataSetId: dataSetId,
         },
       });
