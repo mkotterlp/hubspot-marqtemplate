@@ -988,7 +988,7 @@ const deleteRecord = async (recordId, objectType) => {
   
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken
-      let marqaccountidtouse;
+      let marqaccountidtouse = null;
       let dataSetId;
       console.log("refreshTokenToUse:", refreshTokenToUse)
       // 1. Fetch the `objectType`
@@ -1001,7 +1001,7 @@ const deleteRecord = async (recordId, objectType) => {
       // 2. Fetch the `datasetid` from the `dataTableHandler` based on the objectType
       console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
       const dataTableResponse = await runServerless({
-        name: 'dataTableHandler',
+        name: 'fetchAccountTable',
         parameters: { objectType: objectType }, // Use the fetched objectType here
       });
   
@@ -1016,8 +1016,9 @@ const deleteRecord = async (recordId, objectType) => {
         if (setmarqaccountid) { 
           console.log("Using account id:", setmarqaccountid);
           marqaccountidtouse = setmarqaccountid;
+        } else {
+          console.warn("No account ID found, marqaccountidtouse remains null.");
         }
-
   
         // Use account refresh token if available, otherwise fallback to user token
         if (accountRefreshToken) {
@@ -1025,7 +1026,6 @@ const deleteRecord = async (recordId, objectType) => {
           refreshTokenToUse = accountRefreshToken;  // Use account refresh token
           tokenSource = 'account';
         } else {
-          pollForAccountRefreshToken()
           console.log("No account refresh token found, falling back to user refresh token.");
         }
       } else {
@@ -1059,7 +1059,7 @@ const deleteRecord = async (recordId, objectType) => {
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid;
-      const marqaccountid = marqaccountidtouse;
+      const marqaccountid = marqaccountidtouse || '';
       const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
