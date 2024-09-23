@@ -71,6 +71,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let currentRefreshToken = "";
   let currentAccountRefreshToken = "";
   let lastTemplateSyncDate;
+  let marqAccountId;
   // let marquserid
 
   
@@ -1005,7 +1006,6 @@ const deleteRecord = async (recordId, objectType) => {
         parameters: { objectType: objectType }, // Use the fetched objectType here
       });
   
-      let marqAccountId;
       if (dataTableResponse?.response?.body) {
         const dataTableBody = JSON.parse(dataTableResponse.response.body);
         const dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
