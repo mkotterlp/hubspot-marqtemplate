@@ -1007,18 +1007,14 @@ const deleteRecord = async (recordId, objectType) => {
   
       if (dataTableResponse?.response?.body) {
         const dataTableBody = JSON.parse(dataTableResponse.response.body);
-        dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
-        console.log("Fetched datasetid:", dataSetId);
-  
+        const dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
         const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
-        const setmarqaccountid = dataTableBody?.dataRow?.values?.accountId || null;
-
-        if (setmarqaccountid) { 
-          console.log("Using account id:", setmarqaccountid);
-          marqaccountidtouse = setmarqaccountid;
-        } else {
-          console.warn("No account ID found, marqaccountidtouse remains null.");
-        }
+        const marqAccountId = dataTableBody?.dataRow?.values?.accountId || null;
+    
+        console.log("Fetched datasetid:", dataSetId);
+        console.log("Using account id:", marqAccountId);
+        console.log("Using account refresh token:", accountRefreshToken);
+        
   
         // Use account refresh token if available, otherwise fallback to user token
         if (accountRefreshToken) {
@@ -1058,13 +1054,15 @@ const deleteRecord = async (recordId, objectType) => {
   
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
+      const marqaccountid = marqAccountId;
       const marquserId = marquserid;
-      const marqaccountid = marqaccountidtouse || '';
       const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
 
       console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
+      console.log("marqaccountid for creating a project:", marqaccountid)
+
   
       // 4. Create the project using the appropriate refresh token
       console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
@@ -2439,7 +2437,7 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     // Check if the dataset already exists
     const checkDatasetResponse = await runServerless({
-      name: 'fetchDataset',
+      name: 'fetchAccountTable',
       parameters: {
         objectType: objectType
       }
