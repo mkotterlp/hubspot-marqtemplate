@@ -64,6 +64,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let templateLink;
   let currentRefreshToken = "";
   let currentAccountRefreshToken = "";
+  let marqAccountId = "";
   let lastTemplateSyncDate;
   // let marquserid
 
@@ -1459,7 +1460,7 @@ const createOrUpdateDataset = async (refreshToken) => {
   if (datasetExists) {
     console.log(`Dataset already exists for objectType: ${objectType}`);
     return; // Dataset already exists, exit
-  }
+  } else { 
 
 
     // Call the createDataset serverless function
@@ -1510,6 +1511,10 @@ const createOrUpdateDataset = async (refreshToken) => {
 
       throw new Error('Failed to create dataset.');
     }
+    
+  }
+
+
 
   } catch (error) {
     console.error('Error in createOrUpdateDataset:', error.message);
