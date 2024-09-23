@@ -1059,6 +1059,7 @@ const deleteRecord = async (recordId, objectType) => {
       const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
       const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
       const marquserId = marquserid;
+      const marqaccountid = marqaccountidtouse;
       const recordid = context.crm?.objectId?.toString() || '';
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
@@ -1077,7 +1078,7 @@ const deleteRecord = async (recordId, objectType) => {
           recordid: recordid,
           templateid: templateid,
           templatetitle: templatetitle,
-          marqaccountid: marqaccountidtouse,
+          marqaccountid: marqaccountid,
           dataSetId: dataSetId,
         },
       });
