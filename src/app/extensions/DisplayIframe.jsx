@@ -65,6 +65,8 @@ const Extension = ({ context, actions, runServerless }) => {
   let currentRefreshToken = "";
   let currentAccountRefreshToken = "";
   let marqAccountId = "";
+  let collectionId = "";
+  let dataSetId = "";
   let lastTemplateSyncDate;
   // let marquserid
 
@@ -770,7 +772,6 @@ const deleteRecord = async (recordId, objectType) => {
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken
       let marqaccountidtouse = null;
-      let dataSetId;
       console.log("refreshTokenToUse:", refreshTokenToUse)
       // 1. Fetch the `objectType`
       // const objectType = await fetchObjectType();
@@ -810,7 +811,7 @@ const accountData = accountResponseBody?.dataRow?.values || {};
 const accountRefreshToken = accountData?.refreshToken || null;
 marqAccountId = accountData?.accountId || null;
 dataSetId = accountData?.datasetid || null;
-const collectionId = accountData?.collectionid || null;
+collectionId = accountData?.collectionid || null;
 
 if (!marqAccountId) {
   console.error("marqAccountId is missing, cannot proceed.");
@@ -1485,8 +1486,8 @@ const createOrUpdateDataset = async (refreshToken) => {
 
       const datasetResult = JSON.parse(createDatasetResponse.response.body);
       const new_refresh_token = datasetResult.new_refresh_token;
-      const datasetid = datasetResult.dataSourceId;
-      const collectionid = datasetResult.collectionId;
+      datasetid = datasetResult.dataSourceId;
+      collectionid = datasetResult.collectionId;
 
       console.log(`New dataset values for ${objectType}:`, { new_refresh_token, datasetid, collectionid });
 
