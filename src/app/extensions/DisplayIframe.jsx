@@ -1003,42 +1003,47 @@ const deleteRecord = async (recordId, objectType) => {
       console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
 // Inside createOrUpdateDataset function
 
-// Fetch marqAccountId before creating or updating the dataset
-const dataTableResponse = await runServerless({
+const createaccounttable = await runServerless({
   name: 'fetchAccountTable',
-  parameters: {
-    objectType: objectType
-  }
+  parameters: { objectType: objectType }
 });
 
-let marqAccountId;
-if (dataTableResponse?.response?.body) {
-  const dataTableBody = JSON.parse(dataTableResponse.response.body);
-  marqAccountId = dataTableBody?.dataRow?.values?.accountId || null;
-  const dataSetId = dataTableBody?.dataRow?.values?.datasetid || null;
-  const accountRefreshToken = dataTableBody?.dataRow?.values?.refreshToken || null;
-
-  if (!marqAccountId) {
-    console.error("marqAccountId is missing, cannot proceed.");
-    return;
-  }
-
-  if (accountRefreshToken) {
-    console.log("Using account refresh token:", accountRefreshToken);
-    refreshTokenToUse = accountRefreshToken;  // Use account refresh token
-    tokenSource = 'account';
-  } else {
-    console.log("No account refresh token found, falling back to user refresh token.");
-  }
-
-
-} else {
-  console.error("Failed to fetch marqAccountId from dataTableHandler.");
+if (!createaccounttable?.response?.body) {
+  console.error("No response body from serverless function. Aborting poll.");
   return;
 }
 
+console.log("Successfully received account data from serverless function.");
 
-        
+// Parse account data
+let accountResponseBody;
+try {
+  accountResponseBody = JSON.parse(createaccounttable.response.body);
+} catch (err) {
+  console.error("Failed to parse response body as JSON:", err);
+  return;
+}
+
+const accountData = accountResponseBody?.dataRow?.values || {};
+
+// Extract the refresh token
+accountRefreshToken = accountData?.refreshToken || null;
+marqAccountId = accountData?.accountId || null;
+dataSetId = accountData?.datasetid || null;
+collectionId = accountData?.collectionid || null;
+
+if (!marqAccountId) {
+  console.error("marqAccountId is missing, cannot proceed.");
+  return;
+}
+
+if (accountRefreshToken) {
+  console.log("Using account refresh token:", accountRefreshToken);
+  refreshTokenToUse = accountRefreshToken;  // Use account refresh token
+  tokenSource = 'account';
+} else {
+  console.log("No account refresh token found, falling back to user refresh token.");
+}
   
   
       // 3. If no account token or fallback, use user token
@@ -1491,6 +1496,7 @@ const pollForAccountRefreshToken = async () => {
 
       // Extract the refresh token
       currentAccountRefreshToken = accountData?.refreshToken || null;
+      marqAccountId = accountData?.accountId || null;
 
       if (!currentAccountRefreshToken) {
           console.warn("No valid account refresh token found, will continue polling.");
