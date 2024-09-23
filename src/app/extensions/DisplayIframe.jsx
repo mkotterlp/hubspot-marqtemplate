@@ -807,7 +807,7 @@ try {
 const accountData = accountResponseBody?.dataRow?.values || {};
 
 // Extract the refresh token
-accountRefreshToken = accountData?.refreshToken || null;
+const accountRefreshToken = accountData?.refreshToken || null;
 marqAccountId = accountData?.accountId || null;
 dataSetId = accountData?.datasetid || null;
 collectionId = accountData?.collectionid || null;
