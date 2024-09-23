@@ -108,7 +108,6 @@ const Extension = ({ context, actions, runServerless }) => {
       // Validate that userid is available before proceeding
       if (!userid) {
         console.error("Error: Missing user ID.");
-        setIsLoading(false);
         return;
       }
   
@@ -135,7 +134,6 @@ const Extension = ({ context, actions, runServerless }) => {
           // setRefreshToken(currentRefreshToken)
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
-            setIsLoading(false);
             setShowTemplates(false);
             return;
           }
@@ -201,6 +199,7 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.error("Error: fetchResult or response is undefined or malformed.", fetchResult);
                 templateLink = '';
                 currentRefreshToken = '';
+                
               }
               
               
@@ -238,7 +237,7 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.error("Error occurred while trying to update user table:", updateError);
                 setResponseMessage('A network or server error occurred. Please try again later.');
               } finally {
-                setIsLoading(false);
+              
               }
               
 
@@ -259,7 +258,6 @@ const Extension = ({ context, actions, runServerless }) => {
       // Validate that objectType is available
       if (!objectType) {
         console.error("Error: Missing objectType.");
-        setIsLoading(false);
         return;
       }
   
@@ -334,9 +332,11 @@ const Extension = ({ context, actions, runServerless }) => {
                 }
               } else {
                 console.error("Error fetching templates:", templatesResponse);
+                setIsLoading(false);
               }
             } catch (templatesError) {
               console.error("Error occurred while fetching templates:", templatesError);
+              setIsLoading(false);
             }
           } else {
             console.error("Error: Missing template link to fetch templates.");
@@ -344,6 +344,7 @@ const Extension = ({ context, actions, runServerless }) => {
             if (currentRefreshToken) {
               console.log('Refresh token', currentRefreshToken)
               setShowTemplates(true);
+              setIsLoading(false);
             } else {
               console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
@@ -357,12 +358,13 @@ const Extension = ({ context, actions, runServerless }) => {
           }
         } else {
           console.error("Failed to load config data:", configDataResponse);
+          setIsLoading(false);
         }
       } catch (configError) {
         console.error("Error occurred while fetching config data:", configError);
+        setIsLoading(false);
       }
   
-      setIsLoading(false);
     } catch (error) {
       console.error("Error in fetchConfigCrmPropertiesAndTemplates:", error);
       setIsLoading(false);
@@ -463,7 +465,6 @@ const deleteRecord = async (recordId, objectType) => {
     console.log("Fetching projects");
     if (!context.crm.objectId) {
       console.error("No object ID available to fetch associated projects.");
-      setIsLoading(false);
       return [];
     }
   
@@ -510,7 +511,6 @@ const deleteRecord = async (recordId, objectType) => {
             setProjects(detailedProjects);
             const totalPages = Math.ceil(detailedProjects.length / RECORDS_PER_PAGE);
             setTotalPages(totalPages);
-            setIsLoading(false);
             setDataFetched(true);
   
             // Return the detailed projects
@@ -521,7 +521,6 @@ const deleteRecord = async (recordId, objectType) => {
       return [];
     } catch (error) {
       console.error("Failed to fetch associated projects:", error);
-      setIsLoading(false);
       setDataFetched(true);
       actions.addAlert({
         title: "API Error",
@@ -2951,7 +2950,10 @@ return (
 );
 
 } else {
+  if (!currentRefreshToken) {
   return (
+
+
     <Button
       // href={authurl}
       href={authurl}
@@ -2962,7 +2964,10 @@ return (
     >
       Connect to Marq
     </Button>
+
+
   );
+}
 }
 }
 
