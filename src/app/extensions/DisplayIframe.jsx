@@ -771,7 +771,6 @@ const deleteRecord = async (recordId, objectType) => {
   
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken
-      let marqaccountidtouse = null;
       console.log("refreshTokenToUse:", refreshTokenToUse)
       // 1. Fetch the `objectType`
       // const objectType = await fetchObjectType();
@@ -890,16 +889,16 @@ if (accountRefreshToken) {
         const newRefreshToken = projectData.new_refresh_token;
         console.log("Updated refresh_token after project creation:", newRefreshToken);
   
-        // 6. Depending on which token was used, update the corresponding refresh token
-        if (tokenSource === 'account') {
-          // Update account refresh token
-          console.log(newRefreshToken)
-          await updateAccountRefreshToken(newRefreshToken);
-        } else {
+        // // 6. Depending on which token was used, update the corresponding refresh token
+        // if (tokenSource === 'account') {
+        //   // Update account refresh token
+        //   console.log(newRefreshToken)
+        //   await updateAccountRefreshToken(newRefreshToken);
+        // } else {
           // Update user refresh token
           console.log(marqaccountid, newRefreshToken)
           await updateUserRefreshToken(marquserId, newRefreshToken);
-        }
+        // }
   
         // Step 7: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
@@ -907,11 +906,14 @@ if (accountRefreshToken) {
           fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
-  
-        const baseInnerUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${context.crm.objectId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateid}`;
-        const iframeUrlWithImportData = `${baseInnerUrl}&dataSetId=${dataSetId}`;
-  
-        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(iframeUrlWithImportData);
+        const contactId = context.crm.objectId;
+
+          const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+      const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
+       
+        const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+      
         setIframeUrl(iframeSrc);
         actions.openIframeModal({
           uri: iframeSrc,
@@ -919,6 +921,8 @@ if (accountRefreshToken) {
           width: 1500,
           title: "Marq",
         });
+        setIframeOpen(true);
+        setShouldPollForProjects({ isPolling: true, templateId: template.id });
       } else {
         console.error("Failed to create project.");
       }
