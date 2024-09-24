@@ -901,7 +901,6 @@ if (!marqAccountId) {
     // If an error occurred, set the refresh token to blank
     await updateAccountRefreshToken('');
     console.log('Refresh token set to blank due to failure');
-    return; // Halt execution if data update fails
   }
 } catch (error) {
   console.error('Error during update-data3 execution:', error);
@@ -909,7 +908,6 @@ if (!marqAccountId) {
   // On error, set the refresh token to blank
   await updateAccountRefreshToken('');
   console.log('Refresh token set to blank due to error');
-  return; // Halt execution in case of error
 }
       
   
