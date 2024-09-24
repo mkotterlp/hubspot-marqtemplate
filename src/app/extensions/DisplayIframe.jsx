@@ -883,7 +883,7 @@ if(accountrefreshTokenToUse) {
         });
 
      // Check if the response was successful
-  if (updateDataResponse?.response?.statusCode === 200) {
+  if (updateDataResponse?.response?.statusCode === 200 || updateDataResponse?.response?.statusCode === 201) {
     console.log('Data updated successfully before project creation');
     
     // Extract the new refresh token from the response if it exists
@@ -919,42 +919,64 @@ console.log("marqaccountid for creating a project:", marqaccountid)
   
       // 4. Create the project using the user refresh token
       console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
-      const createProjectResponse = await runServerless({
-        name: 'createProject',
-        parameters: {
-          refresh_token: refreshTokenToUse,
-          clientid: clientid,
-          clientsecret: clientsecret,
-          marquserId: marquserId,
-          recordid: recordid,
-          templateid: templateid,
-          templatetitle: templatetitle,
-          marqaccountid: marqaccountid,
-          dataSetId: dataSetId,
-        },
-      });
-  
-      if (createProjectResponse?.response?.body) {
-        const projectData = JSON.parse(createProjectResponse.response.body);
-        console.log("Project created successfully:", projectData);
-  
-        const projectId = projectData.documentid;
-        console.log("Created Project ID:", projectId);
-  
-        // 5. Update refresh token after project creation
-        const newRefreshToken = projectData.new_refresh_token;
-        console.log("Updated refresh_token after project creation:", newRefreshToken);
-  
-        // // 6. Depending on which token was used, update the corresponding refresh token
-        // if (tokenSource === 'account') {
-        //   // Update account refresh token
-        //   console.log(newRefreshToken)
-        //   await updateAccountRefreshToken(newRefreshToken);
-        // } else {
-          // Update user refresh token
-          console.log(marqaccountid, newRefreshToken)
-          await updateUserRefreshToken(marquserId, newRefreshToken);
-        // }
+    
+      try {
+        const createProjectResponse = await runServerless({
+          name: 'createProject',
+          parameters: {
+            refresh_token: refreshTokenToUse,
+            clientid: clientid,
+            clientsecret: clientsecret,
+            marquserId: marquserId,
+            recordid: recordid,
+            templateid: templateid,
+            templatetitle: templatetitle,
+            marqaccountid: marqaccountid,
+            dataSetId: dataSetId,
+          },
+        });
+      
+        // Check if response status is successful (usually 200 or 201)
+        if (createProjectResponse?.response?.status === 200 || createProjectResponse?.response?.status === 201) {
+          try {
+            const projectData = JSON.parse(createProjectResponse.response.body);
+            console.log("Project created successfully:", projectData);
+      
+            const projectId = projectData.documentid;
+            console.log("Created Project ID:", projectId);
+      
+            // Update refresh token after project creation
+            const newRefreshToken = projectData.new_refresh_token || ""; // Set to "" if not found
+            console.log("Updated refresh_token after project creation:", newRefreshToken);
+      
+            // Update the corresponding refresh token
+            console.log(marqaccountid, newRefreshToken);
+            await updateUserRefreshToken(marquserId, newRefreshToken);
+      
+          } catch (parseError) {
+            console.error("Error parsing project creation response:", parseError);
+            console.error("Raw response body:", createProjectResponse.response.body);
+            // Set refresh token to an empty string if there's a parsing error
+            await updateUserRefreshToken(marquserId, "");
+          }
+        } else {
+          // If the response status is not 200 or 201, it's considered a failure
+          console.error("Failed to create project. Received response status:", createProjectResponse?.response?.status);
+          console.error("Response details:", createProjectResponse?.response);
+          // Set refresh token to an empty string in case of failure
+          await updateUserRefreshToken(marquserId, "");
+        }
+      } catch (error) {
+        console.error("Error occurred during project creation:", error);
+        if (error.response) {
+          // Log more details if there's a response error
+          console.error("Error response status:", error.response.status);
+          console.error("Error response data:", error.response.data);
+        }
+        // Set refresh token to an empty string if there's a request error
+        await updateUserRefreshToken(marquserId, "");
+      }
+     
   
         // Step 7: Set iframe URL and open the iframe
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
@@ -962,7 +984,11 @@ console.log("marqaccountid for creating a project:", marqaccountid)
           fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
+
+
         const contactId = context.crm.objectId;
+
+        if(projectId) {
 
 
           const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
@@ -980,6 +1006,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
         setIframeOpen(true);
         setShouldPollForProjects({ isPolling: true, templateId: template.id });
       } else {
+
         console.warn("Failed to create project through the API - reverting to URL method.");
 
         const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
@@ -996,9 +1023,13 @@ console.log("marqaccountid for creating a project:", marqaccountid)
           });
           setIframeOpen(true);
           setShouldPollForProjects({ isPolling: true, templateId: template.id });
+
       }
+        
+      
     } catch (error) {
       console.error('Error in handleClick:', error);
+      
     }
   };
   
