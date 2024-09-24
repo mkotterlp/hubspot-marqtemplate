@@ -864,6 +864,9 @@ if (!marqAccountId) {
 
 
       try {
+
+        const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
+
         // Call update-data3 function
         const updateDataResponse = await runServerless({
           name: 'updateData3',
@@ -872,7 +875,7 @@ if (!marqAccountId) {
             clientid: clientid,
             clientsecret: clientsecret,
             collectionId: collectionId,
-            properties: propertiesToWatch,
+            properties: properties,
             schema: schema,
             dataSourceId: dataSetId,
           },
