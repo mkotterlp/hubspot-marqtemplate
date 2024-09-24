@@ -772,8 +772,10 @@ const deleteRecord = async (recordId, objectType) => {
       }
   
       let tokenSource = 'user'; // Default to user token
-      let refreshTokenToUse = currentRefreshToken
-      console.log("refreshTokenToUse:", refreshTokenToUse)
+      let refreshTokenToUse = currentRefreshToken;
+      let accountrefreshTokenToUse = currentAccountRefreshToken;
+      console.log("refreshTokenToUse:", refreshTokenToUse);
+      console.log("accountrefreshTokenToUse:", accountrefreshTokenToUse);
       // 1. Fetch the `objectType`
       // const objectType = await fetchObjectType();
       // if (!objectType) {
@@ -819,16 +821,15 @@ if (!marqAccountId) {
   return;
 }
 
-// if (accountRefreshToken) {
-//   console.log("Using account refresh token:", accountRefreshToken);
-//   refreshTokenToUse = accountRefreshToken;  // Use account refresh token
-//   tokenSource = 'account';
-// } else {
-//   console.log("No account refresh token found, falling back to user refresh token.");
-// }
+if (accountRefreshToken) {
+  console.log("Using account refresh token:", accountRefreshToken);
+  accountrefreshTokenToUse = accountRefreshToken;  // Use account refresh token
+  // tokenSource = 'account';
+} else {
+  console.log("No account refresh token found.");
+}
   
   
-      // 3. If no account token or fallback, use user token
       if (tokenSource === 'user' && currentRefreshToken) {
         try {
           console.log("Fetching user refresh token...");
@@ -859,9 +860,7 @@ if (!marqAccountId) {
       const templateid = template?.id || '';
       const templatetitle = template?.title || '';
 
-      console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
-      console.log("marqaccountid for creating a project:", marqaccountid)
-
+ 
 
       try {
 
@@ -871,7 +870,7 @@ if (!marqAccountId) {
         const updateDataResponse = await runServerless({
           name: 'updateData3',
           parameters: {
-            refresh_token: accountRefreshToken,
+            refresh_token: accountrefreshTokenToUse,
             clientid: clientid,
             clientsecret: clientsecret,
             collectionId: collectionId,
@@ -909,6 +908,10 @@ if (!marqAccountId) {
   await updateAccountRefreshToken('');
   console.log('Refresh token set to blank due to error');
 }
+
+console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
+console.log("marqaccountid for creating a project:", marqaccountid)
+
       
   
       // 4. Create the project using the user refresh token
@@ -957,6 +960,8 @@ if (!marqAccountId) {
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
         const contactId = context.crm.objectId;
+        const hasImportData = dataSetType !== 'none' && importData;
+
 
           const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
       const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
