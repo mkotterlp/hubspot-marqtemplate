@@ -962,7 +962,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
       
       
               const contactId = context.crm.objectId;
-
+              const userId = context.user.id;
               const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
               const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
               
@@ -1046,7 +1046,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
 
 
         const contactId = context.crm.objectId;
-
+        const userId = context.user.id;
         const returnUrl = `https://app.marq.com/documents/editNewIframed/${templateId}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateId}`;
         const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
       
