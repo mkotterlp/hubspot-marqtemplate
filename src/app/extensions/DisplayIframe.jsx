@@ -68,6 +68,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let collectionId = "";
   let dataSetId = "";
   let lastTemplateSyncDate;
+  let schema = [];
   // let marquserid
 
   
@@ -1475,7 +1476,7 @@ async function saveTokenToTable(refreshToken) {
 // UPDATED createOrUpdateDataset FUNCTION v3
 const createOrUpdateDataset = async (refreshToken) => {
   try {
-    const schema = [
+    schema = [
       { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
       // Add additional fields as required
     ];
