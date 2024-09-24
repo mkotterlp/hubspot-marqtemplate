@@ -69,7 +69,6 @@ const Extension = ({ context, actions, runServerless }) => {
   let collectionid = "";
   let dataSetId = "";
   let datasetid = "";
-  let projectId = "";
   let lastTemplateSyncDate;
   let accountResponseBody = {};
   let schema = [
@@ -916,7 +915,15 @@ if(accountrefreshTokenToUse) {
 console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
 console.log("marqaccountid for creating a project:", marqaccountid)
 
-      
+         // Step 7: Set iframe URL and open the iframe
+         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+          enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
+          fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
+          showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
+        })));
+
+
+        const contactId = context.crm.objectId;
   
       // 4. Create the project using the user refresh token
       console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
@@ -936,16 +943,29 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             dataSetId: dataSetId,
           },
         });
-
-       
       
-        // Check if response status is successful (usually 200 or 201)
+        // Log the entire response for debugging
+        console.log("Full createProjectResponse:", createProjectResponse);
+      
+        let projectId = "";
+        // Check if response status is successful
         if (createProjectResponse?.response?.status === 200 || createProjectResponse?.response?.status === 201) {
           try {
             const projectData = JSON.parse(createProjectResponse.response.body);
             console.log("Project created successfully:", projectData);
       
+            // Ensure projectId is extracted correctly
             projectId = projectData.documentid;
+            if (!projectId) {
+              console.warn("Failed to create project through the API - reverting to URL method.");
+      
+              const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+              const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
+              
+              iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
+              return; // Exit early if reverting to URL method
+            }
+      
             console.log("Created Project ID:", projectId);
       
             // Update refresh token after project creation
@@ -956,6 +976,11 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             console.log(marqaccountid, newRefreshToken);
             await updateUserRefreshToken(marquserId, newRefreshToken);
       
+            const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+            const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
+            
+            iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
+          
           } catch (parseError) {
             console.error("Error parsing project creation response:", parseError);
             console.error("Raw response body:", createProjectResponse.response.body);
@@ -963,7 +988,6 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             await updateUserRefreshToken(marquserId, "");
           }
         } else {
-          // If the response status is not 200 or 201, it's considered a failure
           console.error("Failed to create project. Received response status:", createProjectResponse?.response?.status);
           console.error("Response details:", createProjectResponse?.response);
           // Set refresh token to an empty string in case of failure
@@ -972,79 +996,39 @@ console.log("marqaccountid for creating a project:", marqaccountid)
       } catch (error) {
         console.error("Error occurred during project creation:", error);
         if (error.response) {
-          // Log more details if there's a response error
           console.error("Error response status:", error.response.status);
           console.error("Error response data:", error.response.data);
         }
         // Set refresh token to an empty string if there's a request error
         await updateUserRefreshToken(marquserId, "");
       }
-     
-  
-        // Step 7: Set iframe URL and open the iframe
-        const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
-          enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
-          fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
-          showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
-        })));
-
-
-        const contactId = context.crm.objectId;
-
-        if(projectId) {
-
-
-          const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
-      const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
-       
-        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
       
-        setIframeUrl(iframeSrc);
-        actions.openIframeModal({
-          uri: iframeSrc,
-          height: 1500,
-          width: 1500,
-          title: "Marq",
+      // Opening the iframe
+      setIframeUrl(iframeSrc);
+      actions.openIframeModal({
+        uri: iframeSrc,
+        height: 1500,
+        width: 1500,
+        title: "Marq",
+      });
+      setIframeOpen(true);
+      setShouldPollForProjects({ isPolling: true, templateId: template.id });
+      
+      } catch (error) {
+        console.error('Error in handleClick:', error);
+      
+        actions.closeIframeModal();
+        window.postMessage(JSON.stringify({ "action": "DONE" }), "*");
+      
+        setShowTemplates(false);
+        setIsLoading(false);
+        actions.addAlert({
+          title: "Error with creating project",
+          variant: "danger",
+          message: `There was an error with creating the project. Please try connecting to Marq again`
         });
-        setIframeOpen(true);
-        setShouldPollForProjects({ isPolling: true, templateId: template.id });
-      } else {
-
-        console.warn("Failed to create project through the API - reverting to URL method.");
-
-        const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
-        const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
-         
-          iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
-        
-          setIframeUrl(iframeSrc);
-          actions.openIframeModal({
-            uri: iframeSrc,
-            height: 1500,
-            width: 1500,
-            title: "Marq",
-          });
-          setIframeOpen(true);
-          setShouldPollForProjects({ isPolling: true, templateId: template.id });
-
       }
-        
       
-    } catch (error) {
-      console.error('Error in handleClick:', error);
-
-      actions.closeIframeModal({ });
-      window.parent.postMessage(JSON.stringify({"action": "DONE"}), "*");
-
-      setShowTemplates(false);
-              setIsLoading(false);
-              actions.addAlert({
-                title: "Error with template sync",
-                variant: "danger",
-                message: `There was an error fetching templates. Please try connecting to Marq again`
-              });
-      
-    }
   };
   
   
