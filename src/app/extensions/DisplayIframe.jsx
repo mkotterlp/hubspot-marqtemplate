@@ -1748,35 +1748,34 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-              <Flex direction="row" gap="small" align="center">
-  <LoadingButton
-    loading={loadingTemplateId === template.id}
-    onClick={() => {
-      setLoadingTemplateId(template.id);
-      handleClick(template);
-    }}
-  >
-    {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
-  </LoadingButton>
+  <Flex direction="row" gap="small" align="center" wrap="wrap"> 
+    <LoadingButton
+      loading={loadingTemplateId === template.id}
+      onClick={() => {
+        setLoadingTemplateId(template.id);
+        handleClick(template);
+      }}
+    >
+      {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
+    </LoadingButton>
 
-  {/* Cancel Button */}
-  {loadingTemplateId === template.id && (
-    <Button
-    variant="destructive"
-    size="small"
-    onClick={() => {
-      setLoadingTemplateId(null);
-      setShouldPollForProjects({ isPolling: false, templateId: null });
-    }}
-  >
-    X
-  </Button>
-  
-  )}
-</Flex>
-              </TableCell>
-              <TableCell>
-              </TableCell>
+    {/* Cancel Button */}
+    {loadingTemplateId === template.id && (
+      <Button
+        variant="destructive"
+        size="small"
+        onClick={() => {
+          setLoadingTemplateId(null);
+          setShouldPollForProjects({ isPolling: false, templateId: null });
+        }}
+      >
+        X
+      </Button>
+    )}
+  </Flex>
+</TableCell>
+
+
             </TableRow>
           );
         })}
