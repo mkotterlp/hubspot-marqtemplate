@@ -948,6 +948,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
         console.log("Full createProjectResponse:", createProjectResponse);
       
         let projectId = "";
+        
         // Check if response status is successful
         if (createProjectResponse?.response?.status === 200 || createProjectResponse?.response?.status === 201) {
           try {
@@ -963,6 +964,15 @@ console.log("marqaccountid for creating a project:", marqaccountid)
               const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
               
               iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
+              setIframeUrl(iframeSrc);
+              actions.openIframeModal({
+                uri: iframeSrc,
+                height: 1500,
+                width: 1500,
+                title: "Marq",
+              });
+              setIframeOpen(true);
+              setShouldPollForProjects({ isPolling: true, templateId: template.id });
               return; // Exit early if reverting to URL method
             }
       
@@ -980,18 +990,23 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
             
             iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
-          
+      
           } catch (parseError) {
             console.error("Error parsing project creation response:", parseError);
             console.error("Raw response body:", createProjectResponse.response.body);
             // Set refresh token to an empty string if there's a parsing error
             await updateUserRefreshToken(marquserId, "");
+            // Ensure iframe fallback still happens
+            iframeFallback(template.id);
+            return;
           }
         } else {
           console.error("Failed to create project. Received response status:", createProjectResponse?.response?.status);
           console.error("Response details:", createProjectResponse?.response);
           // Set refresh token to an empty string in case of failure
           await updateUserRefreshToken(marquserId, "");
+          iframeFallback(template.id); // Fallback in case of error
+          return;
         }
       } catch (error) {
         console.error("Error occurred during project creation:", error);
@@ -1001,36 +1016,59 @@ console.log("marqaccountid for creating a project:", marqaccountid)
         }
         // Set refresh token to an empty string if there's a request error
         await updateUserRefreshToken(marquserId, "");
-      }
+        iframeFallback(template.id); // Fallback in case of error
+        return;
+      } 
+    
       
-      // Opening the iframe
-      setIframeUrl(iframeSrc);
-      actions.openIframeModal({
-        uri: iframeSrc,
-        height: 1500,
-        width: 1500,
-        title: "Marq",
-      });
-      setIframeOpen(true);
-      setShouldPollForProjects({ isPolling: true, templateId: template.id });
-      
-      } catch (error) {
-        console.error('Error in handleClick:', error);
-      
-        actions.closeIframeModal();
-        window.postMessage(JSON.stringify({ "action": "DONE" }), "*");
-      
-        setShowTemplates(false);
-        setIsLoading(false);
-        actions.addAlert({
-          title: "Error with creating project",
-          variant: "danger",
-          message: `There was an error with creating the project. Please try connecting to Marq again`
-        });
-      }
-      
-  };
+  // Opening the iframe with the appropriate source
+  setIframeUrl(iframeSrc);
+  actions.openIframeModal({
+    uri: iframeSrc,
+    height: 1500,
+    width: 1500,
+    title: "Marq",
+  });
+  setIframeOpen(true);
+  setShouldPollForProjects({ isPolling: true, templateId: template.id });
+
+} catch (error) {
+  console.error('Error in handleClick:', error);
   
+  // Ensure the modal closes and state is reset
+  actions.closeIframeModal();
+  window.postMessage(JSON.stringify({ "action": "DONE" }), "*");
+
+  setShowTemplates(false);
+  setIsLoading(false);
+
+  // Show an alert to the user in case of error
+  actions.addAlert({
+    title: "Error with creating project",
+    variant: "danger",
+    message: "There was an error with creating the project. Please try connecting to Marq again."
+  });
+}
+};
+      
+      /**
+       * Fallback function to revert to the URL method in case of any failure
+       */
+      function iframeFallback(templateId) {
+        const returnUrl = `https://app.marq.com/documents/editNewIframed/${templateId}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateId}`;
+        const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
+      
+        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
+        setIframeUrl(iframeSrc);
+        actions.openIframeModal({
+          uri: iframeSrc,
+          height: 1500,
+          width: 1500,
+          title: "Marq",
+        });
+        setIframeOpen(true);
+        setShouldPollForProjects({ isPolling: true, templateId: templateId });
+      }
   
 
 const startPollingForRefreshToken = () => {
