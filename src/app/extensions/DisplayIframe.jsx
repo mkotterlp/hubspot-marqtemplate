@@ -936,7 +936,7 @@ if (!marqAccountId) {
         })));
         const contactId = context.crm.objectId;
 
-          const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+          const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
       const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
        
         const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
@@ -952,7 +952,23 @@ if (!marqAccountId) {
         setIframeOpen(true);
         setShouldPollForProjects({ isPolling: true, templateId: template.id });
       } else {
-        console.error("Failed to create project.");
+        console.warn("Failed to create project through the API - reverting to URL method.");
+
+        const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+        const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
+         
+          const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
+          iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+        
+          setIframeUrl(iframeSrc);
+          actions.openIframeModal({
+            uri: iframeSrc,
+            height: 1500,
+            width: 1500,
+            title: "Marq",
+          });
+          setIframeOpen(true);
+          setShouldPollForProjects({ isPolling: true, templateId: template.id });
       }
     } catch (error) {
       console.error('Error in handleClick:', error);
