@@ -817,13 +817,13 @@ if (!marqAccountId) {
   return;
 }
 
-if (accountRefreshToken) {
-  console.log("Using account refresh token:", accountRefreshToken);
-  refreshTokenToUse = accountRefreshToken;  // Use account refresh token
-  tokenSource = 'account';
-} else {
-  console.log("No account refresh token found, falling back to user refresh token.");
-}
+// if (accountRefreshToken) {
+//   console.log("Using account refresh token:", accountRefreshToken);
+//   refreshTokenToUse = accountRefreshToken;  // Use account refresh token
+//   tokenSource = 'account';
+// } else {
+//   console.log("No account refresh token found, falling back to user refresh token.");
+// }
   
   
       // 3. If no account token or fallback, use user token
@@ -860,8 +860,36 @@ if (accountRefreshToken) {
       console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
       console.log("marqaccountid for creating a project:", marqaccountid)
 
+
+      try {
+        // Call update-data3 function
+        const updateDataResponse = await runServerless({
+          name: 'updateData3',
+          parameters: {
+            refresh_token: accountRefreshToken,
+            clientid: clientid,
+            clientsecret: clientsecret,
+            collectionId: collectionId,
+            properties: propertiesToWatch,
+            schema: schema,
+            dataSourceId: dataSetId,
+          },
+        });
+      
+        // Log success or failure of the update-data3 call
+        if (updateDataResponse?.response?.statusCode === 200) {
+          console.log('Data updated successfully before project creation');
+        } else {
+          console.error('Failed to update data before project creation', updateDataResponse?.response?.body);
+          return; // Halt execution if data update fails
+        }
+      } catch (error) {
+        console.error('Error during update-data3 execution:', error);
+        return; // Halt execution in case of error
+      }
+      
   
-      // 4. Create the project using the appropriate refresh token
+      // 4. Create the project using the user refresh token
       console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
       const createProjectResponse = await runServerless({
         name: 'createProject',
