@@ -68,6 +68,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let collectionId = "";
   let dataSetId = "";
   let lastTemplateSyncDate;
+  let accountResponseBody = {};
   let schema = [
     { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
   ];
@@ -799,8 +800,7 @@ if (!createaccounttable?.response?.body) {
 
 console.log("Successfully received account data from serverless function.");
 
-// Parse account data
-let accountResponseBody = {};
+
 try {
   accountResponseBody = JSON.parse(createaccounttable.response.body);
 } catch (err) {
@@ -1080,7 +1080,6 @@ useEffect(() => {
 
 const pollForAccountRefreshToken = async () => {
   console.log("Starting poll for account refresh token");
-  let accountResponseBody = {};
   try {
       // Fetch account data using the serverless function
       const createaccounttable = await runServerless({
@@ -1511,6 +1510,8 @@ const createOrUpdateDataset = async (refreshToken) => {
         objectType: objectType
       }
     });
+    
+    accountResponseBody = JSON.parse(checkDatasetResponse.response.body);
 
     const accountData = accountResponseBody?.dataRow?.values || {};
 
