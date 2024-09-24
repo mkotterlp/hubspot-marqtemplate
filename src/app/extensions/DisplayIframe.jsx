@@ -800,7 +800,7 @@ if (!createaccounttable?.response?.body) {
 console.log("Successfully received account data from serverless function.");
 
 // Parse account data
-let accountResponseBody;
+let accountResponseBody = {};
 try {
   accountResponseBody = JSON.parse(createaccounttable.response.body);
 } catch (err) {
@@ -861,7 +861,7 @@ if (accountRefreshToken) {
       const templatetitle = template?.title || '';
 
  
-
+if(accountrefreshTokenToUse) {
       try {
 
         const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
@@ -907,6 +907,7 @@ if (accountRefreshToken) {
   // On error, set the refresh token to blank
   await updateAccountRefreshToken('');
   console.log('Refresh token set to blank due to error');
+}
 }
 
 console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
@@ -1082,7 +1083,7 @@ useEffect(() => {
 
 const pollForAccountRefreshToken = async () => {
   console.log("Starting poll for account refresh token");
-
+  let accountResponseBody = {};
   try {
       // Fetch account data using the serverless function
       const createaccounttable = await runServerless({
@@ -1097,8 +1098,6 @@ const pollForAccountRefreshToken = async () => {
 
       console.log("Successfully received account data from serverless function.");
 
-      // Parse account data
-      let accountResponseBody;
       try {
           accountResponseBody = JSON.parse(createaccounttable.response.body);
       } catch (err) {
