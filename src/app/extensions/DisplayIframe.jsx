@@ -1748,9 +1748,10 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-  <Flex direction="row" gap="small" align="center" wrap="wrap"> 
+  <Flex direction="row" gap="small" align="center"> 
     <LoadingButton
       loading={loadingTemplateId === template.id}
+      size="large"
       onClick={() => {
         setLoadingTemplateId(template.id);
         handleClick(template);
