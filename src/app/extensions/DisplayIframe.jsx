@@ -69,6 +69,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let collectionid = "";
   let dataSetId = "";
   let datasetid = "";
+  let projectId = "";
   let lastTemplateSyncDate;
   let accountResponseBody = {};
   let schema = [
@@ -824,7 +825,7 @@ if (!marqAccountId) {
 }
 
 if (accountRefreshToken) {
-  console.log("Using account refresh token:", accountRefreshToken);
+  console.log("Account refresh token:", accountRefreshToken);
   accountrefreshTokenToUse = accountRefreshToken;  // Use account refresh token
   // tokenSource = 'account';
 } else {
@@ -936,7 +937,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
           },
         });
 
-        let projectId = "";
+       
       
         // Check if response status is successful (usually 200 or 201)
         if (createProjectResponse?.response?.status === 200 || createProjectResponse?.response?.status === 201) {
@@ -1031,6 +1032,17 @@ console.log("marqaccountid for creating a project:", marqaccountid)
       
     } catch (error) {
       console.error('Error in handleClick:', error);
+
+      actions.closeIframeModal({ });
+      window.parent.postMessage(JSON.stringify({"action": "DONE"}), "*");
+
+      setShowTemplates(false);
+              setIsLoading(false);
+              actions.addAlert({
+                title: "Error with template sync",
+                variant: "danger",
+                message: `There was an error fetching templates. Please try connecting to Marq again`
+              });
       
     }
   };
