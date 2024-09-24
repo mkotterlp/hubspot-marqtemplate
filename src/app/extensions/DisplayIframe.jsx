@@ -880,18 +880,37 @@ if (!marqAccountId) {
             dataSourceId: dataSetId,
           },
         });
-      
-        // Log success or failure of the update-data3 call
-        if (updateDataResponse?.response?.statusCode === 200) {
-          console.log('Data updated successfully before project creation');
-        } else {
-          console.error('Failed to update data before project creation', updateDataResponse?.response?.body);
-          return; // Halt execution if data update fails
-        }
-      } catch (error) {
-        console.error('Error during update-data3 execution:', error);
-        return; // Halt execution in case of error
-      }
+
+     // Check if the response was successful
+  if (updateDataResponse?.response?.statusCode === 200) {
+    console.log('Data updated successfully before project creation');
+    
+    // Extract the new refresh token from the response if it exists
+    const newAccountRefreshToken = updateDataResponse?.response?.body?.new_refresh_token;
+
+    if (newAccountRefreshToken) {
+      // Call updateAccountRefreshToken to update the token in your system
+      await updateAccountRefreshToken(newAccountRefreshToken);
+      console.log('Account refresh token updated successfully');
+    } else {
+      console.log('No new refresh token found in the response');
+    }
+  } else {
+    console.error('Failed to update data before project creation', updateDataResponse?.response?.body);
+
+    // If an error occurred, set the refresh token to blank
+    await updateAccountRefreshToken('');
+    console.log('Refresh token set to blank due to failure');
+    return; // Halt execution if data update fails
+  }
+} catch (error) {
+  console.error('Error during update-data3 execution:', error);
+
+  // On error, set the refresh token to blank
+  await updateAccountRefreshToken('');
+  console.log('Refresh token set to blank due to error');
+  return; // Halt execution in case of error
+}
       
   
       // 4. Create the project using the user refresh token
