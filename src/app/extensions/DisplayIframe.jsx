@@ -68,8 +68,9 @@ const Extension = ({ context, actions, runServerless }) => {
   let collectionId = "";
   let dataSetId = "";
   let lastTemplateSyncDate;
-  let schema = [];
-  // let marquserid
+  let schema = [
+    { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+  ];
 
   
 
@@ -1476,11 +1477,6 @@ async function saveTokenToTable(refreshToken) {
 // UPDATED createOrUpdateDataset FUNCTION v3
 const createOrUpdateDataset = async (refreshToken) => {
   try {
-    schema = [
-      { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
-      // Add additional fields as required
-    ];
-
     const clientid = 'wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa';
     const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
