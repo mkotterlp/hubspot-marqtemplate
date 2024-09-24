@@ -1746,16 +1746,19 @@ return (
   {loadingTemplateId === template.id && (
     <Button
     variant="destructive"
+    size="small"
     onClick={() => {
       setLoadingTemplateId(null);
       setShouldPollForProjects({ isPolling: false, templateId: null });
     }}
   >
-    Cancel
+    X
   </Button>
   
   )}
 </Flex>
+              </TableCell>
+              <TableCell>
               </TableCell>
             </TableRow>
           );
