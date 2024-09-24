@@ -915,16 +915,7 @@ if(accountrefreshTokenToUse) {
 console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
 console.log("marqaccountid for creating a project:", marqaccountid)
 
-         // Step 7: Set iframe URL and open the iframe
-         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
-          enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
-          fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
-          showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
-        })));
-
-
-        const contactId = context.crm.objectId;
-  
+       
       // 4. Create the project using the user refresh token
       console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
     
@@ -950,64 +941,58 @@ console.log("marqaccountid for creating a project:", marqaccountid)
         let projectId = "";
         
         // Check if response status is successful
-        if (createProjectResponse?.response?.status === 200 || createProjectResponse?.response?.status === 201) {
+        if (createProjectResponse?.response?.statusCode === 200 || createProjectResponse?.response?.statusCode === 201) {
           try {
-            const projectData = JSON.parse(createProjectResponse.response.body);
-            console.log("Project created successfully:", projectData);
+              const projectData = JSON.parse(createProjectResponse.response.body);
+              console.log("Project created successfully:", projectData);
       
-            // Ensure projectId is extracted correctly
-            projectId = projectData.documentid;
-            if (!projectId) {
-              console.warn("Failed to create project through the API - reverting to URL method.");
+              // Ensure projectId is extracted correctly
+              projectId = projectData.documentid;
+              if (!projectId) {
+                  console.warn("Failed to create project through the API - reverting to URL method.");
+                  iframeFallback(template.id); // Fallback in case of failure
+                  return;
+              }
       
-              const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
+              console.log("Created Project ID:", projectId);
+
+              const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+                enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
+                fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
+                showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
+              })));
+      
+      
+              const contactId = context.crm.objectId;
+
+              const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
               const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
               
               iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
-              setIframeUrl(iframeSrc);
-              actions.openIframeModal({
-                uri: iframeSrc,
-                height: 1500,
-                width: 1500,
-                title: "Marq",
-              });
-              setIframeOpen(true);
-              setShouldPollForProjects({ isPolling: true, templateId: template.id });
-              return; // Exit early if reverting to URL method
-            }
+        
       
-            console.log("Created Project ID:", projectId);
+              // Update refresh token after project creation
+              const newRefreshToken = projectData.new_refresh_token || ""; // Set to "" if not found
+              console.log("Updated refresh_token after project creation:", newRefreshToken);
       
-            // Update refresh token after project creation
-            const newRefreshToken = projectData.new_refresh_token || ""; // Set to "" if not found
-            console.log("Updated refresh_token after project creation:", newRefreshToken);
-      
-            // Update the corresponding refresh token
-            console.log(marqaccountid, newRefreshToken);
-            await updateUserRefreshToken(marquserId, newRefreshToken);
-      
-            const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
-            const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
+              // Update the corresponding refresh token
+              await updateUserRefreshToken(marquserId, newRefreshToken);
             
-            iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
-      
           } catch (parseError) {
-            console.error("Error parsing project creation response:", parseError);
-            console.error("Raw response body:", createProjectResponse.response.body);
-            // Set refresh token to an empty string if there's a parsing error
-            await updateUserRefreshToken(marquserId, "");
-            // Ensure iframe fallback still happens
-            iframeFallback(template.id);
-            return;
+              console.error("Error parsing project creation response:", parseError);
+              console.error("Raw response body:", createProjectResponse.response.body);
+              await updateUserRefreshToken(marquserId, ""); // Clear refresh token on failure
+              iframeFallback(template.id); // Fallback in case of error
+              return;
           }
-        } else {
-          console.error("Failed to create project. Received response status:", createProjectResponse?.response?.status);
+      } else {
+          console.error("Failed to create project. Received response status:", createProjectResponse?.response?.statusCode);
           console.error("Response details:", createProjectResponse?.response);
-          // Set refresh token to an empty string in case of failure
-          await updateUserRefreshToken(marquserId, "");
-          iframeFallback(template.id); // Fallback in case of error
+          await updateUserRefreshToken(marquserId, ""); // Clear refresh token on failure
+          iframeFallback(template.id); // Fallback in case of failure
           return;
-        }
+      }
+      
       } catch (error) {
         console.error("Error occurred during project creation:", error);
         if (error.response) {
@@ -1036,7 +1021,6 @@ console.log("marqaccountid for creating a project:", marqaccountid)
   console.error('Error in handleClick:', error);
   
   // Ensure the modal closes and state is reset
-  actions.closeIframeModal();
   window.postMessage(JSON.stringify({ "action": "DONE" }), "*");
 
   setShowTemplates(false);
@@ -1055,6 +1039,16 @@ console.log("marqaccountid for creating a project:", marqaccountid)
        * Fallback function to revert to the URL method in case of any failure
        */
       function iframeFallback(templateId) {
+
+        const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
+          enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
+          fileTypes: configData.fileTypes?.map(fileType => fileType.name) || ["pdf"],
+          showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
+        })));
+
+
+        const contactId = context.crm.objectId;
+
         const returnUrl = `https://app.marq.com/documents/editNewIframed/${templateId}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${templateId}`;
         const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
       
