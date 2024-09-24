@@ -66,7 +66,9 @@ const Extension = ({ context, actions, runServerless }) => {
   let currentAccountRefreshToken = "";
   let marqAccountId = "";
   let collectionId = "";
+  let collectionid = "";
   let dataSetId = "";
+  let datasetid = "";
   let lastTemplateSyncDate;
   let accountResponseBody = {};
   let schema = [
