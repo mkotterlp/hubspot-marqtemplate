@@ -935,6 +935,8 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             dataSetId: dataSetId,
           },
         });
+
+        let projectId = "";
       
         // Check if response status is successful (usually 200 or 201)
         if (createProjectResponse?.response?.status === 200 || createProjectResponse?.response?.status === 201) {
@@ -942,7 +944,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             const projectData = JSON.parse(createProjectResponse.response.body);
             console.log("Project created successfully:", projectData);
       
-            const projectId = projectData.documentid;
+            projectId = projectData.documentid;
             console.log("Created Project ID:", projectId);
       
             // Update refresh token after project creation
@@ -1547,19 +1549,17 @@ const createOrUpdateDataset = async (refreshToken) => {
     accountResponseBody = JSON.parse(checkDatasetResponse.response.body);
 
     const accountData = accountResponseBody?.dataRow?.values || {};
+    const matchedData = accountResponseBody?.matchedRow?.values || {};
 
     const marqAccountId = accountData?.accountId || null;
 
-    if (!marqAccountId) {
-      console.error("marqAccountId is missing, cannot proceed.");
-      return;
-    }
+    if (matchedData) {
 
-  // Check if the dataset already exists
-  const datasetExists = accountResponseBody?.exists || false;
-    
-  if (datasetExists) {
     console.log(`Dataset already exists for objectType: ${objectType}`);
+
+    datasetid = accountData?.datasetid || null;
+    collectionid = accountData?.collectionid || null;
+
     return; // Dataset already exists, exit
   } else { 
 
