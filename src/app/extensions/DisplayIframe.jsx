@@ -961,14 +961,12 @@ console.log("marqaccountid for creating a project:", marqaccountid)
           showTabs: configData.showTabs?.map(tab => tab.name) || ["templates"],
         })));
         const contactId = context.crm.objectId;
-        const hasImportData = dataSetType !== 'none' && importData;
 
 
           const returnUrl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
       const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
        
-        const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
-        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+        iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
       
         setIframeUrl(iframeSrc);
         actions.openIframeModal({
@@ -985,8 +983,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
         const returnUrl = `https://app.marq.com/documents/editNewIframed/${template.id}?embeddedOptions=${encodedOptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&dealstage=${stageName}&templateid=${template.id}`;
         const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(returnUrl)}`;
          
-          const innerurl = hasImportData ? `${baseInnerUrl}&${importData}` : baseInnerUrl;
-          iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(innerurl);
+          iframeSrc = 'https://info.marq.com/marqembed?iframeUrl=' + encodeURIComponent(baseInnerUrl);
         
           setIframeUrl(iframeSrc);
           actions.openIframeModal({
