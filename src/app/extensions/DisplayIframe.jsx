@@ -800,20 +800,19 @@ if (!createaccounttable?.response?.body) {
   return;
 }
 
-console.log("Successfully received account data from serverless function.");
-
-
+let accountTableResponseBody = {};
 try {
-  accountResponseBody = JSON.parse(createaccounttable.response.body);
+  accountTableResponseBody = JSON.parse(createaccounttable.response.body);
 } catch (err) {
   console.error("Failed to parse response body as JSON:", err);
   return;
 }
 
-const accountData = accountResponseBody?.dataRow?.values || {};
+const accountData = accountTableResponseBody?.dataRow?.values || {};
+console.log('accountData:', accountData);
 
 // Extract the refresh token
-const accountRefreshToken = accountData?.refreshToken || null;
+currentAccountRefreshToken = accountData?.refreshToken || null;
 marqAccountId = accountData?.accountId || null;
 dataSetId = accountData?.datasetid || null;
 collectionId = accountData?.collectionid || null;
@@ -823,9 +822,8 @@ if (!marqAccountId) {
   return;
 }
 
-if (accountRefreshToken) {
-  console.log("Account refresh token:", accountRefreshToken);
-  accountrefreshTokenToUse = accountRefreshToken;  // Use account refresh token
+if (currentAccountRefreshToken) {
+  console.log("Account refresh token:", currentAccountRefreshToken);
   // tokenSource = 'account';
 } else {
   console.log("No account refresh token found.");
@@ -863,7 +861,7 @@ if (accountRefreshToken) {
       const templatetitle = template?.title || '';
 
  
-if(accountrefreshTokenToUse) {
+if(currentAccountRefreshToken) {
       try {
 
         const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
@@ -872,7 +870,7 @@ if(accountrefreshTokenToUse) {
         const updateDataResponse = await runServerless({
           name: 'updateData3',
           parameters: {
-            refresh_token: accountrefreshTokenToUse,
+            refresh_token: currentAccountRefreshToken,
             clientid: clientid,
             clientsecret: clientsecret,
             collectionId: collectionId,
