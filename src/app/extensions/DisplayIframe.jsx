@@ -1740,7 +1740,7 @@ return (
 
           return matchingProject ? (
             <TableRow key={matchingProject.objectId || index}>
-              <TableCell flex={1}>
+              <TableCell>
                 <Image
                   alt="File Preview"
                   src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
@@ -1749,7 +1749,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell flex={1}>
+              <TableCell>
                 <Link
                   href="#"
                   onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}
@@ -1759,8 +1759,8 @@ return (
                   {matchingProject.name}
                 </Link>
               </TableCell>
-              <TableCell flex={1}>{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
-              <TableCell flex={3}>
+              <TableCell>{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
+              <TableCell>
                 <ButtonRow disableDropdown={false}>
                   <Button onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}>
                     Open
@@ -1786,7 +1786,7 @@ return (
             </TableRow>
           ) : (
             <TableRow key={template.id || index} onClick={() => setSelectedRow(selectedRow === index ? null : index)}>
-              <TableCell flex={1}>
+              <TableCell>
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
@@ -1796,7 +1796,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell flex={1}>
+              <TableCell>
                 <Link
                   href="#"
                   onClick={() => handleClick(template)}
@@ -1808,7 +1808,8 @@ return (
                 </Link>
               </TableCell>
               <TableCell />
-              <TableCell flex={w}>
+              <TableCell width="max">
+  <Box flex={3}> {/* Increase the flex value to make this column larger */}
     <Flex direction="row" gap="small" align="center"> 
       <LoadingButton
         loading={loadingTemplateId === template.id}
@@ -1834,6 +1835,7 @@ return (
         </Button>
       )}
     </Flex>
+  </Box>
 </TableCell>
 
 
