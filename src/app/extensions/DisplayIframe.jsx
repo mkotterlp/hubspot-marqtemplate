@@ -1017,9 +1017,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
 
 } catch (error) {
   console.error('Error in handleClick:', error);
-  
-  // Ensure the modal closes and state is reset
-  window.postMessage(JSON.stringify({ "action": "DONE" }), "*");
+  iframeFallback(template.id);
 
   setShowTemplates(false);
   setIsLoading(false);
