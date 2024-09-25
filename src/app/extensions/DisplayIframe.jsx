@@ -1759,7 +1759,7 @@ return (
                   {matchingProject.name}
                 </Link>
               </TableCell>
-              <TableCell width="min">{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
+              <TableCell width="auto">{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
               <TableCell width="max">
                 <ButtonRow disableDropdown={false}>
                   <Button onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}>
@@ -1807,7 +1807,7 @@ return (
                   {template.title}
                 </Link>
               </TableCell>
-              <TableCell width="min">
+              <TableCell width="auto">
               </TableCell>
               <TableCell width="max">
   <Box flex={3}> {/* Increase the flex value to make this column larger */}
