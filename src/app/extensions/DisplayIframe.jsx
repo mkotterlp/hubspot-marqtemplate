@@ -1584,7 +1584,6 @@ const createOrUpdateDataset = async (refreshToken) => {
     const clientsecret = 'YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX';
 
     // Log start
-    console.log(`Starting createOrUpdateDataset for objectType: ${objectType}`);
 
     // Check if the dataset already exists
     const checkDatasetResponse = await runServerless({
@@ -1596,6 +1595,9 @@ const createOrUpdateDataset = async (refreshToken) => {
     
     accountResponseBody = JSON.parse(checkDatasetResponse.response.body);
 
+    console.log(`accountResponseBody: ${accountResponseBody}`);
+
+
     const accountData = accountResponseBody?.dataRow?.values || {};
     const matchedData = accountResponseBody?.matchedRow?.values || {};
 
@@ -1606,11 +1608,16 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     if (datasetid && collectionid) {
 
+      console.log(`datasetid: ${datasetid}`);
+      console.log(`collectionid: ${collectionid}`);
+
+
     console.log(`Dataset and collection already exists for objectType: ${objectType}`);
 
     return; // Dataset already exists, exit
   } else { 
 
+    console.log(`Starting dataset creation for objectType: ${objectType}`);
 
     // Call the createDataset serverless function
     const createDatasetResponse = await runServerless({
