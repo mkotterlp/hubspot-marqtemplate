@@ -1595,7 +1595,7 @@ const createOrUpdateDataset = async (refreshToken) => {
     
     accountResponseBody = JSON.parse(checkDatasetResponse.response.body);
 
-    console.log(`accountResponseBody: ${accountResponseBody}`);
+    console.log(`accountResponseBody: ${JSON.stringify(accountResponseBody, null, 2)}`);
 
 
     const accountData = accountResponseBody?.dataRow?.values || {};
