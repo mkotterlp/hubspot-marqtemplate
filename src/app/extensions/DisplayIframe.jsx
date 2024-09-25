@@ -1407,7 +1407,7 @@ const fetchMarqAccountData = async () => {
         console.log("Account refresh token found. Hiding account token button.");
 
         if (!datasetid || !collectionid) {
-          await createOrUpdateDataset();
+          await createOrUpdateDataset(currentAccountRefreshToken);
           console.log("Created dataset/collection")
         }
       } else {
