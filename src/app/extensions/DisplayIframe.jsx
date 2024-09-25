@@ -1407,6 +1407,8 @@ const fetchMarqAccountData = async () => {
       }
     } else {
       console.error("Failed to fetch Marq account data.");
+      setIsAccountTokenClicked(false);
+      setShowAccountTokenButton(true);
     }
   } catch (error) {
     console.error("Error in fetching Marq account data:", error);
