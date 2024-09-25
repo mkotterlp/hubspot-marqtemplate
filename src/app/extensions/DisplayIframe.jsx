@@ -1588,13 +1588,13 @@ const createOrUpdateDataset = async (refreshToken) => {
     const matchedData = accountResponseBody?.matchedRow?.values || {};
 
     const marqAccountId = accountData?.accountId || null;
-
-    if (matchedData) {
-
-    console.log(`Dataset already exists for objectType: ${objectType}`);
-
     datasetid = accountData?.datasetid || null;
     collectionid = accountData?.collectionid || null;
+
+
+    if (datasetid && collectionid) {
+
+    console.log(`Dataset and collection already exists for objectType: ${objectType}`);
 
     return; // Dataset already exists, exit
   } else { 
