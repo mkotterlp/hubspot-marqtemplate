@@ -1809,33 +1809,35 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-  <Flex direction="row" gap="small" align="center"> 
-    <LoadingButton
-      loading={loadingTemplateId === template.id}
-      size="large"
-      onClick={() => {
-        setLoadingTemplateId(template.id);
-        handleClick(template);
-      }}
-    >
-      {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
-    </LoadingButton>
-
-    {/* Cancel Button */}
-    {loadingTemplateId === template.id && (
-      <Button
-        variant="destructive"
-        size="small"
+  <Box flex={3}> {/* Increase the flex value to make this column larger */}
+    <Flex direction="row" gap="small" align="center"> 
+      <LoadingButton
+        loading={loadingTemplateId === template.id}
+        size="large"
         onClick={() => {
-          setLoadingTemplateId(null);
-          setShouldPollForProjects({ isPolling: false, templateId: null });
+          setLoadingTemplateId(template.id);
+          handleClick(template);
         }}
       >
-        X
-      </Button>
-    )}
-  </Flex>
+        {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
+      </LoadingButton>
+
+      {loadingTemplateId === template.id && (
+        <Button
+          variant="destructive"
+          size="small"
+          onClick={() => {
+            setLoadingTemplateId(null);
+            setShouldPollForProjects({ isPolling: false, templateId: null });
+          }}
+        >
+          X
+        </Button>
+      )}
+    </Flex>
+  </Box>
 </TableCell>
+
 
 
             </TableRow>
