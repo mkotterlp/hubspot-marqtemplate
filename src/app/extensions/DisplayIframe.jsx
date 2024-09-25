@@ -1740,7 +1740,7 @@ return (
 
           return matchingProject ? (
             <TableRow key={matchingProject.objectId || index}>
-              <TableCell width="max">
+              <TableCell width="auto">
                 <Image
                   alt="File Preview"
                   src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
@@ -1786,7 +1786,7 @@ return (
             </TableRow>
           ) : (
             <TableRow key={template.id || index} onClick={() => setSelectedRow(selectedRow === index ? null : index)}>
-              <TableCell width="max">
+              <TableCell width="auto">
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
