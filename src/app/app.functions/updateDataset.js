@@ -80,7 +80,7 @@ const updateTableRow = async (hubspotClient, tableId, objectType, rowData) => {
         throw new Error('Failed to fetch rows from the marq_account_data table.');
     }
 
-    const existingRow = rowsResponse.results.find(row => row.values.objectType === objectType);
+    const existingRow = rowsResponse.results.find(row => row.values.objectType.toLowerCase() === objectType.toLowerCase());
     if (!existingRow) {
         throw new Error(`ObjectType ${objectType} not found in the marq_account_data table.`);
     }
