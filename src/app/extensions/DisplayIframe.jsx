@@ -1635,6 +1635,15 @@ const createOrUpdateDataset = async (refreshToken) => {
         }
       });
 
+      await runServerless({
+        name: 'updateDataset',
+        parameters: {
+          objectType: objectType,
+          datasetid: datasetid,
+          collectionid: collectionid
+        }
+      });
+
     } else {
       // Handle failure case and update account refresh with a blank value
       console.error(`Failed to create dataset for ${objectType}:`, createDatasetResponse?.response?.body);
