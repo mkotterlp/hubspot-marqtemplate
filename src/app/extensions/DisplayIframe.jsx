@@ -44,7 +44,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [filteredTemplates, setFilteredTemplates] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [dataFetched, setDataFetched] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
