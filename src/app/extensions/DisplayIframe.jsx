@@ -1394,11 +1394,12 @@ const fetchMarqAccountData = async () => {
 
     if (createaccounttable?.response?.body) {
       const accountData = JSON.parse(createaccounttable.response.body)?.dataRow?.values || {};
+      const matchedData = JSON.parse(createaccounttable.response.body)?.objectTypeRow?.values || {};
       const currentAccountRefreshToken = accountData.refreshToken || null;
       console.log("Account refresh token:", currentAccountRefreshToken);
 
-      datasetid = accountData.datasetid || null;
-      collectionid = accountData.collectionid || null;
+      datasetid = matchedData.datasetid || null;
+      collectionid = matchedData.collectionid || null;
 
       // Validate account refresh token and show/hide button accordingly
       if (currentAccountRefreshToken) {
@@ -1599,7 +1600,7 @@ const createOrUpdateDataset = async (refreshToken) => {
 
 
     const accountData = accountResponseBody?.dataRow?.values || {};
-    const matchedData = accountResponseBody?.matchedRow?.values || {};
+    const matchedData = accountResponseBody?.objectTypeRow?.values || {};
 
     const marqAccountId = accountData?.accountId || null;
     datasetid = matchedData?.datasetid || null;
