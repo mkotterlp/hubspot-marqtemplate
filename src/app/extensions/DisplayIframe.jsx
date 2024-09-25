@@ -1740,7 +1740,7 @@ return (
 
           return matchingProject ? (
             <TableRow key={matchingProject.objectId || index}>
-              <TableCell width="auto">
+              <TableCell width="max">
                 <Image
                   alt="File Preview"
                   src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
@@ -1749,7 +1749,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell width="auto">
+              <TableCell width="min">
                 <Link
                   href="#"
                   onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}
@@ -1786,7 +1786,7 @@ return (
             </TableRow>
           ) : (
             <TableRow key={template.id || index} onClick={() => setSelectedRow(selectedRow === index ? null : index)}>
-              <TableCell width="auto">
+              <TableCell width="max">
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
@@ -1796,7 +1796,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell width="auto">
+              <TableCell width="min">
                 <Link
                   href="#"
                   onClick={() => handleClick(template)}
@@ -1807,7 +1807,6 @@ return (
                   {template.title}
                 </Link>
               </TableCell>
-              <TableCell />
               <TableCell width="max">
   <Box flex={3}> {/* Increase the flex value to make this column larger */}
     <Flex direction="row" gap="small" align="center"> 
