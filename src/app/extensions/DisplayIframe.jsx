@@ -71,7 +71,6 @@ const Extension = ({ context, actions, runServerless }) => {
   let datasetid = "";
   let lastTemplateSyncDate;
   let accountResponseBody = {};
-  let iframeSrc = "";
   let schema = [
     { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
   ];
@@ -743,7 +742,7 @@ const deleteRecord = async (recordId, objectType) => {
 
 
   const handleClick = async (template) => {
-    iframeSrc = 'https://info.marq.com/loading';
+    let iframeSrc = 'https://info.marq.com/loading';
   
     // Set iframe to loading
     setIframeUrl(iframeSrc);
@@ -1036,6 +1035,18 @@ console.log("marqaccountid for creating a project:", marqaccountid)
        * Fallback function to revert to the URL method in case of any failure
        */
       function iframeFallback(templateId) {
+
+        let iframeSrc = 'https://info.marq.com/loading';
+  
+        // Set iframe to loading
+        setIframeUrl(iframeSrc);
+        actions.openIframeModal({
+          uri: iframeSrc,
+          height: 1500,
+          width: 1500,
+          title: "Marq",
+        });
+        setIframeOpen(true);
 
         const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
           enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
@@ -1808,7 +1819,6 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
-              <ButtonRow disableDropdown={false}>
     <LoadingButton
       loading={loadingTemplateId === template.id}
       size="large"
@@ -1833,7 +1843,6 @@ return (
         X
       </Button>
     )}
-    </ButtonRow>
 </TableCell>
 
 
