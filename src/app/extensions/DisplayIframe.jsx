@@ -1600,8 +1600,8 @@ const createOrUpdateDataset = async (refreshToken) => {
     const matchedData = accountResponseBody?.matchedRow?.values || {};
 
     const marqAccountId = accountData?.accountId || null;
-    datasetid = accountData?.datasetid || null;
-    collectionid = accountData?.collectionid || null;
+    datasetid = matchedData?.datasetid || null;
+    collectionid = matchedData?.collectionid || null;
 
 
     if (datasetid && collectionid) {
