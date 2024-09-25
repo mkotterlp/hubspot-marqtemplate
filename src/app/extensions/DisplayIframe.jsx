@@ -1740,7 +1740,7 @@ return (
 
           return matchingProject ? (
             <TableRow key={matchingProject.objectId || index}>
-              <TableCell width="auto">
+              <TableCell>
                 <Image
                   alt="File Preview"
                   src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
@@ -1749,7 +1749,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell width="auto">
+              <TableCell>
                 <Link
                   href="#"
                   onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}
@@ -1759,8 +1759,8 @@ return (
                   {matchingProject.name}
                 </Link>
               </TableCell>
-              <TableCell width="auto">{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
-              <TableCell width="max">
+              <TableCell>{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
+              <TableCell>
                 <ButtonRow disableDropdown={false}>
                   <Button onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}>
                     Open
@@ -1786,7 +1786,7 @@ return (
             </TableRow>
           ) : (
             <TableRow key={template.id || index} onClick={() => setSelectedRow(selectedRow === index ? null : index)}>
-              <TableCell width="auto">
+              <TableCell>
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
@@ -1796,7 +1796,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell width="auto">
+              <TableCell>
                 <Link
                   href="#"
                   onClick={() => handleClick(template)}
@@ -1807,38 +1807,33 @@ return (
                   {template.title}
                 </Link>
               </TableCell>
-              <TableCell width="auto">
-              </TableCell>
-              <TableCell width="max">
-  <Box flex={3}> {/* Increase the flex value to make this column larger */}
-    <Flex direction="row" gap="small" align="center"> 
-      <LoadingButton
-        loading={loadingTemplateId === template.id}
-        size="large"
+              <TableCell />
+              <TableCell>
+    <LoadingButton
+      loading={loadingTemplateId === template.id}
+      size="large"
+      onClick={() => {
+        setLoadingTemplateId(template.id);
+        handleClick(template);
+      }}
+    >
+      {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
+    </LoadingButton>
+
+    {/* Cancel Button */}
+    {loadingTemplateId === template.id && (
+      <Button
+        variant="destructive"
+        size="small"
         onClick={() => {
-          setLoadingTemplateId(template.id);
-          handleClick(template);
+          setLoadingTemplateId(null);
+          setShouldPollForProjects({ isPolling: false, templateId: null });
         }}
       >
-        {loadingTemplateId === template.id ? 'Saving...' : 'Create'}
-      </LoadingButton>
-
-      {loadingTemplateId === template.id && (
-        <Button
-          variant="destructive"
-          size="small"
-          onClick={() => {
-            setLoadingTemplateId(null);
-            setShouldPollForProjects({ isPolling: false, templateId: null });
-          }}
-        >
-          X
-        </Button>
-      )}
-    </Flex>
-  </Box>
+        X
+      </Button>
+    )}
 </TableCell>
-
 
 
             </TableRow>
