@@ -1749,7 +1749,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell width="min">
+              <TableCell width="auto">
                 <Link
                   href="#"
                   onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}
@@ -1796,7 +1796,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell width="min">
+              <TableCell width="auto">
                 <Link
                   href="#"
                   onClick={() => handleClick(template)}
@@ -1806,6 +1806,8 @@ return (
                 >
                   {template.title}
                 </Link>
+              </TableCell>
+              <TableCell width="min">
               </TableCell>
               <TableCell width="max">
   <Box flex={3}> {/* Increase the flex value to make this column larger */}
