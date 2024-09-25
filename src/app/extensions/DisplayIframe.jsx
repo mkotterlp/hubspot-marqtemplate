@@ -71,6 +71,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let datasetid = "";
   let lastTemplateSyncDate;
   let accountResponseBody = {};
+  let iframeSrc = "";
   let schema = [
     { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
   ];
@@ -742,7 +743,7 @@ const deleteRecord = async (recordId, objectType) => {
 
 
   const handleClick = async (template) => {
-    let iframeSrc = 'https://info.marq.com/loading';
+    iframeSrc = 'https://info.marq.com/loading';
   
     // Set iframe to loading
     setIframeUrl(iframeSrc);
