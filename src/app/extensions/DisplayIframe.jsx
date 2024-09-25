@@ -814,8 +814,8 @@ console.log('accountData:', accountData);
 // Extract the refresh token
 currentAccountRefreshToken = accountData?.refreshToken || null;
 marqAccountId = accountData?.accountId || null;
-dataSetId = accountData?.datasetid || null;
-collectionId = accountData?.collectionid || null;
+datasetid = accountData?.datasetid || null;
+collectionid = accountData?.collectionid || null;
 
 if (!marqAccountId) {
   console.error("marqAccountId is missing, cannot proceed.");
@@ -876,7 +876,7 @@ if(currentAccountRefreshToken) {
             collectionId: collectionId,
             properties: properties,
             schema: schema,
-            dataSourceId: dataSetId,
+            dataSourceId: datasetid,
           },
         });
 
@@ -929,7 +929,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
             templateid: templateid,
             templatetitle: templatetitle,
             marqaccountid: marqaccountid,
-            dataSetId: dataSetId,
+            dataSetId: datasetid,
           },
         });
       
