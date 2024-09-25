@@ -1740,7 +1740,7 @@ return (
 
           return matchingProject ? (
             <TableRow key={matchingProject.objectId || index}>
-              <TableCell>
+              <TableCell width="auto">
                 <Image
                   alt="File Preview"
                   src={`https://app.marq.com/documents/thumb/${matchingProject.projectid}/0/2048/NULL/400`}
@@ -1749,7 +1749,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell>
+              <TableCell width="auto">
                 <Link
                   href="#"
                   onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}
@@ -1759,8 +1759,8 @@ return (
                   {matchingProject.name}
                 </Link>
               </TableCell>
-              <TableCell>{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
-              <TableCell>
+              <TableCell width="min">{formatDate(matchingProject.hs_lastmodifieddate)}</TableCell>
+              <TableCell width="max">
                 <ButtonRow disableDropdown={false}>
                   <Button onClick={() => editClick(matchingProject.projectid, matchingProject.fileid, matchingProject.encodedoptions)}>
                     Open
@@ -1786,7 +1786,7 @@ return (
             </TableRow>
           ) : (
             <TableRow key={template.id || index} onClick={() => setSelectedRow(selectedRow === index ? null : index)}>
-              <TableCell>
+              <TableCell width="auto">
                 <Image
                   alt="Template Preview"
                   src={`https://app.marq.com/documents/thumb/${template.id}/0/2048/NULL/400`}
@@ -1796,7 +1796,7 @@ return (
                   width={100}
                 />
               </TableCell>
-              <TableCell>
+              <TableCell width="auto">
                 <Link
                   href="#"
                   onClick={() => handleClick(template)}
