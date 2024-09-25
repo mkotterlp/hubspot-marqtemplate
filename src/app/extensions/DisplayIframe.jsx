@@ -1807,6 +1807,7 @@ return (
               </TableCell>
               <TableCell />
               <TableCell>
+              <ButtonRow disableDropdown={false}>
     <LoadingButton
       loading={loadingTemplateId === template.id}
       size="large"
@@ -1831,6 +1832,7 @@ return (
         X
       </Button>
     )}
+    </ButtonRow>
 </TableCell>
 
 
