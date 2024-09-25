@@ -1364,6 +1364,11 @@ const initialize = async () => {
           // Step 2: Fetch Marq account data if refresh token is valid
           await fetchMarqAccountData();
           console.log("fetched Marq AccountData")
+
+          if (!datasetid || !collectionid) {
+            await createOrUpdateDataset();
+            console.log("Created dataset/collection")
+          }
         } else {
           // No refresh token, handle polling or error case
           console.log("No refresh token available. Not showing templates.");
@@ -1394,6 +1399,9 @@ const fetchMarqAccountData = async () => {
       const accountData = JSON.parse(createaccounttable.response.body)?.dataRow?.values || {};
       const currentAccountRefreshToken = accountData.refreshToken || null;
       console.log("Account refresh token:", currentAccountRefreshToken);
+
+      datasetid = accountData.datasetid || null;
+      collectionid = accountData.collectionid || null;
 
       // Validate account refresh token and show/hide button accordingly
       if (currentAccountRefreshToken) {
