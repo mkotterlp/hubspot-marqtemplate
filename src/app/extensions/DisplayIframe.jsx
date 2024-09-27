@@ -36,6 +36,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [initialFilteredTemplates, setInitialFilteredTemplates] = useState([]);
   const [config, setConfig] = useState({});
   const [fieldsArray, setFieldsArray] = useState([]);
+  const [dataArray, setDataArray] = useState([]);
   const [filtersArray, setFiltersArray] = useState([]);
   const [projects, setProjects] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -273,8 +274,13 @@ const Extension = ({ context, actions, runServerless }) => {
           configData = JSON.parse(configDataResponse.response.body).values || {};
           const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
           const filters = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
+          const dataFields = configData.dataFields?.split(',').map(field => field.trim()) || [];
           setFieldsArray(fields);
           setFiltersArray(filters);
+          setDataArray(dataFields);
+
+           // Log dataFields for debugging
+          console.log('Pulled dataFields:', dataFields);
   
           const propertiesToWatch = configData.textboxFields ? configData.textboxFields.split(',').map(field => field.trim()) : [];
           setpropertiesToWatch(propertiesToWatch);
