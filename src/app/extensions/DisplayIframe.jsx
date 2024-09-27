@@ -809,13 +809,15 @@ try {
 }
 
 const accountData = accountTableResponseBody?.dataRow?.values || {};
+const matchedData = accountTableResponseBody?.objectTypeRow?.values || {};
+
 console.log('accountData:', accountData);
 
 // Extract the refresh token
 currentAccountRefreshToken = accountData?.refreshToken || null;
 marqAccountId = accountData?.accountId || null;
-datasetid = accountData?.datasetid || null;
-collectionid = accountData?.collectionid || null;
+datasetid = matchedData?.datasetid || null;
+collectionid = matchedData?.collectionid || null;
 
 if (!marqAccountId) {
   console.error("marqAccountId is missing, cannot proceed.");
@@ -873,7 +875,7 @@ if(currentAccountRefreshToken) {
             refresh_token: currentAccountRefreshToken,
             clientid: clientid,
             clientsecret: clientsecret,
-            collectionId: collectionId,
+            collectionId: collectionid,
             properties: properties,
             schema: schema,
             dataSourceId: datasetid,
@@ -1598,7 +1600,7 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     console.log(`accountResponseBody: ${JSON.stringify(accountResponseBody, null, 2)}`);
 
-
+    
     const accountData = accountResponseBody?.dataRow?.values || {};
     const matchedData = accountResponseBody?.objectTypeRow?.values || {};
 
