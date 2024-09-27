@@ -62,6 +62,8 @@ const Extension = ({ context, actions, runServerless }) => {
 
   let paginatedTemplates = [];
   let propertiesBody = {}; 
+  let mappeddynamicproperties = {};
+  let dynamicpropertiesBody = {}; 
   let configData = {};
   let templateLink;
   let currentRefreshToken = "";
@@ -280,7 +282,9 @@ const Extension = ({ context, actions, runServerless }) => {
 
            // Log dataFields for debugging
           console.log('Pulled dataFields:', dataFields);
-  
+
+      
+          
           const propertiesToWatch = configData.textboxFields ? configData.textboxFields.split(',').map(field => field.trim()) : [];
           setpropertiesToWatch(propertiesToWatch);
   
@@ -305,6 +309,54 @@ const Extension = ({ context, actions, runServerless }) => {
               console.error("Error occurred while fetching CRM properties:", propertiesError);
             }
           }
+
+          // Group dynamic fields by their object types (parsed from dataFields)
+        const objectTypeFieldsMap = {};
+
+        // Dynamically group dataFields by their object types (e.g., deal, contact, etc.)
+        dynamicFields.forEach(dataField => {
+            const [objectType, field] = dataField.split('.');  // e.g., 'deal.dealstage'
+            if (!objectTypeFieldsMap[objectType]) {
+                objectTypeFieldsMap[objectType] = [];
+            }
+            objectTypeFieldsMap[objectType].push(field);
+        });
+
+        for (const [objectType, fieldsForObject] of Object.entries(objectTypeFieldsMap)) {
+          try {
+              const dynamicpropertiesResponse = await runServerless({
+                  name: 'getObjectProperties',
+                  parameters: {
+                      objectId: context.crm.objectId,
+                      objectType,  // Dynamic objectType
+                      properties: fieldsForObject  // Fields for this objectType
+                  }
+              });
+      
+              if (dynamicpropertiesResponse?.response?.body) {
+                  const responseBody = JSON.parse(dynamicpropertiesResponse.response.body);
+                  dynamicpropertiesBody = responseBody.mappedProperties || {};
+      
+                  console.log(`Fetched properties for dynamic objectType (${objectType}):`, dynamicpropertiesBody);
+      
+                  // Iterate over dataFields and map to mappeddynamicproperties
+                  dataFields.forEach((dataField) => {
+                      const [objectType, field] = dataField.split('.');  // e.g., 'deal.dealstage'
+                      const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
+      
+                      // Map the original key (e.g., "deal.dealstage") to its corresponding value
+                      mappeddynamicproperties[dataField] = fieldValue || '';  // Handle missing values
+                  });
+      
+                  console.log("Mapped Dynamic Properties after fetching:", mappeddynamicproperties);
+              } else {
+                  console.error(`Failed to fetch properties for dynamic objectType (${objectType})`, dynamicpropertiesResponse);
+              }
+          } catch (error) {
+              console.error(`Error fetching properties for dynamic objectType (${objectType}):`, error);
+          }
+      }
+      
           
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
@@ -879,6 +931,7 @@ if(currentAccountRefreshToken) {
 
      // Append the Id field to the properties object
      properties["Id"] = recordid;
+     properties["Marq User Restriction"] = context.user.email;
 
     // Call update-data3 function
     const updateDataResponse = await runServerless({
@@ -1319,8 +1372,9 @@ useEffect(() => {
       return () => clearTimeout(delayDebounceFn);
     } else {
       setTitle('Relevant Content');
-      console.log('Search term cleared. Resetting templates.');
-      setFilteredTemplates([...initialFilteredTemplates]);  // Reset to initial templates
+      console.log('Search term cleared. Resetting templates.', initialFilteredTemplates);
+      setFilteredTemplates([...initialFilteredTemplates]);
+      setCurrentPage(1);
       setTemplates([...initialFilteredTemplates]);
     }
   }, [searchTerm, initialFilteredTemplates]);
