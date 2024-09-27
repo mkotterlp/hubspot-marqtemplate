@@ -60,7 +60,6 @@ const Extension = ({ context, actions, runServerless }) => {
   const pollingTimerRef = useRef(null);
   const hasSyncedOnceRef = useRef(false); 
 
-  let initialtemplates = [];
   let propertiesBody = {}; 
   let configData = {};
   let templateLink;
@@ -331,11 +330,9 @@ const Extension = ({ context, actions, runServerless }) => {
                       return category && category.values.map(v => v.toLowerCase()).includes(propertyValue);
                     });
                   });
-                  console.log("Filtered Templates:", filtered);
-                  initialtemplates = filtered.length > 0 ? filtered : fetchedTemplates;
-
+                  console.log("Filtered Templates:", filtered);                  
                   setFilteredTemplates([...filtered.length > 0 ? filtered : fetchedTemplates]);
-                  // setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
                   setIsLoading(false);
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
@@ -1310,12 +1307,12 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      setFilteredTemplates(...initialtemplates); // Reset to initially filtered templates
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [initialtemplates]);
+  }, [initialFilteredTemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
@@ -1335,7 +1332,7 @@ useEffect(() => {
   
       return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, templates, initialtemplates]);
+  }, [searchTerm, templates, initialFilteredTemplates]);
   
 
 
