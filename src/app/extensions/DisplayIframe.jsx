@@ -364,19 +364,25 @@ const Extension = ({ context, actions, runServerless }) => {
                 // Iterate over dataFields and map to mappeddynamicproperties
                 dataFields.forEach((dataField) => {
                     const parts = dataField.split('.');  // e.g., 'deal.dealstage'
-                    if (parts.length === 2) {
-                        const [objectType, field] = parts;
+                    
+                    // Only update fields with the correct prefix (e.g., deal.amount for deal objectType)
+                    if (parts.length === 2 && parts[0] === objectType) {
+                        const [objectTypePrefix, field] = parts;
                         const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
-                        mappeddynamicproperties[dataField] = fieldValue || '';  // Map and handle missing values
+                        if (fieldValue !== null && fieldValue !== '') {
+                            mappeddynamicproperties[dataField] = fieldValue;  // Only map if value is non-empty
+                        }
                     } else if (parts.length === 1) {
                         // Handle fields without an explicit objectType (using default)
                         const field = parts[0];
                         const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
-                        mappeddynamicproperties[dataField] = fieldValue || '';  // Map and handle missing values
+                        if (fieldValue !== null && fieldValue !== '') {
+                            mappeddynamicproperties[dataField] = fieldValue;  // Only map if value is non-empty
+                        }
                     }
                 });
     
-                // Merge new properties with the existing ones to avoid overwriting
+                // Merge new properties with the existing ones, but only overwrite if non-empty
                 setDynamicProperties((prevProperties) => ({
                     ...prevProperties,
                     ...mappeddynamicproperties
@@ -390,6 +396,7 @@ const Extension = ({ context, actions, runServerless }) => {
             console.error(`Error fetching properties for dynamic objectType (${objectType}):`, error);
         }
     }
+    
     
     
       
