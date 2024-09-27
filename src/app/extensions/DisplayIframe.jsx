@@ -956,6 +956,8 @@ if(currentAccountRefreshToken) {
         updatedProperties["Id"] = context.crm.objectId?.toString() || '';
         updatedProperties["Marq User Restriction"] = context.user.email;
 
+        console.log("updatedProperties", updatedProperties);
+
         const updatedSchema = [
           { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
           ...Object.keys(mappeddynamicproperties).map((key, index) => ({
