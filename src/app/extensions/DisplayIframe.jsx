@@ -358,9 +358,9 @@ const Extension = ({ context, actions, runServerless }) => {
                 const dynamicpropertiesBody = responseBody.mappedProperties || {};
     
                 console.log(`Fetched properties for dynamic objectType (${objectType}):`, dynamicpropertiesBody);
-
-                let mappeddynamicproperties = {}; 
     
+                let mappeddynamicproperties = {}; 
+        
                 // Iterate over dataFields and map to mappeddynamicproperties
                 dataFields.forEach((dataField) => {
                     const parts = dataField.split('.');  // e.g., 'deal.dealstage'
@@ -375,8 +375,12 @@ const Extension = ({ context, actions, runServerless }) => {
                         mappeddynamicproperties[dataField] = fieldValue || '';  // Map and handle missing values
                     }
                 });
-
-                setDynamicProperties(mappeddynamicproperties);
+    
+                // Merge new properties with the existing ones to avoid overwriting
+                setDynamicProperties((prevProperties) => ({
+                    ...prevProperties,
+                    ...mappeddynamicproperties
+                }));
     
                 console.log("Mapped Dynamic Properties after fetching:", mappeddynamicproperties);
             } else {
@@ -386,6 +390,7 @@ const Extension = ({ context, actions, runServerless }) => {
             console.error(`Error fetching properties for dynamic objectType (${objectType}):`, error);
         }
     }
+    
     
       
           
