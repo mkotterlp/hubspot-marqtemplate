@@ -1623,16 +1623,23 @@ useEffect(() => {
   const handleDynamicPropertiesUpdate = (updatedProperties) => {
     const dynamicFieldsToWatch = Object.keys(dynamicProperties);
 
+    // Check if any of the dynamic fields are in the updated properties
     const hasDynamicChange = dynamicFieldsToWatch.some(field => updatedProperties[field]);
 
     if (hasDynamicChange) {
-      // Merge the updated properties into dynamicProperties
+      const updatedDynamicProps = dynamicFieldsToWatch.reduce((acc, field) => {
+        if (updatedProperties[field]) {
+          acc[field] = updatedProperties[field];
+        }
+        return acc;
+      }, {});
+
       setDynamicProperties(prevProperties => ({
         ...prevProperties,
-        ...updatedProperties
+        ...updatedDynamicProps
       }));
 
-      console.log("Updated dynamic properties:", updatedProperties);
+      console.log("Updated dynamic properties:", updatedDynamicProps);
     }
   };
 
@@ -1642,9 +1649,10 @@ useEffect(() => {
   }
 
   return () => {
-    actions.onCrmPropertiesUpdate([], null); // Cleanup to stop watching properties
+    actions.onCrmPropertiesUpdate([], null);
   };
 }, [dynamicProperties, context.crm.objectId, objectType]);
+
 
 
 const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
