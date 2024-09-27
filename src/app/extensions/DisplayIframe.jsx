@@ -1312,7 +1312,7 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      setFilteredTemplates(...originaltemplates); // Reset to initially filtered templates
+      setFilteredTemplates([...originaltemplates]); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
