@@ -330,14 +330,16 @@ const Extension = ({ context, actions, runServerless }) => {
                       return category && category.values.map(v => v.toLowerCase()).includes(propertyValue);
                     });
                   });
-                  console.log("Filtered Templates:", filtered);                  
-                  setFilteredTemplates([...filtered.length > 0 ? filtered : fetchedTemplates]);
-                  setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  console.log("Filtered Templates:", filtered);   
+                  setTemplates(filtered);               
+                  setFilteredTemplates(filtered);
+                  setInitialFilteredTemplates(filtered);
                   setIsLoading(false);
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
+                  setInitialFilteredTemplates(fetchedTemplates);
                   setIsLoading(false);
                 }
               } else {
