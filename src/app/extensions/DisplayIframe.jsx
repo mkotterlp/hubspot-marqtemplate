@@ -592,7 +592,6 @@ const deleteRecord = async (recordId, objectType) => {
       }
     });
 
-    console.log("Extracted Filters:", filters);
 
   
     return filters;
@@ -1296,44 +1295,33 @@ useEffect(() => {
   
 
   const handleSearch = useCallback((input) => {
-    let searchValue = '';
-    if (input && input.target) {
-      searchValue = input.target.value;
-    } else if (input) {
-      searchValue = String(input);
-    } else {
-      console.error('Unexpected input:', input);
-    }
-  
+    let searchValue = input?.target?.value || '';
     setSearchTerm(searchValue);
   
-    if (searchValue.trim() === '') {
+    if (!searchValue.trim()) {
       console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
       setFilteredTemplates([...initialFilteredTemplates]);
-      setTemplates([...initialFilteredTemplates]);
-      setTitle('Relevant Content');
+      setTemplates([...initialFilteredTemplates]);  // Reset templates
+      setCurrentPage(1);  // Reset to first page
+      setTitle('Relevant Content');  // Set appropriate title
     } else {
       setTitle('Search Results');
     }
   }, [initialFilteredTemplates]);
   
-  useEffect(() => {
-    if (searchTerm.trim() !== '') {
-      const delayDebounceFn = setTimeout(() => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        const searchResults = fulltemplatelist.filter(template =>
-          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-        );
-     
-        setFilteredTemplates([...searchResults]);
-        setCurrentPage(1); // Reset to first page on search
-      }, 300);
   
-      return () => clearTimeout(delayDebounceFn);
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      // Reset filteredTemplates when search term is cleared
+      setFilteredTemplates([...initialFilteredTemplates]);
+      setTemplates([...initialFilteredTemplates]);  // Reset to initial templates
     } else {
-      console.log('Search term cleared. Resetting templates.');
-      setFilteredTemplates([...initialFilteredTemplates]);  // Reset to initial templates
-      setTemplates([...initialFilteredTemplates]);
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      const searchResults = fulltemplatelist.filter(template =>
+        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+      setFilteredTemplates([...searchResults]);
+      setCurrentPage(1);  // Reset to first page on search
     }
   }, [searchTerm, initialFilteredTemplates]);
   
