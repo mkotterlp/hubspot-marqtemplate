@@ -153,30 +153,43 @@ function mapPropertyValuesToLabels(properties, propertyDefinitions, pipelineStag
     for (const key in properties) {
         if (properties.hasOwnProperty(key)) {
             const property = propertyDefinitions[key];
+
+            // Log details about each property
+            console.log(`Processing property: ${key}`);
+            console.log(`Property value: ${properties[key]}`);
+            console.log(`Property definition: ${JSON.stringify(property, null, 2)}`);
+
             if (key === 'dealstage' && pipelineStages.length > 0) {
                 for (const pipeline of pipelineStages) {
                     const stage = pipeline.stages.find(stage => stage.id === properties[key]);
                     if (stage) {
                         mappedProperties[key] = stage.label;
+                        console.log(`Mapped dealstage to label: ${stage.label}`);
                         break;
                     }
                 }
                 if (!mappedProperties[key]) {
                     mappedProperties[key] = properties[key];
+                    console.log(`No matching pipeline stage found for dealstage, using raw value: ${properties[key]}`);
                 }
             } else if (property && property.type === 'enumeration' && property.options) {
                 const option = property.options.find(opt => opt.value === properties[key]);
                 mappedProperties[key] = option ? option.label : properties[key];
-            } if (property && property.type === 'currency') {
+                console.log(`Mapped enumeration value to label: ${mappedProperties[key]}`);
+            } else if (property && property.type === 'currency') {
                 mappedProperties[key] = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(properties[key]);
+                console.log(`Formatted currency value: ${mappedProperties[key]}`);
             } else if (property && property.type === 'date') {
                 mappedProperties[key] = new Date(properties[key]).toLocaleDateString('en-US');
-            }  else {
+                console.log(`Formatted date value: ${mappedProperties[key]}`);
+            } else {
                 mappedProperties[key] = properties[key];
+                console.log(`No specific formatting applied, using raw value: ${mappedProperties[key]}`);
             }
         }
     }
     return mappedProperties;
 }
+
 
 
