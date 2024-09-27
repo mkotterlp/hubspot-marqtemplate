@@ -1308,14 +1308,10 @@ useEffect(() => {
   
     if (searchValue.trim() === '') {
       console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
-      setFilteredTemplates([...initialFilteredTemplates]);
-      setTemplates([...initialFilteredTemplates]);
+      const searchResults = initialFilteredTemplates;
+      setFilteredTemplates([...searchResults]);
+      setCurrentPage(1); // Reset to first page on search
 
-      paginatedTemplates = initialFilteredTemplates.slice(
-        (currentPage - 1) * RECORDS_PER_PAGE,
-        currentPage * RECORDS_PER_PAGE
-      );
-      
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
@@ -1336,9 +1332,7 @@ useEffect(() => {
   
       return () => clearTimeout(delayDebounceFn);
     } else {
-      console.log('Search term cleared. Resetting templates.');
-      setFilteredTemplates([...initialFilteredTemplates]);  // Reset to initial templates
-      setTemplates([...initialFilteredTemplates]);
+      console.log('Search term cleared.');
     }
   }, [searchTerm, initialFilteredTemplates]);
   
