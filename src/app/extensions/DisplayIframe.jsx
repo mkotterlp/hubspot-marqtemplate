@@ -312,10 +312,9 @@ const Extension = ({ context, actions, runServerless }) => {
 
           // Group dynamic fields by their object types (parsed from dataFields)
         const objectTypeFieldsMap = {};
-        const dynamicFields = {};
 
         // Dynamically group dataFields by their object types (e.g., deal, contact, etc.)
-        dynamicFields.forEach(dataField => {
+        dataFields.forEach(dataField => {
             const [objectType, field] = dataField.split('.');  // e.g., 'deal.dealstage'
             if (!objectTypeFieldsMap[objectType]) {
                 objectTypeFieldsMap[objectType] = [];
