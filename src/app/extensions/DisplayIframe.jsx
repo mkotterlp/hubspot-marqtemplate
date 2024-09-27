@@ -1310,14 +1310,14 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      console.error('Resetting to originaltemplates:', originaltemplates);
-      setFilteredTemplates(originaltemplates);
-      setTemplates(originaltemplates); 
+      console.log('Resetting to filteredTemplates:', filteredTemplates);
+      setFilteredTemplates(filteredTemplates);
+      setTemplates(filteredTemplates); 
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [originaltemplates]);
+  }, [filteredTemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
