@@ -908,6 +908,8 @@ if(currentAccountRefreshToken) {
             await updateAccountRefreshToken(newAccountRefreshToken);
             console.log('Account refresh token updated successfully');
         } else {
+            setIsAccountTokenClicked(false);
+            setShowAccountTokenButton(true);
             console.log('No new refresh token found in the response');
         }
     } else {
@@ -915,6 +917,8 @@ if(currentAccountRefreshToken) {
 
         // If an error occurred, set the refresh token to blank
         await updateAccountRefreshToken('');
+        setIsAccountTokenClicked(false);
+        setShowAccountTokenButton(true);
         console.log('Refresh token set to blank due to failure');
     }
 } catch (error) {
@@ -922,6 +926,8 @@ if(currentAccountRefreshToken) {
 
     // On error, set the refresh token to blank
     await updateAccountRefreshToken('');
+    setIsAccountTokenClicked(false);
+    setShowAccountTokenButton(true);
     console.log('Refresh token set to blank due to error');
 }
 }
