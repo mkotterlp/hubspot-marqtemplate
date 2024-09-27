@@ -320,10 +320,6 @@ const Extension = ({ context, actions, runServerless }) => {
                 const data = JSON.parse(templatesResponse.response.body);
                 const fetchedTemplates = data.templatesresponse || [];
                 setfullTemplates(fetchedTemplates);
-
-                console.log("Fields:", fields);
-      console.log("Filters:", filters);
-      console.log("Properties Body:", propertiesBody);
   
                 if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
                   const filtered = fetchedTemplates.filter(template => {
@@ -331,17 +327,13 @@ const Extension = ({ context, actions, runServerless }) => {
                       const categoryName = filters[index];
                       const propertyValue = propertiesBody[field]?.toLowerCase();
                       const category = template.categories.find(c => c.category_name.toLowerCase() === categoryName.toLowerCase());
-
-                      console.log(`Filtering template "${template.title}"`);
-                      console.log("Field:", field);
-                      console.log("Category Name:", categoryName);
-                      console.log("Property Value:", propertyValue);
-                      console.log("Category in Template:", category);
                       return category && category.values.map(v => v.toLowerCase()).includes(propertyValue);
                     });
                   });
                   console.log("Filtered Templates:", filtered);
-                  setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setTemplates(fetchedTemplates);
+                  setFilteredTemplates([...filtered.length > 0 ? filtered : fetchedTemplates]);
+                  // setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
                   setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
                   setIsLoading(false);
                 } else {
