@@ -947,7 +947,9 @@ if (currentAccountRefreshToken) {
 if(currentAccountRefreshToken) {
     
   try {
-    const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
+    const properties = Array.isArray(propertiesToWatch) && propertiesToWatch.length > 0 ? {} : propertiesToWatch;
+
+        console.log("Mapped Dynamic Properties before merge:", mappeddynamicproperties);
 
         // Merge mappeddynamicproperties into the properties object
         const updatedProperties = { ...properties, ...mappeddynamicproperties };
