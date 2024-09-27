@@ -333,14 +333,12 @@ const Extension = ({ context, actions, runServerless }) => {
                   setTemplates(filtered);               
                   setFilteredTemplates(filtered);
                   setInitialFilteredTemplates(filtered);
-                  originaltemplates = filtered;
                   setIsLoading(false);
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
                   setInitialFilteredTemplates(fetchedTemplates);
-                  originaltemplates = fetchedTemplates;
                   setIsLoading(false);
                 }
               } else {
