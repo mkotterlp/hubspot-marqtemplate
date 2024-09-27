@@ -949,9 +949,22 @@ if(currentAccountRefreshToken) {
   try {
     const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
 
-     // Append the Id field to the properties object
-     properties["Id"] = recordid;
-     properties["Marq User Restriction"] = context.user.email;
+        // Merge mappeddynamicproperties into the properties object
+        const updatedProperties = { ...properties, ...mappeddynamicproperties };
+
+        // Append the Id field to the properties object
+        updatedProperties["Id"] = context.crm.objectId?.toString() || '';
+        updatedProperties["Marq User Restriction"] = context.user.email;
+
+        const updatedSchema = [
+          { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+          ...Object.keys(mappeddynamicproperties).map((key, index) => ({
+            name: key,
+            fieldType: "STRING",  // All fields are treated as strings
+            isPrimary: false,
+            order: index + 2,  // Order starts after the "Id" field
+          })),
+        ];
 
     // Call update-data3 function
     const updateDataResponse = await runServerless({
@@ -961,8 +974,8 @@ if(currentAccountRefreshToken) {
         clientid: clientid,
         clientsecret: clientsecret,
         collectionId: collectionid,
-        properties: properties,
-        schema: schema,
+        properties: updatedProperties,
+        schema: updatedSchema,
         dataSourceId: datasetid,
       },
     });
@@ -1595,6 +1608,31 @@ useEffect(() => {
     };
 }, [context.crm.objectId, context.crm.objectTypeId, objectType, fieldsArray, filtersArray, crmProperties, fulltemplatelist, searchTerm]);
 
+
+useEffect(() => {
+  const handleDynamicPropertiesUpdate = (updatedProperties) => {
+    const dynamicFieldsToWatch = Object.keys(mappeddynamicproperties);
+
+    const hasDynamicChange = dynamicFieldsToWatch.some(field => updatedProperties[field]);
+
+    if (hasDynamicChange) {
+      fetchPropertiesAndLoadConfig(objectType);  // Optionally call this function if needed
+
+      // Additional logic to handle dynamic changes
+      console.log("Detected changes in dynamic properties:", updatedProperties);
+      // Add any additional update or filtering logic if necessary here
+    }
+  };
+
+  if (mappeddynamicproperties && Object.keys(mappeddynamicproperties).length > 0) {
+    const dynamicFieldsToWatch = Object.keys(mappeddynamicproperties);
+    actions.onCrmPropertiesUpdate(dynamicFieldsToWatch, handleDynamicPropertiesUpdate);
+  }
+
+  return () => {
+    actions.onCrmPropertiesUpdate([], null); // Cleanup to stop watching properties
+  };
+}, [mappeddynamicproperties, context.crm.objectId, objectType]);
 
 const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
   try {
