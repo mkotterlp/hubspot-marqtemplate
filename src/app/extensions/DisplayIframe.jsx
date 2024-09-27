@@ -60,7 +60,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const pollingTimerRef = useRef(null);
   const hasSyncedOnceRef = useRef(false); 
 
-  let originaltemplates = [];
+  let paginatedTemplates = [];
   let propertiesBody = {}; 
   let configData = {};
   let templateLink;
@@ -1344,6 +1344,12 @@ useEffect(() => {
 useEffect(() => {
   const pages = Math.ceil(filteredTemplates.length / RECORDS_PER_PAGE);
   setTotalPages(pages);
+
+  paginatedTemplates = filteredTemplates.slice(
+    (currentPage - 1) * RECORDS_PER_PAGE,
+    currentPage * RECORDS_PER_PAGE
+  );
+
 }, [filteredTemplates]);
  
 
@@ -1354,7 +1360,7 @@ const handlePageChange = (pageNumber) => {
 };
 
 
-const paginatedTemplates = filteredTemplates.slice(
+paginatedTemplates = filteredTemplates.slice(
   (currentPage - 1) * RECORDS_PER_PAGE,
   currentPage * RECORDS_PER_PAGE
 );
