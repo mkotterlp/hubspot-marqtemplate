@@ -60,7 +60,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const pollingTimerRef = useRef(null);
   const hasSyncedOnceRef = useRef(false); 
 
-  let originaltemplates = {};
+  let originaltemplates = [];
   let propertiesBody = {}; 
   let configData = {};
   let templateLink;
