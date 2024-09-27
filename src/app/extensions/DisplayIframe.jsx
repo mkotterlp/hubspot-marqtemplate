@@ -88,7 +88,7 @@ const Extension = ({ context, actions, runServerless }) => {
       if (objectTypeResponse && objectTypeResponse.response && objectTypeResponse.response.body) {
         const objectTypeResponseBody = JSON.parse(objectTypeResponse.response.body);
         setObjectType(objectTypeResponseBody.objectType);
-        console.log("Fetched objectType:", objectTypeResponseBody.objectType);
+        // console.log("Fetched objectType:", objectTypeResponseBody.objectType);
 
       } else {
         console.error("Error: Response body is undefined or not structured as expected.", objectTypeResponse);
@@ -126,14 +126,14 @@ const Extension = ({ context, actions, runServerless }) => {
           const responseBody = JSON.parse(createusertable.response.body);
           const userData = responseBody.row?.values || {}; // Access values directly from row
           lastTemplateSyncDate = userData.lastTemplateSyncDate;
-          console.log('lastTemplateSyncDate', lastTemplateSyncDate);
+          // console.log('lastTemplateSyncDate', lastTemplateSyncDate);
           templateLink = userData.templatesfeed;
           const marquserid = userData.marqUserID;
           // const marquserid = userData.marqUserID;
 
           currentRefreshToken = userData.refreshToken;
 
-          console.log("Fetched User Data:", JSON.stringify(userData));
+          // console.log("Fetched User Data:", JSON.stringify(userData));
           // setRefreshToken(currentRefreshToken)
           // Validate required values before proceeding with further operations
           if (!currentRefreshToken || !marquserid) {
@@ -150,7 +150,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
           // Fetch templates if template link is missing
           if (((timeDifference > twentyFourHoursInMs) && currentRefreshToken) || (!templateLink && currentRefreshToken)) {
-            console.log("More than 24 hours since the last sync or template link is null, fetching new templates...");
+            // console.log("More than 24 hours since the last sync or template link is null, fetching new templates...");
 
             try {
             
@@ -164,7 +164,7 @@ const Extension = ({ context, actions, runServerless }) => {
               });
               
               // Log the full response object
-              console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
+              // console.log("Full fetchResult from serverless function:", JSON.stringify(fetchResult, null, 2));
               
               if (fetchResult && fetchResult.response) {
                 const statusCode = fetchResult.response.statusCode;
@@ -178,8 +178,8 @@ const Extension = ({ context, actions, runServerless }) => {
                       templateLink = fetchedData.templatesjsonurl;
                       currentRefreshToken = fetchedData.newRefreshToken;
               
-                      console.log("Success! Fetched new template link:", templateLink);
-                      console.log("Success! Fetched new refresh token:", currentRefreshToken);
+                      // console.log("Success! Fetched new template link:", templateLink);
+                      // console.log("Success! Fetched new refresh token:", currentRefreshToken);
                     } else {
                       console.error("Error: Missing expected data in response body.", fetchedData);
                       templateLink = '';
@@ -221,7 +221,7 @@ const Extension = ({ context, actions, runServerless }) => {
               
                 // Parse the response
                 if (updateResult.statusCode === 200) {
-                  console.log("User table updated successfully:", updateResult);
+                  // console.log("User table updated successfully:", updateResult);
                   setResponseMessage('User data and refresh token updated successfully!');
                 } else if (updateResult.statusCode === 400) {
                   console.error("Invalid request parameters:", updateResult.body);
@@ -247,7 +247,7 @@ const Extension = ({ context, actions, runServerless }) => {
             }
           }
   
-          console.log("Fetched Template Link:", JSON.stringify(templateLink));
+          // console.log("Fetched Template Link:", JSON.stringify(templateLink));
         } else {
           console.error("Failed to create or fetch user table.");
           console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
@@ -295,6 +295,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
               if (propertiesResponse?.response?.body) {
                 propertiesBody = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
+                console.log("Fetched CRM Properties:", propertiesBody);
                 if (objectType === 'DEAL') {
                   setStage(propertiesBody.dealstage);
                 }
@@ -308,7 +309,7 @@ const Extension = ({ context, actions, runServerless }) => {
           
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
-            console.log("Applying templates");
+            // console.log("Applying templates");
             try {
               const templatesResponse = await runServerless({
                 name: 'fetchJsonData',
@@ -347,11 +348,11 @@ const Extension = ({ context, actions, runServerless }) => {
             console.error("Error: Missing template link to fetch templates.");
 
             if (currentRefreshToken) {
-              console.log('Refresh token', currentRefreshToken)
+              // console.log('Refresh token', currentRefreshToken)
               setShowTemplates(true);
               setIsLoading(false);
             } else {
-              console.log('Missing refresh token', currentRefreshToken)
+              // console.log('Missing refresh token', currentRefreshToken)
               setShowTemplates(false);
               setIsLoading(false);
               actions.addAlert({
@@ -464,7 +465,7 @@ const deleteRecord = async (recordId, objectType) => {
   }
 
   const fetchAssociatedProjectsAndDetails = useCallback(async (objectType) => {
-    console.log("Fetching projects");
+    // console.log("Fetching projects");
     if (!context.crm.objectId) {
       console.error("No object ID available to fetch associated projects.");
       return [];
@@ -481,7 +482,7 @@ const deleteRecord = async (recordId, objectType) => {
   
       if (associatedProjectsResponse && associatedProjectsResponse.response && associatedProjectsResponse.response.body) {
         const projectsData = JSON.parse(associatedProjectsResponse.response.body);
-        console.log("Fetched project data:", projectsData);
+        // console.log("Fetched project data:", projectsData);
   
         if (projectsData && projectsData.results && projectsData.results.length > 0) {
           const uniqueProjectIds = new Set(projectsData.results.flatMap(p => p.to ? p.to.map(proj => proj.id) : []));
@@ -588,7 +589,7 @@ const deleteRecord = async (recordId, objectType) => {
       }
     });
 
-    // console.log("Extracted Filters:", filters);
+    console.log("Extracted Filters:", filters);
 
   
     return filters;
@@ -628,10 +629,10 @@ const deleteRecord = async (recordId, objectType) => {
 
 
   const refreshProjects = async () => {
-    console.log("Calling refresh projects");
+    // console.log("Calling refresh projects");
 
     if (!shouldPollForProjects.isPolling) {
-        console.log("Polling stopped: shouldPollForProjects.isPolling is false in refreshProjects");
+        // console.log("Polling stopped: shouldPollForProjects.isPolling is false in refreshProjects");
         return;
     }
 
@@ -646,7 +647,7 @@ const deleteRecord = async (recordId, objectType) => {
         const matchingProject = projectsList.find(project => project.originaltemplateid === templateIdToMatch);
 
         if (matchingProject) {
-            console.log(`Found matching project for template ID: ${templateIdToMatch}`);
+            // console.log(`Found matching project for template ID: ${templateIdToMatch}`);
             setShouldPollForProjects({ isPolling: false, templateId: null });
             setLoadingTemplateId(null)
             templateIdToMatch = null;
@@ -663,7 +664,7 @@ const deleteRecord = async (recordId, objectType) => {
         // Update the state to ensure `projects` reflects the latest data
         setProjects(projectsList);
     } else {
-        console.log("Object type not detected");
+        // console.log("Object type not detected");
     }
 };
 
@@ -679,7 +680,7 @@ const deleteRecord = async (recordId, objectType) => {
         if (body && body.key) {
           const apiKey = body.key;
           setAPIkey(apiKey);
-           console.log("API Key loaded:", apiKey);
+          //  console.log("API Key loaded:", apiKey);
           const authorizationUrl = await handleConnectToMarq(apiKey, userid, userEmail, "user");  // Pass the API key, userid, and userEmail
           setauth(authorizationUrl);
           const accountauthorizationUrl = await handleConnectToMarq(apiKey, userid, userEmail, "data");
@@ -721,7 +722,7 @@ const deleteRecord = async (recordId, objectType) => {
       });
   
       if (updateAccountRefreshResponse?.response?.statusCode === 200) {
-        console.log('Account refresh token updated successfully in marq_account_data table');
+        // console.log('Account refresh token updated successfully in marq_account_data table');
       } else {
         console.error('Failed to update account refresh token:', updateAccountRefreshResponse?.response?.body);
       }
@@ -740,7 +741,7 @@ const deleteRecord = async (recordId, objectType) => {
         },
       });
   
-      console.log("User refresh token updated:", updateUserRefreshResponse);
+      // console.log("User refresh token updated:", updateUserRefreshResponse);
     } catch (error) {
       console.error("Error occurred while updating user refresh token:", error);
     }
@@ -761,10 +762,10 @@ const deleteRecord = async (recordId, objectType) => {
     setIframeOpen(true);
   
     try {
-      console.log("Template clicked:", template.id, template.title);
+      // console.log("Template clicked:", template.id, template.title);
       const userId = context.user.id;
 
-      console.log("Fetching user refresh token...");
+      // console.log("Fetching user refresh token...");
       const createusertable = await runServerless({
         name: 'marqouathhandler',
         parameters: { userID: userId }
@@ -772,10 +773,10 @@ const deleteRecord = async (recordId, objectType) => {
       const responseBody = JSON.parse(createusertable.response.body);
       const userData = responseBody?.row?.values || {};
       currentRefreshToken = userData?.refreshToken || null;
-      console.log("currentRefreshToken:",currentRefreshToken)
+      // console.log("currentRefreshToken:",currentRefreshToken)
 
       if (!currentRefreshToken || currentRefreshToken === 'null' || currentRefreshToken === '') {
-        console.log("User refresh token not found.");
+        // console.log("User refresh token not found.");
         setShowTemplates(false);
         return;
       }
@@ -783,8 +784,8 @@ const deleteRecord = async (recordId, objectType) => {
       let tokenSource = 'user'; // Default to user token
       let refreshTokenToUse = currentRefreshToken;
       let accountrefreshTokenToUse = currentAccountRefreshToken;
-      console.log("refreshTokenToUse:", refreshTokenToUse);
-      console.log("accountrefreshTokenToUse:", accountrefreshTokenToUse);
+      // console.log("refreshTokenToUse:", refreshTokenToUse);
+      // console.log("accountrefreshTokenToUse:", accountrefreshTokenToUse);
       // 1. Fetch the `objectType`
       // const objectType = await fetchObjectType();
       // if (!objectType) {
@@ -793,7 +794,7 @@ const deleteRecord = async (recordId, objectType) => {
       // }
   
       // 2. Fetch the `datasetid` from the `dataTableHandler` based on the objectType
-      console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
+      // console.log(`Fetching datasetid for objectType: ${objectType} from dataTableHandler...`);
 // Inside createOrUpdateDataset function
 
 const createaccounttable = await runServerless({
@@ -817,7 +818,7 @@ try {
 const accountData = accountTableResponseBody?.dataRow?.values || {};
 const matchedData = accountTableResponseBody?.objectTypeRow?.values || {};
 
-console.log('accountData:', accountData);
+// console.log('accountData:', accountData);
 
 // Extract the refresh token
 currentAccountRefreshToken = accountData?.refreshToken || null;
@@ -831,16 +832,16 @@ if (!marqAccountId) {
 }
 
 if (currentAccountRefreshToken) {
-  console.log("Account refresh token:", currentAccountRefreshToken);
+  // console.log("Account refresh token:", currentAccountRefreshToken);
   // tokenSource = 'account';
 } else {
-  console.log("No account refresh token found.");
+  // console.log("No account refresh token found.");
 }
   
   
       if (tokenSource === 'user' && currentRefreshToken) {
         try {
-          console.log("Fetching user refresh token...");
+          // console.log("Fetching user refresh token...");
           const createusertable = await runServerless({
             name: 'marqouathhandler',
             parameters: { userID: userId }
@@ -850,7 +851,7 @@ if (currentAccountRefreshToken) {
           refreshTokenToUse = userData?.refreshToken || null;
   
           if (!refreshTokenToUse || refreshTokenToUse === 'null' || refreshTokenToUse === '') {
-            console.log("User refresh token not found.");
+            // console.log("User refresh token not found.");
             setShowTemplates(false);
             return;
           }
@@ -893,7 +894,7 @@ if(currentAccountRefreshToken) {
 
     // Check if the response was successful
     if (updateDataResponse?.response?.statusCode === 200 || updateDataResponse?.response?.statusCode === 201) {
-        console.log('Data updated successfully before project creation');
+        // console.log('Data updated successfully before project creation');
 
         // **Parse the response body**
         let responseBody = updateDataResponse.response.body;
@@ -912,11 +913,11 @@ if(currentAccountRefreshToken) {
         if (newAccountRefreshToken) {
             // Call updateAccountRefreshToken to update the token in your system
             await updateAccountRefreshToken(newAccountRefreshToken);
-            console.log('Account refresh token updated successfully');
+            // console.log('Account refresh token updated successfully');
         } else {
             setIsAccountTokenClicked(false);
             setShowAccountTokenButton(true);
-            console.log('No new refresh token found in the response');
+            // console.log('No new refresh token found in the response');
         }
     } else {
         console.error('Failed to update data before project creation', updateDataResponse?.response?.body);
@@ -925,7 +926,7 @@ if(currentAccountRefreshToken) {
         await updateAccountRefreshToken('');
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
-        console.log('Refresh token set to blank due to failure');
+        // console.log('Refresh token set to blank due to failure');
     }
 } catch (error) {
     console.error('Error during update-data3 execution:', error);
@@ -934,16 +935,16 @@ if(currentAccountRefreshToken) {
     await updateAccountRefreshToken('');
     setIsAccountTokenClicked(false);
     setShowAccountTokenButton(true);
-    console.log('Refresh token set to blank due to error');
+    // console.log('Refresh token set to blank due to error');
 }
 }
 
-console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
-console.log("marqaccountid for creating a project:", marqaccountid)
+// console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
+// console.log("marqaccountid for creating a project:", marqaccountid)
 
        
       // 4. Create the project using the user refresh token
-      console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
+      // console.log(`Creating project with template ID: ${templateid} using ${tokenSource} refresh token.`);
     
       try {
         const createProjectResponse = await runServerless({
@@ -962,7 +963,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
         });
       
         // Log the entire response for debugging
-        console.log("Full createProjectResponse:", createProjectResponse);
+        // console.log("Full createProjectResponse:", createProjectResponse);
       
         let projectId = "";
         
@@ -980,7 +981,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
                   return;
               }
       
-              console.log("Created Project ID:", projectId);
+              // console.log("Created Project ID:", projectId);
 
               const encodedOptions = encodeURIComponent(btoa(JSON.stringify({
                 enabledFeatures: configData.enabledFeatures?.map(feature => feature.name) || ["share"],
@@ -999,7 +1000,7 @@ console.log("marqaccountid for creating a project:", marqaccountid)
       
               // Update refresh token after project creation
               const newRefreshToken = projectData.new_refresh_token || ""; // Set to "" if not found
-              console.log("Updated refresh_token after project creation:", newRefreshToken);
+              // console.log("Updated refresh_token after project creation:", newRefreshToken);
       
               // Update the corresponding refresh token
               await updateUserRefreshToken(marquserId, newRefreshToken);
@@ -1107,44 +1108,44 @@ const startPollingForRefreshToken = () => {
 };
 
 const pollForRefreshToken = async () => {
-  console.log("Attempting poll");
+  // console.log("Attempting poll");
 
   try {
-    console.log("Polling for refresh token...");
+    // console.log("Polling for refresh token...");
     const userId = context.user.id;
     const createusertable = await runServerless({
       name: 'marqouathhandler',
       parameters: { userID: userId }
     });
 
-    console.log("Response from serverless function:", createusertable);
+    // console.log("Response from serverless function:", createusertable);
 
     if (createusertable?.response?.body) {
-      console.log("Received response from serverless function:", createusertable);
+      // console.log("Received response from serverless function:", createusertable);
 
       // Access row and values properly
       const responseBody = JSON.parse(createusertable.response.body);
       const userData = responseBody?.row?.values || {};
 
-      console.log("userData:", userData);
+      // console.log("userData:", userData);
 
       // Assign to global `currentRefreshToken`
       currentRefreshToken = userData?.refreshToken || null;
-      console.log("currentRefreshToken:", currentRefreshToken);
+      // console.log("currentRefreshToken:", currentRefreshToken);
 
       if (currentRefreshToken && currentRefreshToken !== 'null' && currentRefreshToken !== '') {
-        console.log("Refresh token found:", currentRefreshToken);
+        // console.log("Refresh token found:", currentRefreshToken);
         setIsPolling(false); // Stop polling
         setShowTemplates(true)
         fetchPropertiesAndLoadConfig(objectType); // Ensure objectType is defined
         setIsConnectedToMarq(true); // Assuming this should trigger some UI change
         pollForAccountRefreshToken()
       } else {
-        console.log("Refresh token not found yet, continuing to poll...");
+        // console.log("Refresh token not found yet, continuing to poll...");
         setShowTemplates(false);
       }
     } else {
-      console.log("No response body from serverless function.");
+      // console.log("No response body from serverless function.");
     }
   } catch (error) {
     console.error("Error while polling for refresh token:", error);
@@ -1155,12 +1156,12 @@ useEffect(() => {
   let pollInterval;
 
   if (isPolling) {
-    console.log("Starting to poll for refresh token every 5 seconds.");
+    // console.log("Starting to poll for refresh token every 5 seconds.");
     pollInterval = setInterval(pollForRefreshToken, 5000); // Poll every 5 seconds
   }
 
   return () => {
-    console.log("Stopping the polling for refresh token.");
+    // console.log("Stopping the polling for refresh token.");
     clearInterval(pollInterval); // Clean up interval when component unmounts or polling stops
   };
 }, [isPolling]);
@@ -1178,7 +1179,7 @@ useEffect(() => {
 };
 
 const pollForAccountRefreshToken = async () => {
-  console.log("Starting poll for account refresh token");
+  // console.log("Starting poll for account refresh token");
   try {
       // Fetch account data using the serverless function
       const createaccounttable = await runServerless({
@@ -1191,7 +1192,7 @@ const pollForAccountRefreshToken = async () => {
           return;
       }
 
-      console.log("Successfully received account data from serverless function.");
+      // console.log("Successfully received account data from serverless function.");
 
       try {
           accountResponseBody = JSON.parse(createaccounttable.response.body);
@@ -1212,7 +1213,7 @@ const pollForAccountRefreshToken = async () => {
           return;
       }
 
-      console.log("Valid account refresh token found:", currentAccountRefreshToken);
+      // console.log("Valid account refresh token found:", currentAccountRefreshToken);
 
       // Stop polling and hide the account token button
       setAccountIsPolling(false);
@@ -1240,13 +1241,13 @@ useEffect(() => {
 
     // Start polling if the account is set to be polling
     if (isAccountPolling) {
-        console.log("Starting to poll for account refresh token every 5 seconds.");
+        // console.log("Starting to poll for account refresh token every 5 seconds.");
         pollAccountInterval = setInterval(pollForAccountRefreshToken, 5000); // Poll every 5 seconds
     }
 
     // Cleanup interval when polling stops or component unmounts
     return () => {
-        console.log("Stopping the polling for account refresh token.");
+        // console.log("Stopping the polling for account refresh token.");
         clearInterval(pollAccountInterval);
     };
 }, [isAccountPolling]);
@@ -1263,7 +1264,7 @@ useEffect(() => {
             }, 20000);
         } else {
             // Clear the timeout if polling should stop
-            console.log("Polling stopped");
+            // console.log("Polling stopped");
             clearTimeout(pollingTimerRef.current);
             pollingTimerRef.current = null;
         }
@@ -1365,7 +1366,7 @@ const initialize = async () => {
       // Fetch user ID and email from context
       const userid = context.user.id;
       const userEmail = context.user.email;
-      console.log("User ID and Email:", userid, userEmail);
+      // console.log("User ID and Email:", userid, userEmail);
 
       // Fetch API key and store it
       const apiKey = await setapi(userid, userEmail);
@@ -1381,22 +1382,22 @@ const initialize = async () => {
       if (createusertable?.response?.body) {
         const userData = JSON.parse(createusertable.response.body)?.row?.values || {};
         currentRefreshToken = userData.refreshToken || null;
-        console.log("User refresh token:", currentRefreshToken);
+        // console.log("User refresh token:", currentRefreshToken);
 
         // Validate refresh token and show templates if available
         if (currentRefreshToken) {
           setIsRefreshTokenClicked(true);
           setShowTemplates(true); // Use setShowTemplates to trigger the display of templates
-          console.log("Refresh token found. Showing templates.");
+          // console.log("Refresh token found. Showing templates.");
         
           // Step 2: Fetch Marq account data if refresh token is valid
           await fetchMarqAccountData();
-          console.log("fetched Marq AccountData")
+          // console.log("fetched Marq AccountData")
 
 
         } else {
           // No refresh token, handle polling or error case
-          console.log("No refresh token available. Not showing templates.");
+          // console.log("No refresh token available. Not showing templates.");
           setShowTemplates(false); // Explicitly hide templates
           //startPollingForRefreshToken();
         }
@@ -1424,7 +1425,7 @@ const fetchMarqAccountData = async () => {
       const accountData = JSON.parse(createaccounttable.response.body)?.dataRow?.values || {};
       const matchedData = JSON.parse(createaccounttable.response.body)?.objectTypeRow?.values || {};
       const currentAccountRefreshToken = accountData.refreshToken || null;
-      console.log("Account refresh token:", currentAccountRefreshToken);
+      // console.log("Account refresh token:", currentAccountRefreshToken);
 
       datasetid = matchedData.datasetid || null;
       collectionid = matchedData.collectionid || null;
@@ -1433,14 +1434,14 @@ const fetchMarqAccountData = async () => {
       if (currentAccountRefreshToken) {
         setIsAccountTokenClicked(true);
         setShowAccountTokenButton(false);
-        console.log("Account refresh token found. Hiding account token button.");
+        // console.log("Account refresh token found. Hiding account token button.");
 
         if (!datasetid || !collectionid) {
           await createOrUpdateDataset(currentAccountRefreshToken);
-          console.log("Created dataset/collection")
+          // console.log("Created dataset/collection")
         }
       } else {
-        console.log("No account refresh token found. Showing account token button.");
+        // console.log("No account refresh token found. Showing account token button.");
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
       }
@@ -1520,7 +1521,7 @@ const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
     if (!authorizationUrl) {
       throw new Error('Failed to generate authorization URL.');
     }
-    console.log(authorizationUrl)
+    // console.log(authorizationUrl)
 
     return authorizationUrl; // Return the URL to be used in the href
   } catch (error) {
@@ -1597,7 +1598,7 @@ async function saveTokenToTable(refreshToken) {
     });
 
     if (response?.response?.statusCode === 200) {
-      console.log("Refresh token saved successfully.");
+      // console.log("Refresh token saved successfully.");
     } else {
       console.error("Failed to save refresh token.");
     }
@@ -1624,7 +1625,7 @@ const createOrUpdateDataset = async (refreshToken) => {
     
     accountResponseBody = JSON.parse(checkDatasetResponse.response.body);
 
-    console.log(`accountResponseBody: ${JSON.stringify(accountResponseBody, null, 2)}`);
+    // console.log(`accountResponseBody: ${JSON.stringify(accountResponseBody, null, 2)}`);
 
     
     const accountData = accountResponseBody?.dataRow?.values || {};
@@ -1637,16 +1638,16 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     if (datasetid && collectionid) {
 
-      console.log(`datasetid: ${datasetid}`);
-      console.log(`collectionid: ${collectionid}`);
+      // console.log(`datasetid: ${datasetid}`);
+      // console.log(`collectionid: ${collectionid}`);
 
 
-    console.log(`Dataset and collection already exists for objectType: ${objectType}`);
+    // console.log(`Dataset and collection already exists for objectType: ${objectType}`);
 
     return; // Dataset already exists, exit
   } else { 
 
-    console.log(`Starting dataset creation for objectType: ${objectType}`);
+    // console.log(`Starting dataset creation for objectType: ${objectType}`);
 
     // Call the createDataset serverless function
     const createDatasetResponse = await runServerless({
@@ -1666,14 +1667,14 @@ const createOrUpdateDataset = async (refreshToken) => {
 
     // Handle successful creation of the dataset
     if (createDatasetResponse?.response?.statusCode === 200) {
-      console.log(`Dataset created successfully for objectType: ${objectType}`);
+      // console.log(`Dataset created successfully for objectType: ${objectType}`);
 
       const datasetResult = JSON.parse(createDatasetResponse.response.body);
       const new_refresh_token = datasetResult.new_refresh_token;
       datasetid = datasetResult.dataSourceId;
       collectionid = datasetResult.collectionId;
 
-      console.log(`New dataset values for ${objectType}:`, { new_refresh_token, datasetid, collectionid });
+      // console.log(`New dataset values for ${objectType}:`, { new_refresh_token, datasetid, collectionid });
 
       // Update account refresh token with the new refresh token after success
       await runServerless({
