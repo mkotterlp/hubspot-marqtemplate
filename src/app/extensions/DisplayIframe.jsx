@@ -1585,7 +1585,6 @@ useEffect(() => {
 
 
 
-
 useEffect(() => {
   const handlePropertiesUpdate = (updatedProperties) => {
     // Handle updates for fieldsArray
@@ -1619,10 +1618,20 @@ useEffect(() => {
     }
   };
 
+  // Function to strip object name prefixes from fields (e.g., 'deal.amount' -> 'amount')
+  const cleanFields = (fields) => {
+    return fields.map(field => {
+      const parts = field.split('.');
+      return parts.length > 1 ? parts[1] : parts[0];  // Use the part after the period if exists
+    });
+  };
+
   // Combine the fields to watch from both arrays
+  const cleanedFieldsArray = cleanFields(fieldsArray);
+  const cleanedDynamicFields = cleanFields(Object.keys(dynamicProperties));
   const fieldsToWatch = [
-    ...fieldsArray,
-    ...Object.keys(dynamicProperties)
+    ...cleanedFieldsArray,
+    ...cleanedDynamicFields
   ];
 
   if (fieldsToWatch.length > 0) {
@@ -1645,6 +1654,7 @@ useEffect(() => {
   searchTerm,
   dynamicProperties
 ]);
+
 
 
 
