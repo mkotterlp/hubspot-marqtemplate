@@ -176,12 +176,9 @@ function mapPropertyValuesToLabels(properties, propertyDefinitions, pipelineStag
                 const option = property.options.find(opt => opt.value === properties[key]);
                 mappedProperties[key] = option ? option.label : properties[key];
                 console.log(`Mapped enumeration value to label: ${mappedProperties[key]}`);
-            } if (property && property.showCurrencySymbol) {
+            } else if (property && property.showCurrencySymbol) {
                 mappedProperties[key] = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(properties[key]);
                 console.log(`Formatted currency value: ${mappedProperties[key]}`);
-            } else if (property && property.type === 'date') {
-                mappedProperties[key] = new Date(properties[key]).toLocaleDateString('en-US');
-                console.log(`Formatted date value: ${mappedProperties[key]}`);
             } else {
                 mappedProperties[key] = properties[key];
                 console.log(`No specific formatting applied, using raw value: ${mappedProperties[key]}`);

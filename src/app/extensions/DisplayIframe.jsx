@@ -299,8 +299,8 @@ const Extension = ({ context, actions, runServerless }) => {
                 parameters: { 
                   objectId: context.crm.objectId, 
                   objectType, 
-                  parentObjectType: primaryobjectType,
-                  properties: fields }
+                  properties: fields 
+                }
               });
   
               if (propertiesResponse?.response?.body) {
@@ -349,7 +349,6 @@ const Extension = ({ context, actions, runServerless }) => {
                 parameters: {
                     objectId: context.crm.objectId,
                     objectType,  // Dynamic objectType
-                    parentObjectType: primaryobjectType,
                     properties: fieldsForObject  // Fields for this objectType
                 }
             });
@@ -392,7 +391,7 @@ const Extension = ({ context, actions, runServerless }) => {
           
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
-            // console.log("Applying templates");
+            console.log("Applying templates");
             try {
               const templatesResponse = await runServerless({
                 name: 'fetchJsonData',
@@ -1443,11 +1442,6 @@ useEffect(() => {
 useEffect(() => {
   const pages = Math.ceil(filteredTemplates.length / RECORDS_PER_PAGE);
   setTotalPages(pages);
-
-  paginatedTemplates = filteredTemplates.slice(
-    (currentPage - 1) * RECORDS_PER_PAGE,
-    currentPage * RECORDS_PER_PAGE
-  );
 
 }, [filteredTemplates]);
  
