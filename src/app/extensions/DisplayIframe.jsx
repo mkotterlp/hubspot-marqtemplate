@@ -1300,23 +1300,9 @@ useEffect(() => {
       searchValue = input.target.value;
     } else if (input) {
       searchValue = String(input);
-    } else {
-      console.error('Unexpected input:', input);
-    }
-  
+    } 
     setSearchTerm(searchValue);
-  
-    if (searchValue.trim() === '') {
-      console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
-      const searchResults = initialFilteredTemplates;
-      setFilteredTemplates([...searchResults]);
-      setCurrentPage(1); // Reset to first page on search
-
-      setTitle('Relevant Content');
-    } else {
-      setTitle('Search Results');
-    }
-  }, [initialFilteredTemplates]);
+  });
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
@@ -1325,14 +1311,17 @@ useEffect(() => {
         const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-     
+        setTitle('Search Results');
         setFilteredTemplates([...searchResults]);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
   
       return () => clearTimeout(delayDebounceFn);
     } else {
-      console.log('Search term cleared.');
+      setTitle('Relevant Content');
+      console.log('Search term cleared. Resetting templates.');
+      setFilteredTemplates([...initialFilteredTemplates]);  // Reset to initial templates
+      setTemplates([...initialFilteredTemplates]);
     }
   }, [searchTerm, initialFilteredTemplates]);
   
