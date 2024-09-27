@@ -1310,14 +1310,14 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      console.log('Resetting to filteredTemplates:', filteredTemplates);
-      setFilteredTemplates(filteredTemplates);
-      setTemplates(filteredTemplates); 
+      console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
+      setFilteredTemplates(initialFilteredTemplates);
+      setTemplates(initialFilteredTemplates); 
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [filteredTemplates]);
+  }, [initialFilteredTemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
