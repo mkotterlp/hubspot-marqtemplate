@@ -864,51 +864,65 @@ if (currentAccountRefreshToken) {
 
  
 if(currentAccountRefreshToken) {
-      try {
-
-        const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
-
-        // Call update-data3 function
-        const updateDataResponse = await runServerless({
-          name: 'updateData3',
-          parameters: {
-            refresh_token: currentAccountRefreshToken,
-            clientid: clientid,
-            clientsecret: clientsecret,
-            collectionId: collectionid,
-            properties: properties,
-            schema: schema,
-            dataSourceId: datasetid,
-          },
-        });
-
-     // Check if the response was successful
-  if (updateDataResponse?.response?.statusCode === 200 || updateDataResponse?.response?.statusCode === 201) {
-    console.log('Data updated successfully before project creation');
     
-    // Extract the new refresh token from the response if it exists
-    const newAccountRefreshToken = updateDataResponse?.response?.body?.new_refresh_token;
+  try {
+    const properties = Array.isArray(propertiesToWatch) ? {} : propertiesToWatch;
 
-    if (newAccountRefreshToken) {
-      // Call updateAccountRefreshToken to update the token in your system
-      await updateAccountRefreshToken(newAccountRefreshToken);
-      console.log('Account refresh token updated successfully');
+     // Append the Id field to the properties object
+     properties["Id"] = recordid;
+
+    // Call update-data3 function
+    const updateDataResponse = await runServerless({
+      name: 'updateData3',
+      parameters: {
+        refresh_token: currentAccountRefreshToken,
+        clientid: clientid,
+        clientsecret: clientsecret,
+        collectionId: collectionid,
+        properties: properties,
+        schema: schema,
+        dataSourceId: datasetid,
+      },
+    });
+
+    // Check if the response was successful
+    if (updateDataResponse?.response?.statusCode === 200 || updateDataResponse?.response?.statusCode === 201) {
+        console.log('Data updated successfully before project creation');
+
+        // **Parse the response body**
+        let responseBody = updateDataResponse.response.body;
+        if (typeof responseBody === 'string') {
+            try {
+                responseBody = JSON.parse(responseBody);
+            } catch (e) {
+                console.error('Failed to parse response body as JSON:', e);
+                responseBody = {};
+            }
+        }
+
+        // Extract the new refresh token from the parsed response
+        const newAccountRefreshToken = responseBody?.new_refresh_token;
+
+        if (newAccountRefreshToken) {
+            // Call updateAccountRefreshToken to update the token in your system
+            await updateAccountRefreshToken(newAccountRefreshToken);
+            console.log('Account refresh token updated successfully');
+        } else {
+            console.log('No new refresh token found in the response');
+        }
     } else {
-      console.log('No new refresh token found in the response');
+        console.error('Failed to update data before project creation', updateDataResponse?.response?.body);
+
+        // If an error occurred, set the refresh token to blank
+        await updateAccountRefreshToken('');
+        console.log('Refresh token set to blank due to failure');
     }
-  } else {
-    console.error('Failed to update data before project creation', updateDataResponse?.response?.body);
-
-    // If an error occurred, set the refresh token to blank
-    await updateAccountRefreshToken('');
-    console.log('Refresh token set to blank due to failure');
-  }
 } catch (error) {
-  console.error('Error during update-data3 execution:', error);
+    console.error('Error during update-data3 execution:', error);
 
-  // On error, set the refresh token to blank
-  await updateAccountRefreshToken('');
-  console.log('Refresh token set to blank due to error');
+    // On error, set the refresh token to blank
+    await updateAccountRefreshToken('');
+    console.log('Refresh token set to blank due to error');
 }
 }
 
