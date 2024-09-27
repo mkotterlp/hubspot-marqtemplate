@@ -275,10 +275,10 @@ const Extension = ({ context, actions, runServerless }) => {
           configData = JSON.parse(configDataResponse.response.body).values || {};
           const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
           const filters = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
-          const dynamicFields = configData.dataFields?.split(',').map(field => field.trim()) || [];
+          const dataFields = configData.dataFields?.split(',').map(field => field.trim()) || [];
           setFieldsArray(fields);
           setFiltersArray(filters);
-          setDataArray(dynamicFields);
+          setDataArray(dataFields);
 
            // Log dataFields for debugging
           console.log('Pulled dataFields:', dataFields);
@@ -312,6 +312,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
           // Group dynamic fields by their object types (parsed from dataFields)
         const objectTypeFieldsMap = {};
+        const dynamicFields = {};
 
         // Dynamically group dataFields by their object types (e.g., deal, contact, etc.)
         dynamicFields.forEach(dataField => {
