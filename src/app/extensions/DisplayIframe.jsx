@@ -60,6 +60,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const pollingTimerRef = useRef(null);
   const hasSyncedOnceRef = useRef(false); 
 
+  let originaltemplates = {};
   let propertiesBody = {}; 
   let configData = {};
   let templateLink;
@@ -334,12 +335,14 @@ const Extension = ({ context, actions, runServerless }) => {
                   setTemplates(filtered);               
                   setFilteredTemplates(filtered);
                   setInitialFilteredTemplates(filtered);
+                  originaltemplates = filtered;
                   setIsLoading(false);
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
                   setInitialFilteredTemplates(fetchedTemplates);
+                  originaltemplates = fetchedTemplates;
                   setIsLoading(false);
                 }
               } else {
@@ -1309,12 +1312,12 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setFilteredTemplates(originaltemplates); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [initialFilteredTemplates]);
+  }, [originaltemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
@@ -1334,7 +1337,7 @@ useEffect(() => {
   
       return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, templates, initialFilteredTemplates]);
+  }, [searchTerm, templates, originaltemplates]);
   
 
 
