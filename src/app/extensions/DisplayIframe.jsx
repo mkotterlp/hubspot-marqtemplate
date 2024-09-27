@@ -1295,26 +1295,32 @@ useEffect(() => {
   
 
   const handleSearch = useCallback((input) => {
-    let searchValue = input?.target?.value || '';
+    let searchValue = '';
+    if (input && input.target) {
+      searchValue = input.target.value;
+    } else if (input) {
+      searchValue = String(input);
+    } else {
+      console.error('Unexpected input:', input);
+    }
+  
     setSearchTerm(searchValue);
   
-    if (!searchValue.trim()) {
+    if (searchValue.trim() === '') {
       console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
       setFilteredTemplates([...initialFilteredTemplates]);
-      setTemplates([...initialFilteredTemplates]);  // Reset templates
-      setCurrentPage(1);  // Reset to first page
+      setTemplates([...initialFilteredTemplates]);
 
       paginatedTemplates = initialFilteredTemplates.slice(
         (currentPage - 1) * RECORDS_PER_PAGE,
         currentPage * RECORDS_PER_PAGE
       );
-
-      setTitle('Relevant Content');  // Set appropriate title
+      
+      setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
   }, [initialFilteredTemplates]);
-  
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
