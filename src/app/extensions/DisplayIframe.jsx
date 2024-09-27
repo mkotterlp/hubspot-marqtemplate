@@ -75,6 +75,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let accountResponseBody = {};
   let schema = [
     { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+    { name: "Marq User Restriction", fieldType: "STRING", isPrimary: false, order: 2 },
   ];
 
   
@@ -962,11 +963,12 @@ if(currentAccountRefreshToken) {
 
         const updatedSchema = [
           { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+          { name: "Marq User Restriction", fieldType: "STRING", isPrimary: false, order: 2 },
           ...Object.keys(mappeddynamicproperties).map((key, index) => ({
             name: key,
             fieldType: "STRING",  // All fields are treated as strings
             isPrimary: false,
-            order: index + 2,  // Order starts after the "Id" field
+            order: index + 3,  // Order starts after the "Id" field
           })),
         ];
 
