@@ -275,10 +275,10 @@ const Extension = ({ context, actions, runServerless }) => {
           configData = JSON.parse(configDataResponse.response.body).values || {};
           const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
           const filters = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
-          const dataFields = configData.dataFields?.split(',').map(field => field.trim()) || [];
+          const dynamicFields = configData.dataFields?.split(',').map(field => field.trim()) || [];
           setFieldsArray(fields);
           setFiltersArray(filters);
-          setDataArray(dataFields);
+          setDataArray(dynamicFields);
 
            // Log dataFields for debugging
           console.log('Pulled dataFields:', dataFields);
