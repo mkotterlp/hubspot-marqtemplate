@@ -1310,7 +1310,7 @@ useEffect(() => {
     if (searchValue.trim() === '') {
       console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
       setFilteredTemplates([...initialFilteredTemplates]);
-      setTemplates(initialFilteredTemplates); 
+      setTemplates([...initialFilteredTemplates]);
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
@@ -1333,7 +1333,7 @@ useEffect(() => {
     } else {
       console.log('Search term cleared. Resetting templates.');
       setFilteredTemplates([...initialFilteredTemplates]);  // Reset to initial templates
-      setTemplates(initialFilteredTemplates);
+      setTemplates([...initialFilteredTemplates]);
     }
   }, [searchTerm, initialFilteredTemplates]);
   
