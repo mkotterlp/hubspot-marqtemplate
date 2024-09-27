@@ -6,7 +6,6 @@ exports.main = async (context) => {
     const objectId = context.parameters?.objectId;
     const objectType = context.parameters?.objectType;
     const properties = context.parameters?.properties;
-    const parentObjectType = context.parameters?.parentObjectType || objectType; // Use dynamic parent object type
 
     console.log("Received parameters:", JSON.stringify(context.parameters));
 
@@ -21,8 +20,18 @@ exports.main = async (context) => {
     try {
         console.log(`Fetching details for ${objectType} with ID ${objectId} and properties: ${properties.join(', ')}`);
 
-        // Fetch object properties dynamically
-        let apiResponse = await fetchObjectProperties(accessToken, objectType, objectId, properties);
+        let apiResponse;
+        try {
+            // Fetch object properties
+            apiResponse = await fetchObjectProperties(accessToken, objectType, objectId, properties);
+            console.log("Fetched object properties:", JSON.stringify(apiResponse, null, 2));
+        } catch (error) {
+            console.error("Error fetching object properties:", error.message);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Error fetching object properties" })
+            };
+        }
 
         if (!apiResponse || !apiResponse.properties) {
             console.log('Invalid API response structure');
@@ -32,23 +41,44 @@ exports.main = async (context) => {
             };
         }
 
-        // Fetch property definitions for the object
-        const propertyDefinitions = await fetchPropertyDefinitions(accessToken, objectType, properties);
-
-        // Fetch pipeline stages if applicable
-        let pipelineStages = [];
-        if (objectType === 'DEAL' && properties.includes('dealstage')) {
-            pipelineStages = await fetchPipelineStages(accessToken);
+        let propertyDefinitions;
+        try {
+            // Fetch property definitions including options
+            propertyDefinitions = await fetchPropertyDefinitions(accessToken, objectType, properties);
+            console.log("Fetched property definitions:", JSON.stringify(propertyDefinitions, null, 2));
+        } catch (error) {
+            console.error("Error fetching property definitions:", error.message);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Error fetching property definitions" })
+            };
         }
 
-        // Map property values to human-readable labels
-        let mappedProperties = mapPropertyValuesToLabels(apiResponse.properties, propertyDefinitions, pipelineStages);
+        let pipelineStages = [];
+        if (objectType === 'DEAL' && properties.includes('dealstage')) {
+            try {
+                console.log("Fetching pipeline stages");
+                pipelineStages = await fetchPipelineStages(accessToken);
+                console.log("Fetched pipeline stages:", JSON.stringify(pipelineStages, null, 2));
+            } catch (error) {
+                console.error("Error fetching pipeline stages:", error.message);
+            }
+        } else {
+            console.log("Pipeline stages fetching not required for this object type or properties");
+        }
 
-        // Dynamically fetch associated objects (e.g., contacts, companies, deals, etc.)
-        const associatedObjects = await fetchDynamicAssociations(accessToken, objectId, parentObjectType);
-
-        // Add dynamic associations to the response
-        mappedProperties.associations = associatedObjects;
+        let mappedProperties;
+        try {
+            // Map property values to their labels
+            mappedProperties = mapPropertyValuesToLabels(apiResponse.properties, propertyDefinitions, pipelineStages);
+            console.log("Mapped Properties:", JSON.stringify(mappedProperties, null, 2));
+        } catch (error) {
+            console.error("Error mapping property values to labels:", error.message);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Error mapping property values to labels" })
+            };
+        }
 
         return {
             statusCode: 200,
@@ -67,7 +97,6 @@ exports.main = async (context) => {
     }
 };
 
-// Fetch object properties
 async function fetchObjectProperties(accessToken, objectType, objectId, properties) {
     try {
         const response = await axios.get(`https://api.hubapi.com/crm/v3/objects/${objectType}/${objectId}`, {
@@ -85,7 +114,6 @@ async function fetchObjectProperties(accessToken, objectType, objectId, properti
     }
 }
 
-// Fetch property definitions for the given objectType
 async function fetchPropertyDefinitions(accessToken, objectType, properties) {
     const propertyDefinitions = {};
     for (const property of properties) {
@@ -97,6 +125,7 @@ async function fetchPropertyDefinitions(accessToken, objectType, properties) {
                 }
             });
             propertyDefinitions[property] = response.data;
+            console.log(`Response for ${property}:`, JSON.stringify(response.data, null, 2));
         } catch (error) {
             console.error(`Error fetching property definition for ${property}:`, error.message);
             throw error;
@@ -105,7 +134,6 @@ async function fetchPropertyDefinitions(accessToken, objectType, properties) {
     return propertyDefinitions;
 }
 
-// Fetch pipeline stages (if the object is a DEAL)
 async function fetchPipelineStages(accessToken) {
     try {
         const response = await axios.get('https://api.hubapi.com/crm/v3/pipelines/deals', {
@@ -120,32 +148,6 @@ async function fetchPipelineStages(accessToken) {
     }
 }
 
-// Fetch dynamic associations (without hardcoding any associated objects)
-async function fetchDynamicAssociations(accessToken, objectId, objectType) {
-    try {
-        // Dynamically get all associations for the object
-        const response = await axios.get(`https://api.hubapi.com/crm/v4/objects/${objectType}/${objectId}/associations`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
-
-        // Parse associated object types and details
-        const associations = response.data.results.reduce((acc, association) => {
-            const { type, associatedObjectIds } = association;
-            acc[type] = associatedObjectIds;  // Store each association type with its related object IDs
-            return acc;
-        }, {});
-
-        return associations;
-
-    } catch (error) {
-        console.error('Error fetching dynamic associations:', error.message);
-        return {};
-    }
-}
-
-// Map property values to readable labels (e.g., deal stages, enumerations)
 function mapPropertyValuesToLabels(properties, propertyDefinitions, pipelineStages) {
     const mappedProperties = {};
     for (const key in properties) {
@@ -172,3 +174,5 @@ function mapPropertyValuesToLabels(properties, propertyDefinitions, pipelineStag
     }
     return mappedProperties;
 }
+
+
