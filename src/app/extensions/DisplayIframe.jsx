@@ -60,6 +60,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const pollingTimerRef = useRef(null);
   const hasSyncedOnceRef = useRef(false); 
 
+  let initialtemplates = [];
   let propertiesBody = {}; 
   let configData = {};
   let templateLink;
@@ -331,11 +332,10 @@ const Extension = ({ context, actions, runServerless }) => {
                     });
                   });
                   console.log("Filtered Templates:", filtered);
-                  const filteredtemplates = filtered.length > 0 ? filtered : fetchedTemplates;
+                  initialtemplates = filtered.length > 0 ? filtered : fetchedTemplates;
 
                   setFilteredTemplates([...filtered.length > 0 ? filtered : fetchedTemplates]);
                   // setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
-                  setInitialFilteredTemplates(filteredtemplates);
                   setIsLoading(false);
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
@@ -1310,12 +1310,12 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setFilteredTemplates(...initialtemplates); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [initialFilteredTemplates]);
+  }, [initialtemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
@@ -1335,7 +1335,7 @@ useEffect(() => {
   
       return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, templates, initialFilteredTemplates]);
+  }, [searchTerm, templates, initialtemplates]);
   
 
 
