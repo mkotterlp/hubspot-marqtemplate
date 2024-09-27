@@ -1586,46 +1586,22 @@ useEffect(() => {
 
 
 
-
 useEffect(() => {
-    const handlePropertiesUpdate = (properties) => {
-        if (!fieldsArray || fieldsArray.length === 0) {
-            console.warn('fieldsArray is empty or undefined:', fieldsArray);
-            return;
-        }
-
-        const hasRelevantChange = fieldsArray.some(field => properties[field]);
-
-        if (hasRelevantChange) {
-            if (context.crm.objectId && context.crm.objectTypeId) {
-                fetchPropertiesAndLoadConfig(objectType);
-
-                if (hasInitialized.current && filtersArray.length > 0 && Object.keys(crmProperties).length > 0) {
-                    filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
-                }
-            } 
-        } 
-    };
-
+  const handlePropertiesUpdate = (updatedProperties) => {
+    // Handle updates for fieldsArray
     if (fieldsArray && fieldsArray.length > 0) {
-        actions.onCrmPropertiesUpdate(fieldsArray, handlePropertiesUpdate);
-    } else {
-        console.warn('fieldsArray is empty, no properties to watch.');
+      const hasRelevantChange = fieldsArray.some(field => updatedProperties[field]);
+      if (hasRelevantChange) {
+        fetchPropertiesAndLoadConfig(objectType);
+        if (hasInitialized.current && filtersArray.length > 0 && Object.keys(crmProperties).length > 0) {
+          filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, crmProperties);
+        }
+      }
     }
 
-    return () => {
-        actions.onCrmPropertiesUpdate([], null);
-    };
-}, [context.crm.objectId, context.crm.objectTypeId, objectType, fieldsArray, filtersArray, crmProperties, fulltemplatelist, searchTerm]);
-
-
-useEffect(() => {
-  const handleDynamicPropertiesUpdate = (updatedProperties) => {
+    // Handle updates for dynamicProperties
     const dynamicFieldsToWatch = Object.keys(dynamicProperties);
-
-    // Check if any of the dynamic fields are in the updated properties
     const hasDynamicChange = dynamicFieldsToWatch.some(field => updatedProperties[field]);
-
     if (hasDynamicChange) {
       const updatedDynamicProps = dynamicFieldsToWatch.reduce((acc, field) => {
         if (updatedProperties[field]) {
@@ -1643,15 +1619,33 @@ useEffect(() => {
     }
   };
 
-  if (dynamicProperties && Object.keys(dynamicProperties).length > 0) {
-    const dynamicFieldsToWatch = Object.keys(dynamicProperties);
-    actions.onCrmPropertiesUpdate(dynamicFieldsToWatch, handleDynamicPropertiesUpdate);
+  // Combine the fields to watch from both arrays
+  const fieldsToWatch = [
+    ...fieldsArray,
+    ...Object.keys(dynamicProperties)
+  ];
+
+  if (fieldsToWatch.length > 0) {
+    console.log("Registering onCrmPropertiesUpdate for fields:", fieldsToWatch);
+    actions.onCrmPropertiesUpdate(fieldsToWatch, handlePropertiesUpdate);
   }
 
   return () => {
+    console.log("Cleaning up onCrmPropertiesUpdate listener");
     actions.onCrmPropertiesUpdate([], null);
   };
-}, [dynamicProperties, context.crm.objectId, objectType]);
+}, [
+  context.crm.objectId,
+  context.crm.objectTypeId,
+  objectType,
+  fieldsArray,
+  filtersArray,
+  crmProperties,
+  fulltemplatelist,
+  searchTerm,
+  dynamicProperties
+]);
+
 
 
 
