@@ -28,6 +28,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [templates, setTemplates] = useState([]);
   const [allTemplates, setAllTemplates] = useState([]);
   const [fulltemplatelist, setfullTemplates] = useState([]);
+  const [dynamicProperties, setDynamicProperties] = useState({});
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState('Relevant Content');
   const [stageName, setStage] = useState('');
@@ -59,11 +60,10 @@ const Extension = ({ context, actions, runServerless }) => {
   const previousProjectCountRef = useRef(projects.length); 
   const pollingTimerRef = useRef(null);
   const hasSyncedOnceRef = useRef(false); 
+  
 
   let paginatedTemplates = [];
   let propertiesBody = {}; 
-  let mappeddynamicproperties = {};
-  let dynamicpropertiesBody = {}; 
   let configData = {};
   let templateLink;
   let currentRefreshToken = "";
@@ -352,6 +352,8 @@ const Extension = ({ context, actions, runServerless }) => {
                 const dynamicpropertiesBody = responseBody.mappedProperties || {};
     
                 console.log(`Fetched properties for dynamic objectType (${objectType}):`, dynamicpropertiesBody);
+
+                let mappeddynamicproperties = {}; 
     
                 // Iterate over dataFields and map to mappeddynamicproperties
                 dataFields.forEach((dataField) => {
@@ -367,6 +369,8 @@ const Extension = ({ context, actions, runServerless }) => {
                         mappeddynamicproperties[dataField] = fieldValue || '';  // Map and handle missing values
                     }
                 });
+
+                setDynamicProperties(mappeddynamicproperties);
     
                 console.log("Mapped Dynamic Properties after fetching:", mappeddynamicproperties);
             } else {
@@ -948,12 +952,12 @@ if (currentAccountRefreshToken) {
 if(currentAccountRefreshToken) {
     
   try {
-    const properties = Array.isArray(propertiesToWatch) && propertiesToWatch.length > 0 ? {} : propertiesToWatch;
+    const properties = {};
 
-        console.log("Mapped Dynamic Properties before merge:", mappeddynamicproperties);
+        console.log("dynamicProperties before merge:", dynamicProperties);
 
         // Merge mappeddynamicproperties into the properties object
-        const updatedProperties = { ...properties, ...mappeddynamicproperties };
+        const updatedProperties = { ...properties, ...dynamicProperties };
 
         // Append the Id field to the properties object
         updatedProperties["Id"] = context.crm.objectId?.toString() || '';
@@ -964,7 +968,7 @@ if(currentAccountRefreshToken) {
         const updatedSchema = [
           { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
           { name: "Marq User Restriction", fieldType: "STRING", isPrimary: false, order: 2 },
-          ...Object.keys(mappeddynamicproperties).map((key, index) => ({
+          ...Object.keys(dynamicProperties).map((key, index) => ({
             name: key,
             fieldType: "STRING",  // All fields are treated as strings
             isPrimary: false,
@@ -1617,7 +1621,7 @@ useEffect(() => {
 
 useEffect(() => {
   const handleDynamicPropertiesUpdate = (updatedProperties) => {
-    const dynamicFieldsToWatch = Object.keys(mappeddynamicproperties);
+    const dynamicFieldsToWatch = Object.keys(dynamicProperties);
 
     const hasDynamicChange = dynamicFieldsToWatch.some(field => updatedProperties[field]);
 
@@ -1630,15 +1634,15 @@ useEffect(() => {
     }
   };
 
-  if (mappeddynamicproperties && Object.keys(mappeddynamicproperties).length > 0) {
-    const dynamicFieldsToWatch = Object.keys(mappeddynamicproperties);
+  if (dynamicProperties && Object.keys(dynamicProperties).length > 0) {
+    const dynamicFieldsToWatch = Object.keys(dynamicProperties);
     actions.onCrmPropertiesUpdate(dynamicFieldsToWatch, handleDynamicPropertiesUpdate);
   }
 
   return () => {
     actions.onCrmPropertiesUpdate([], null); // Cleanup to stop watching properties
   };
-}, [mappeddynamicproperties, context.crm.objectId, objectType]);
+}, [dynamicProperties, context.crm.objectId, objectType]);
 
 const handleConnectToMarq = async (apiKey, userid, userEmail, metadataType) => {
   try {
