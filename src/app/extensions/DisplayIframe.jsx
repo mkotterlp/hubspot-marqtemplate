@@ -580,6 +580,10 @@ const deleteRecord = async (recordId, objectType) => {
 
   const extractFiltersFromProperties = (fieldsArray, filtersArray, properties) => {
     let filters = [];
+
+    console.log('fieldsArray:', fieldsArray);
+    console.log('filtersArray:', filtersArray);
+    console.log('properties:', properties);
     
     fieldsArray.forEach((field, index) => {
       if (properties[field]) {
