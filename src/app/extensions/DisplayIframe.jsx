@@ -1587,10 +1587,32 @@ useEffect(() => {
 
 
 useEffect(() => {
+  // Function to create a mapping from cleaned fields to original fields
+  const createFieldMapping = (fields) => {
+    return fields.reduce((acc, field) => {
+      const parts = field.split('.');
+      const cleanedField = parts.length > 1 ? parts[1] : parts[0];  // Clean the field name
+      acc[cleanedField] = field;  // Map cleaned field to the original
+      return acc;
+    }, {});
+  };
+
+  // Function to strip object name prefixes from fields (e.g., 'deal.amount' -> 'amount')
+  const cleanFields = (fields) => {
+    return fields.map(field => {
+      const parts = field.split('.');
+      return parts.length > 1 ? parts[1] : parts[0];  // Use the part after the period if exists
+    });
+  };
+
+  // Create mappings for fieldsArray and dynamicProperties
+  const fieldMapping = createFieldMapping(fieldsArray);
+  const dynamicFieldMapping = createFieldMapping(Object.keys(dynamicProperties));
+
   const handlePropertiesUpdate = (updatedProperties) => {
     // Handle updates for fieldsArray
     if (fieldsArray && fieldsArray.length > 0) {
-      const hasRelevantChange = fieldsArray.some(field => updatedProperties[field]);
+      const hasRelevantChange = fieldsArray.some(field => updatedProperties[fieldMapping[field]]);
       if (hasRelevantChange) {
         fetchPropertiesAndLoadConfig(objectType);
         if (hasInitialized.current && filtersArray.length > 0 && Object.keys(crmProperties).length > 0) {
@@ -1601,11 +1623,12 @@ useEffect(() => {
 
     // Handle updates for dynamicProperties
     const dynamicFieldsToWatch = Object.keys(dynamicProperties);
-    const hasDynamicChange = dynamicFieldsToWatch.some(field => updatedProperties[field]);
+    const hasDynamicChange = dynamicFieldsToWatch.some(field => updatedProperties[dynamicFieldMapping[field]]);
     if (hasDynamicChange) {
       const updatedDynamicProps = dynamicFieldsToWatch.reduce((acc, field) => {
-        if (updatedProperties[field]) {
-          acc[field] = updatedProperties[field];
+        const originalField = dynamicFieldMapping[field];
+        if (updatedProperties[originalField]) {
+          acc[originalField] = updatedProperties[originalField];  // Use original field name
         }
         return acc;
       }, {});
@@ -1617,14 +1640,6 @@ useEffect(() => {
 
       console.log("Updated dynamic properties:", updatedDynamicProps);
     }
-  };
-
-  // Function to strip object name prefixes from fields (e.g., 'deal.amount' -> 'amount')
-  const cleanFields = (fields) => {
-    return fields.map(field => {
-      const parts = field.split('.');
-      return parts.length > 1 ? parts[1] : parts[0];  // Use the part after the period if exists
-    });
   };
 
   // Combine the fields to watch from both arrays
