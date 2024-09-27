@@ -264,6 +264,8 @@ const Extension = ({ context, actions, runServerless }) => {
         setIsLoading(false);
         return;
       }
+
+      const primaryobjectType = objectType;
   
       // Fetch config data from 'hubdbHelper'
       try {
@@ -294,7 +296,11 @@ const Extension = ({ context, actions, runServerless }) => {
             try {
               const propertiesResponse = await runServerless({
                 name: 'getObjectProperties',
-                parameters: { objectId: context.crm.objectId, objectType, properties: fields }
+                parameters: { 
+                  objectId: context.crm.objectId, 
+                  objectType, 
+                  parentObjectType: primaryobjectType,
+                  properties: fields }
               });
   
               if (propertiesResponse?.response?.body) {
@@ -343,6 +349,7 @@ const Extension = ({ context, actions, runServerless }) => {
                 parameters: {
                     objectId: context.crm.objectId,
                     objectType,  // Dynamic objectType
+                    parentObjectType: primaryobjectType,
                     properties: fieldsForObject  // Fields for this objectType
                 }
             });
