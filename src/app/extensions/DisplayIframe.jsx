@@ -331,9 +331,11 @@ const Extension = ({ context, actions, runServerless }) => {
                     });
                   });
                   console.log("Filtered Templates:", filtered);
+                  const filteredtemplates = filtered.length > 0 ? filtered : fetchedTemplates;
+
                   setFilteredTemplates([...filtered.length > 0 ? filtered : fetchedTemplates]);
                   // setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
-                  setInitialFilteredTemplates([...filtered.length > 0 ? filtered : fetchedTemplates]);
+                  setInitialFilteredTemplates(filteredtemplates);
                   setIsLoading(false);
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
