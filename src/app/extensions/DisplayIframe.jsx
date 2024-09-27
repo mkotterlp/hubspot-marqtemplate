@@ -315,12 +315,25 @@ const Extension = ({ context, actions, runServerless }) => {
 
         // Dynamically group dataFields by their object types (e.g., deal, contact, etc.)
         dataFields.forEach(dataField => {
-            const [objectType, field] = dataField.split('.');  // e.g., 'deal.dealstage'
-            if (!objectTypeFieldsMap[objectType]) {
-                objectTypeFieldsMap[objectType] = [];
-            }
-            objectTypeFieldsMap[objectType].push(field);
-        });
+          const parts = dataField.split('.');  // Split the dataField
+          if (parts.length === 2) {
+              const [objectType, field] = parts;
+              if (!objectTypeFieldsMap[objectType]) {
+                  objectTypeFieldsMap[objectType] = [];
+              }
+              objectTypeFieldsMap[objectType].push(field);
+          } else if (parts.length === 1) {
+              // Handle fields without an explicit objectType
+              const defaultObjectType = context.crm.objectTypeId;  // Get the default objectType from context
+              const field = parts[0];
+              if (!objectTypeFieldsMap[defaultObjectType]) {
+                  objectTypeFieldsMap[defaultObjectType] = [];
+              }
+              objectTypeFieldsMap[defaultObjectType].push(field);
+          } else {
+              console.error(`Invalid dataField format: ${dataField}`);
+          }
+      });
 
         for (const [objectType, fieldsForObject] of Object.entries(objectTypeFieldsMap)) {
           try {
@@ -1353,31 +1366,39 @@ useEffect(() => {
       searchValue = input.target.value;
     } else if (input) {
       searchValue = String(input);
-    } 
+    } else {
+      console.error('Unexpected input:', input);
+    }
+  
     setSearchTerm(searchValue);
-  });
+  
+    if (searchValue.trim() === '') {
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setTitle('Relevant Content');
+    } else {
+      setTitle('Search Results');
+    }
+  }, [initialFilteredTemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+
         const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-        setTitle('Search Results');
+   
+  
+        // Combine search results with initially filtered templates
         setFilteredTemplates([...searchResults]);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
   
       return () => clearTimeout(delayDebounceFn);
-    } else {
-      setTitle('Relevant Content');
-      console.log('Search term cleared. Resetting templates.', initialFilteredTemplates);
-      setFilteredTemplates([...initialFilteredTemplates]);
-      setCurrentPage(1);
-      setTemplates([...initialFilteredTemplates]);
     }
-  }, [searchTerm, initialFilteredTemplates]);
+  }, [searchTerm, templates, initialFilteredTemplates]);
   
   
 
