@@ -167,7 +167,11 @@ function mapPropertyValuesToLabels(properties, propertyDefinitions, pipelineStag
             } else if (property && property.type === 'enumeration' && property.options) {
                 const option = property.options.find(opt => opt.value === properties[key]);
                 mappedProperties[key] = option ? option.label : properties[key];
-            } else {
+            } if (property && property.type === 'currency') {
+                mappedProperties[key] = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(properties[key]);
+            } else if (property && property.type === 'date') {
+                mappedProperties[key] = new Date(properties[key]).toLocaleDateString('en-US');
+            }  else {
                 mappedProperties[key] = properties[key];
             }
         }
