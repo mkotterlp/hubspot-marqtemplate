@@ -1304,11 +1304,11 @@ useEffect(() => {
       setTemplates([...initialFilteredTemplates]);  // Reset templates
       setCurrentPage(1);  // Reset to first page
 
-      paginatedTemplates = filteredTemplates.slice(
+      paginatedTemplates = initialFilteredTemplates.slice(
         (currentPage - 1) * RECORDS_PER_PAGE,
         currentPage * RECORDS_PER_PAGE
       );
-      
+
       setTitle('Relevant Content');  // Set appropriate title
     } else {
       setTitle('Search Results');
