@@ -1321,21 +1321,22 @@ useEffect(() => {
     if (searchTerm.trim() !== '') {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-
         const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-   
-  
-        // Combine search results with initially filtered templates
+     
         setFilteredTemplates([...searchResults]);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
   
       return () => clearTimeout(delayDebounceFn);
+    } else {
+      console.log('Search term cleared. Resetting templates.');
+      setFilteredTemplates([...initialFilteredTemplates]);  // Reset to initial templates
+      setTemplates(initialFilteredTemplates);
     }
-  }, [searchTerm, templates]);
+  }, [searchTerm, initialFilteredTemplates]);
+  
   
 
 
