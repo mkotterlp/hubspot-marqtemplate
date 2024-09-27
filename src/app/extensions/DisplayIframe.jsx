@@ -67,9 +67,7 @@ const Extension = ({ context, actions, runServerless }) => {
   let currentRefreshToken = "";
   let currentAccountRefreshToken = "";
   let marqAccountId = "";
-  let collectionId = "";
   let collectionid = "";
-  let dataSetId = "";
   let datasetid = "";
   let lastTemplateSyncDate;
   let accountResponseBody = {};
@@ -1312,7 +1310,8 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      setFilteredTemplates([...originaltemplates]); // Reset to initially filtered templates
+      setFilteredTemplates(originaltemplates);
+      setTemplates(originaltemplates); 
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
