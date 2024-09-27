@@ -335,40 +335,47 @@ const Extension = ({ context, actions, runServerless }) => {
           }
       });
 
-        for (const [objectType, fieldsForObject] of Object.entries(objectTypeFieldsMap)) {
-          try {
-              const dynamicpropertiesResponse = await runServerless({
-                  name: 'getObjectProperties',
-                  parameters: {
-                      objectId: context.crm.objectId,
-                      objectType,  // Dynamic objectType
-                      properties: fieldsForObject  // Fields for this objectType
-                  }
-              });
-      
-              if (dynamicpropertiesResponse?.response?.body) {
-                  const responseBody = JSON.parse(dynamicpropertiesResponse.response.body);
-                  dynamicpropertiesBody = responseBody.mappedProperties || {};
-      
-                  console.log(`Fetched properties for dynamic objectType (${objectType}):`, dynamicpropertiesBody);
-      
-                  // Iterate over dataFields and map to mappeddynamicproperties
-                  dataFields.forEach((dataField) => {
-                      const [objectType, field] = dataField.split('.');  // e.g., 'deal.dealstage'
-                      const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
-      
-                      // Map the original key (e.g., "deal.dealstage") to its corresponding value
-                      mappeddynamicproperties[dataField] = fieldValue || '';  // Handle missing values
-                  });
-      
-                  console.log("Mapped Dynamic Properties after fetching:", mappeddynamicproperties);
-              } else {
-                  console.error(`Failed to fetch properties for dynamic objectType (${objectType})`, dynamicpropertiesResponse);
-              }
-          } catch (error) {
-              console.error(`Error fetching properties for dynamic objectType (${objectType}):`, error);
-          }
-      }
+      for (const [objectType, fieldsForObject] of Object.entries(objectTypeFieldsMap)) {
+        try {
+            const dynamicpropertiesResponse = await runServerless({
+                name: 'getObjectProperties',
+                parameters: {
+                    objectId: context.crm.objectId,
+                    objectType,  // Dynamic objectType
+                    properties: fieldsForObject  // Fields for this objectType
+                }
+            });
+    
+            if (dynamicpropertiesResponse?.response?.body) {
+                const responseBody = JSON.parse(dynamicpropertiesResponse.response.body);
+                const dynamicpropertiesBody = responseBody.mappedProperties || {};
+    
+                console.log(`Fetched properties for dynamic objectType (${objectType}):`, dynamicpropertiesBody);
+    
+                // Iterate over dataFields and map to mappeddynamicproperties
+                dataFields.forEach((dataField) => {
+                    const parts = dataField.split('.');  // e.g., 'deal.dealstage'
+                    if (parts.length === 2) {
+                        const [objectType, field] = parts;
+                        const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
+                        mappeddynamicproperties[dataField] = fieldValue || '';  // Map and handle missing values
+                    } else if (parts.length === 1) {
+                        // Handle fields without an explicit objectType (using default)
+                        const field = parts[0];
+                        const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
+                        mappeddynamicproperties[dataField] = fieldValue || '';  // Map and handle missing values
+                    }
+                });
+    
+                console.log("Mapped Dynamic Properties after fetching:", mappeddynamicproperties);
+            } else {
+                console.error(`Failed to fetch properties for dynamic objectType (${objectType})`, dynamicpropertiesResponse);
+            }
+        } catch (error) {
+            console.error(`Error fetching properties for dynamic objectType (${objectType}):`, error);
+        }
+    }
+    
       
           
           // Fetch templates from 'fetchJsonData'
