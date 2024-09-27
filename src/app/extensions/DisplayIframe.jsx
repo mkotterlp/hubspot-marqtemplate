@@ -1297,7 +1297,33 @@ useEffect(() => {
   }, [context.crm.objectTypeId, runServerless]);
   
 
-  const handleSearch = useCallback((input) => {
+  useEffect(() => {
+    const searchTemplates = () => {
+      if (searchTerm.trim() === '') {
+        console.log('Resetting to originaltemplates:', originaltemplates);
+        setFilteredTemplates([...originaltemplates]); // Reset to original templates
+        setTitle('Relevant Content');
+      } else {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  
+        const searchResults = fulltemplatelist.filter(template =>
+          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+  
+        setFilteredTemplates(searchResults);
+        setCurrentPage(1); // Reset to first page on search
+        setTitle('Search Results');
+      }
+    };
+  
+    // Adding a delay to debounce the search input
+    const delayDebounceFn = setTimeout(searchTemplates, 300);
+  
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, originaltemplates, fulltemplatelist]);
+  
+  // Then use this handleSearch function to update the searchTerm state
+  const handleSearch = (input) => {
     let searchValue = '';
     if (input && input.target) {
       searchValue = input.target.value;
@@ -1306,39 +1332,10 @@ useEffect(() => {
     } else {
       console.error('Unexpected input:', input);
     }
-  
+    
     setSearchTerm(searchValue);
+  };
   
-    if (searchValue.trim() === '') {
-      setFilteredTemplates(originaltemplates);
-      setTemplates(originaltemplates); 
-      setTitle('Relevant Content');
-    } else {
-      setTitle('Search Results');
-    }
-  }, [originaltemplates]);
-  
-  useEffect(() => {
-    if (searchTerm.trim() !== '') {
-      const delayDebounceFn = setTimeout(() => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-
-        const searchResults = fulltemplatelist.filter(template =>
-          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-        );
-   
-  
-        // Combine search results with initially filtered templates
-        setFilteredTemplates([...searchResults]);
-        setCurrentPage(1); // Reset to first page on search
-      }, 300);
-  
-      return () => clearTimeout(delayDebounceFn);
-    }
-  }, [searchTerm, templates, originaltemplates]);
-  
-
 
 useEffect(() => {
   const pages = Math.ceil(filteredTemplates.length / RECORDS_PER_PAGE);
