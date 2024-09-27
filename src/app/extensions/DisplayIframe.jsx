@@ -1311,7 +1311,7 @@ useEffect(() => {
   
     if (searchValue.trim() === '') {
       console.log('Resetting to filteredTemplates:', initialFilteredTemplates);
-      setFilteredTemplates(initialFilteredTemplates);
+      setFilteredTemplates([...initialFilteredTemplates]);
       setTemplates(initialFilteredTemplates); 
       setTitle('Relevant Content');
     } else {
