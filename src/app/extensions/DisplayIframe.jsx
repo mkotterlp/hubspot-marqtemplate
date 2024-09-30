@@ -66,6 +66,9 @@ const Extension = ({ context, actions, runServerless }) => {
   const [dynamicProperties, setDynamicProperties] = useState({});
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState("Relevant Content");
+
+
+
   const [stageName, setStage] = useState("");
   const [propertiesToWatch, setpropertiesToWatch] = useState([]);
   const [objectType, setObjectType] = useState("");
@@ -1849,8 +1852,7 @@ const Extension = ({ context, actions, runServerless }) => {
   useEffect(() => {
     console.log("FilteredTemplates updated:", filteredTemplates);
   }, [filteredTemplates]);
-  
-  
+
   const handleSearch = useCallback(
     (input) => {
       let searchValue = "";
@@ -1876,10 +1878,10 @@ const Extension = ({ context, actions, runServerless }) => {
       if (searchValue.trim() === "") {
         console.log("No input, resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
         
-        // Replicate the filtering logic from the try block
-        if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
+        // Use fieldsArray instead of fields
+        if (fieldsArray.length && filters.length && Object.keys(propertiesBody).length > 0) {
           const filtered = fulltemplatelist.filter((template) => {
-            return fields.every((field, index) => {
+            return fieldsArray.every((field, index) => {
               const categoryName = filters[index];
               const propertyValue = propertiesBody[field]?.toLowerCase();
               const category = template.categories.find(
@@ -1899,7 +1901,7 @@ const Extension = ({ context, actions, runServerless }) => {
           console.log("Showing all templates (no filtering criteria).");
           setFilteredTemplates(fulltemplatelist); // Fallback to full list if no filtering criteria
         }
-        
+  
         setTitle("Relevant Content");
       } else {
         setTitle("Search Results");
@@ -1910,13 +1912,13 @@ const Extension = ({ context, actions, runServerless }) => {
       // Log the updated state of filteredTemplates after search logic
       console.log("After search, updated filteredTemplates:", filteredTemplates);
     },
-    [initialFilteredTemplates, filteredTemplates, fulltemplatelist, fields, filters, propertiesBody]
+    [initialFilteredTemplates, filteredTemplates, fulltemplatelist, fieldsArray, filters, propertiesBody] // Include fieldsArray in dependencies
   );
   
   
   
   
-
+  
   useEffect(() => {
     if (searchTerm.trim() !== "") {
       const delayDebounceFn = setTimeout(() => {
@@ -1937,17 +1939,19 @@ const Extension = ({ context, actions, runServerless }) => {
   
       return () => clearTimeout(delayDebounceFn); // Cleanup timeout on unmount or new search
     } else {
-      // When searchTerm is empty, reset to initialFilteredTemplates or fulltemplatelist
-      console.log("No search term, resetting to initialFilteredTemplates or fulltemplatelist");
-  
+      // Reset to initial filtered templates when search input is cleared
+      console.log("No search input, resetting to initialFilteredTemplates:", initialFilteredTemplates);
+      
       if (initialFilteredTemplates.length > 0) {
         setFilteredTemplates(initialFilteredTemplates); // Reset to initial filtered templates
       } else {
-        setFilteredTemplates(fulltemplatelist); // Fallback to full list
+        setFilteredTemplates(fulltemplatelist); // Fallback to full list if no initial filter
       }
-      setCurrentPage(1); // Reset to first page when search is cleared
+  
+      setCurrentPage(1); // Reset to first page when clearing search
     }
   }, [searchTerm, fulltemplatelist, initialFilteredTemplates]);
+  
   
   
 
