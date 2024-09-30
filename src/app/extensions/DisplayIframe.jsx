@@ -2025,8 +2025,9 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [context.crm.objectTypeId, runServerless]);
 
   useEffect(() => {
-    console.log("FilteredTemplates updated:", filteredTemplates);
-  }, [filteredTemplates]);
+    console.trace("Filtered Templates Updated:", filteredTemplates);
+ }, [filteredTemplates]);
+ 
 
   const handleSearch = useCallback((input) => {
     let searchValue = "";
@@ -2056,28 +2057,55 @@ const Extension = ({ context, actions, runServerless }) => {
   
   useEffect(() => {
     if (searchTerm.trim() === '') {
-      // If search term is cleared, reset to initial filtered templates
-      setFilteredTemplates([...initialFilteredTemplates]);
-      console.log('Initial Filtered Templates in useEffect:', initialFilteredTemplates);
-
-      setCurrentPage(1); // Reset to first page
+        // Ensure we only set the initial filtered templates if it's not already set
+        if (filteredTemplates.length !== initialFilteredTemplates.length) {
+            setFilteredTemplates([...initialFilteredTemplates]);
+            console.log('Reset to Initial Filtered Templates:', initialFilteredTemplates);
+        }
+        setCurrentPage(1); // Reset to first page
     } else {
-      // Apply search filtering logic with a debounce
-      const delayDebounceFn = setTimeout(() => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-  
-        const searchResults = fulltemplatelist.filter(template =>
-          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-        );
-        
-        // Update filteredTemplates with the search results
-        setFilteredTemplates(searchResults);
-        setCurrentPage(1); // Reset to first page on search
-      }, 300);
-  
-      return () => clearTimeout(delayDebounceFn);
+        const delayDebounceFn = setTimeout(() => {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+            const searchResults = fulltemplatelist.filter(template =>
+                template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+            );
+            
+            // Update filteredTemplates with the search results
+            setFilteredTemplates(searchResults);
+            setCurrentPage(1); // Reset to first page on search
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, fulltemplatelist, initialFilteredTemplates]);
+}, [searchTerm, fulltemplatelist, initialFilteredTemplates, filteredTemplates]);
+
+
+
+  // useEffect(() => {
+  //   if (searchTerm.trim() === '') {
+  //     // If search term is cleared, reset to initial filtered templates
+  //     setFilteredTemplates([...initialFilteredTemplates]);
+  //     console.log('Initial Filtered Templates in useEffect after no input:', initialFilteredTemplates);
+
+  //     setCurrentPage(1); // Reset to first page
+  //   } else {
+  //     // Apply search filtering logic with a debounce
+  //     const delayDebounceFn = setTimeout(() => {
+  //       const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  
+  //       const searchResults = fulltemplatelist.filter(template =>
+  //         template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+  //       );
+        
+  //       // Update filteredTemplates with the search results
+  //       setFilteredTemplates(searchResults);
+  //       setCurrentPage(1); // Reset to first page on search
+  //     }, 300);
+  
+  //     return () => clearTimeout(delayDebounceFn);
+  //   }
+  // }, [searchTerm, fulltemplatelist, initialFilteredTemplates]);
   
 
   // const handleSearch = useCallback((input) => {
