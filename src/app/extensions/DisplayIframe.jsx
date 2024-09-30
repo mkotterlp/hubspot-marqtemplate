@@ -1845,10 +1845,16 @@ const Extension = ({ context, actions, runServerless }) => {
     fetchObjectType();
   }, [context.crm.objectTypeId, runServerless]);
 
+
+  useEffect(() => {
+    console.log("FilteredTemplates updated:", filteredTemplates);
+  }, [filteredTemplates]);
+  
+
   const handleSearch = useCallback(
     (input) => {
       let searchValue = "";
-
+  
       if (input && input.target) {
         searchValue = input.target.value;
       } else if (input) {
@@ -1856,59 +1862,42 @@ const Extension = ({ context, actions, runServerless }) => {
       } else {
         console.error("Unexpected input:", input);
       }
-
+  
       setSearchTerm(searchValue);
-
+  
       // Log the state of initialFilteredTemplates and filteredTemplates before updating
-      console.log(
-        "Before search, initialFilteredTemplates:",
-        initialFilteredTemplates
-      );
+      console.log("Before search, initialFilteredTemplates:", initialFilteredTemplates);
       console.log("Before search, filteredTemplates:", filteredTemplates);
-
+  
       if (searchValue.trim() === "") {
         // When search is cleared, reset filteredTemplates to initialFilteredTemplates (like when page refreshes)
         if (initialFilteredTemplates.length > 0) {
+          console.log("No input, resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
           setFilteredTemplates(initialFilteredTemplates); // Use the initial filtered state
-          console.log(
-            "No input, resetting filteredTemplates to initialFilteredTemplates:",
-            initialFilteredTemplates
-          );
         } else {
+          console.log("No input, resetting filteredTemplates to fulltemplatelist:", fulltemplatelist);
           setFilteredTemplates(fulltemplatelist); // Fallback to full list if no initial filter is set
-          console.log(
-            "No input, resetting filteredTemplates to fulltemplatelist:",
-            fulltemplatelist
-          );
         }
         setTitle("Relevant Content");
       } else {
         setTitle("Search Results");
-
+  
         // Perform search filtering on the full template list
         const lowerCaseSearchTerm = searchValue.toLowerCase();
         const searchResults = fulltemplatelist.filter((template) =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-
+  
         // Log the filtered search results
-        console.log(
-          "Search input provided, filtered search results:",
-          searchResults
-        );
-
+        console.log("Search input provided, filtered search results:", searchResults);
+  
         // Update the filtered templates with search results
         setFilteredTemplates(searchResults);
       }
-
-      // Log the updated state of filteredTemplates after search logic
-      console.log(
-        "After search, updated filteredTemplates:",
-        filteredTemplates
-      );
     },
     [initialFilteredTemplates, fulltemplatelist, filteredTemplates]
   );
+  
 
   useEffect(() => {
     if (searchTerm.trim() !== "") {
