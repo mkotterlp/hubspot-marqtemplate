@@ -1855,29 +1855,28 @@ const Extension = ({ context, actions, runServerless }) => {
     (input) => {
       let searchValue = "";
   
-      if (input && input.target) {
+      // Check if input is valid and handle it
+      if (input && input.target && typeof input.target.value === "string") {
         searchValue = input.target.value;
-      } else if (input) {
-        searchValue = String(input);
+      } else if (typeof input === "string") {
+        searchValue = input;
       } else {
         console.error("Unexpected input:", input);
+        return; // Exit early if input is invalid
       }
   
+      // Set the search term in state
       setSearchTerm(searchValue);
   
       // Log the state of initialFilteredTemplates and filteredTemplates before updating
       console.log("Before search, initialFilteredTemplates:", initialFilteredTemplates);
       console.log("Before search, filteredTemplates:", filteredTemplates);
   
+      // Handle the case when the search input is empty
       if (searchValue.trim() === "") {
-        // When search is cleared, reset filteredTemplates to initialFilteredTemplates (like when page refreshes)
-        if (initialFilteredTemplates.length > 0) {
-          console.log("No input, resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
-          setFilteredTemplates(initialFilteredTemplates); // Use the initial filtered state
-        } else {
-          console.log("No input, resetting filteredTemplates to fulltemplatelist:", fulltemplatelist);
-          setFilteredTemplates(fulltemplatelist); // Fallback to full list if no initial filter is set
-        }
+        console.log("No input, resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
+        // Reset to the initial filtered state (should be 8 templates)
+        setFilteredTemplates(initialFilteredTemplates); 
         setTitle("Relevant Content");
       } else {
         setTitle("Search Results");
@@ -1894,9 +1893,13 @@ const Extension = ({ context, actions, runServerless }) => {
         // Update the filtered templates with search results
         setFilteredTemplates(searchResults);
       }
+  
+      // Log the updated state of filteredTemplates after search logic
+      console.log("After search, updated filteredTemplates:", filteredTemplates);
     },
     [initialFilteredTemplates, fulltemplatelist, filteredTemplates]
   );
+  
   
 
   useEffect(() => {
