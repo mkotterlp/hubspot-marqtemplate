@@ -1881,24 +1881,15 @@ const Extension = ({ context, actions, runServerless }) => {
       } else {
         setTitle("Search Results");
   
-        // Perform search filtering on the full template list
-        const lowerCaseSearchTerm = searchValue.toLowerCase();
-        const searchResults = fulltemplatelist.filter((template) =>
-          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-        );
-  
-        // Log the filtered search results
-        console.log("Search input provided, filtered search results:", searchResults);
-  
-        // Update the filtered templates with search results
-        setFilteredTemplates(searchResults);
+        // The search logic is debounced in useEffect, so we don't filter here
       }
   
       // Log the updated state of filteredTemplates after search logic
       console.log("After search, updated filteredTemplates:", filteredTemplates);
     },
-    [initialFilteredTemplates, fulltemplatelist, filteredTemplates]
+    [initialFilteredTemplates, filteredTemplates]
   );
+  
   
   
 
@@ -1906,18 +1897,24 @@ const Extension = ({ context, actions, runServerless }) => {
     if (searchTerm.trim() !== "") {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
+  
+        // Perform search filtering on the full template list
         const searchResults = fulltemplatelist.filter((template) =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-
+  
+        // Log the filtered search results
+        console.log("Debounced search input provided, filtered search results:", searchResults);
+  
+        // Update the filtered templates with search results
         setFilteredTemplates(searchResults);
         setCurrentPage(1); // Reset to first page on search
       }, 300); // 300ms debounce time
-
+  
       return () => clearTimeout(delayDebounceFn); // Cleanup timeout on unmount or new search
     }
   }, [searchTerm, fulltemplatelist]);
+  
 
   // const handleSearch = useCallback((input) => {
   //   let searchValue = '';
