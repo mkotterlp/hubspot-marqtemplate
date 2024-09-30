@@ -1934,7 +1934,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
   const handleSearch = useCallback((input) => {
     let searchValue = "";
-
+  
     // Validate the input
     if (input && input.target && typeof input.target.value === "string") {
       searchValue = input.target.value;
@@ -1945,37 +1945,45 @@ const Extension = ({ context, actions, runServerless }) => {
       console.error("Unexpected input:", input);
       return; // Exit early if input is invalid
     }
-
+  
     // Set the search term in state
     setSearchTerm(searchValue);
-
-    if (searchValue.trim() === '') {
-      setFilteredTemplates(filteredTemplates); // Reset to initially filtered templates
-      setTemplates(filteredTemplates);
-      setInitialFilteredTemplates(filteredTemplates);
-      setTitle('Relevant Content');
+  
+    // If search input is cleared (empty string), reset to initial filtered templates
+    if (searchValue.trim() === "") {
+      console.log("Search input cleared, resetting to initial filtered templates.");
+  
+      // Reset filtered templates to the initial filtered state
+      setFilteredTemplates(initialFilteredTemplates);
+      setTemplates(initialFilteredTemplates); // If you want to reset the main templates list as well
+      setTitle("Relevant Content");
     } else {
-      setTitle('Search Results');
+      setTitle("Search Results");
     }
   }, [initialFilteredTemplates]);
-
+  
+  // Updated useEffect to handle search and debounce functionality
   useEffect(() => {
-    if (searchTerm.trim() !== '') {
+    if (searchTerm.trim() !== "") {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-        const searchResults = fulltemplatelist.filter(template =>
+  
+        // Perform search filtering on the initial filtered templates
+        const searchResults = initialFilteredTemplates.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-
-        // Combine search results with initially filtered templates
-        setFilteredTemplates([...searchResults]);
+  
+        console.log("Search Results after filtering:", searchResults);
+  
+        // Update filtered templates with search results
+        setFilteredTemplates(searchResults);
         setCurrentPage(1); // Reset to first page on search
-      }, 300);
-
-      return () => clearTimeout(delayDebounceFn);
+      }, 2000); // 2 seconds debounce time
+  
+      return () => clearTimeout(delayDebounceFn); // Cleanup debounce timeout
     }
-  }, [searchTerm, templates, initialFilteredTemplates]);
+  }, [searchTerm, initialFilteredTemplates]);
+  
   
   
   
