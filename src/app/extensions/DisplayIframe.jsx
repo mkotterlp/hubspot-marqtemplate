@@ -1662,35 +1662,38 @@ useEffect(() => {
     } else {
       console.error('Unexpected input:', input);
     }
-
+  
     setSearchTerm(searchValue);
-
+  
+    // Reset to initially filtered templates when the search term is cleared
     if (searchValue.trim() === '') {
-      // Preserve the current filtered state if filters are applied by the user
-      setFilteredTemplates(initialFilteredTemplates.length ? initialFilteredTemplates : fulltemplatelist);
-      setTitle('Relevant Content');
+      setFilteredTemplates(initialFilteredTemplates); // Use initial filtered templates
+      setTitle('Relevant Content'); // Set title to "Relevant Content"
     } else {
       setTitle('Search Results');
     }
-}, [initialFilteredTemplates, fulltemplatelist]);
+  }, [initialFilteredTemplates]); // Add initialFilteredTemplates as a dependency
+  
 
 
-useEffect(() => {
-  if (searchTerm.trim() !== '') {
-    const delayDebounceFn = setTimeout(() => {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-      const searchResults = fulltemplatelist.filter(template =>
-        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-      );
-
-      setFilteredTemplates(searchResults);
-      setCurrentPage(1); // Reset to first page on search
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }
-}, [searchTerm, fulltemplatelist]);
+  useEffect(() => {
+    if (searchTerm.trim() !== '') {
+      const delayDebounceFn = setTimeout(() => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  
+        const searchResults = fulltemplatelist.filter(template =>
+          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+  
+        // Set the filtered templates to match search results
+        setFilteredTemplates(searchResults);
+        setCurrentPage(1); // Reset to first page on search
+      }, 300);
+  
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchTerm, fulltemplatelist]); // No need to depend on initialFilteredTemplates here
+  
 
 
   
