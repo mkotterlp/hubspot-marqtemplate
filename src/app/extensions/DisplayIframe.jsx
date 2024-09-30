@@ -2042,7 +2042,7 @@ const Extension = ({ context, actions, runServerless }) => {
     setSearchTerm(searchValue);
 
     if (searchValue.trim() === '') {
-      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setTemplates(initialFilteredTemplates); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
@@ -2060,7 +2060,7 @@ const Extension = ({ context, actions, runServerless }) => {
         console.log("searchResults:", searchResults)
 
         // Combine search results with initially filtered templates
-        setFilteredTemplates([searchResults]);
+        setTemplates([searchResults]);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
 
