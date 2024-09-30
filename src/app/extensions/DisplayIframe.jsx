@@ -1932,6 +1932,16 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [filteredTemplates]);
 
 
+  useEffect(() => {
+    // Call fetchPropertiesAndLoadConfig once when component mounts to get initial templates
+    fetchPropertiesAndLoadConfig(objectType).then(() => {
+      // Set the initial templates after fetching completes
+      setFilteredTemplates(initialFilteredTemplates);
+      setTemplates(initialFilteredTemplates);
+    });
+  }, []); // Empty dependency array to ensure it only runs once on mount
+  
+  // Handle search input and template reset logic
   const handleSearch = useCallback(async (input) => {
     let searchValue = "";
   
@@ -1940,7 +1950,6 @@ const Extension = ({ context, actions, runServerless }) => {
       searchValue = input.target.value;
     } else if (typeof input === "string") {
       searchValue = input;
-      console.log(searchValue);
     } else {
       console.error("Unexpected input:", input);
       return; // Exit early if input is invalid
@@ -1953,13 +1962,9 @@ const Extension = ({ context, actions, runServerless }) => {
     if (searchValue.trim() === "") {
       console.log("Search input cleared, resetting to initial filtered templates.");
   
-      // Fetch properties and reset if needed
-      await fetchPropertiesAndLoadConfig(objectType); // Fetch the data if needed
-  
       // Reset filtered templates to the initial filtered state
-      // setFilteredTemplates(initialFilteredTemplates);
-      // setTemplates(initialFilteredTemplates); // If you want to reset the main templates list as well
-      // setInitialFilteredTemplates(initialFilteredTemplates);
+      setFilteredTemplates(initialFilteredTemplates);
+      setTemplates(initialFilteredTemplates); // Optionally reset the main templates list
   
       setTitle("Relevant Content");
     } else {
@@ -1988,7 +1993,6 @@ const Extension = ({ context, actions, runServerless }) => {
       return () => clearTimeout(delayDebounceFn); // Cleanup debounce timeout
     }
   }, [searchTerm, initialFilteredTemplates]);
-  
   
   
   
