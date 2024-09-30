@@ -1932,17 +1932,21 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [filteredTemplates]);
 
   const handleSearch = useCallback((input) => {
-    let searchValue = '';
-  
-    // Extract the value from the input
-    if (input && input.target) {
+    let searchValue = "";
+
+    // Validate the input
+    if (input && input.target && typeof input.target.value === "string") {
       searchValue = input.target.value;
-    } else if (input) {
-      searchValue = String(input);
+    } else if (typeof input === "string") {
+      searchValue = input;
+      console.log(searchValue)
+      console.log(input)
     } else {
-      console.error('Unexpected input:', input);
+      console.error("Unexpected input:", input);
+      return; // Exit early if input is invalid
     }
-  
+
+    // Set the search term in state
     setSearchTerm(searchValue);
   
     // If search input is cleared (empty string), reset to initial filtered templates
