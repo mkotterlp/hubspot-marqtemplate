@@ -1948,6 +1948,7 @@ const Extension = ({ context, actions, runServerless }) => {
   
     // Set the search term in state
     setSearchTerm(searchValue);
+    console.log("initialFilteredTemplates before setting:", initialFilteredTemplates)
   
     // If search input is cleared (empty string), reset to initial filtered templates
     if (searchValue.trim() === "") {
