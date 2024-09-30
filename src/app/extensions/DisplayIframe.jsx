@@ -2057,9 +2057,10 @@ const Extension = ({ context, actions, runServerless }) => {
         const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
+        console.log("searchResults:", searchResults)
 
         // Combine search results with initially filtered templates
-        setFilteredTemplates([...searchResults]);
+        setFilteredTemplates([searchResults]);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
 
