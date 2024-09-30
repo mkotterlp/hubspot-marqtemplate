@@ -67,8 +67,6 @@ const Extension = ({ context, actions, runServerless }) => {
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState("Relevant Content");
 
-
-
   const [stageName, setStage] = useState("");
   const [propertiesToWatch, setpropertiesToWatch] = useState([]);
   const [objectType, setObjectType] = useState("");
@@ -154,7 +152,8 @@ const Extension = ({ context, actions, runServerless }) => {
     }
   };
 
-  
+
+
   const fetchPropertiesAndLoadConfig = async (objectType) => {
     try {
       setIsLoading(true);
@@ -171,8 +170,8 @@ const Extension = ({ context, actions, runServerless }) => {
       // Fetch user data from the 'marqouathhandler' serverless function
       try {
         const createusertable = await runServerless({
-          name: 'marqouathhandler',
-          parameters: { userID: userid }
+          name: "marqouathhandler",
+          parameters: { userID: userid },
         });
 
         if (createusertable?.response?.body) {
@@ -202,18 +201,20 @@ const Extension = ({ context, actions, runServerless }) => {
           const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
 
           // Fetch templates if template link is missing
-          if (((timeDifference > twentyFourHoursInMs) && currentRefreshToken) || (!templateLink && currentRefreshToken)) {
+          if (
+            (timeDifference > twentyFourHoursInMs && currentRefreshToken) ||
+            (!templateLink && currentRefreshToken)
+          ) {
             // console.log("More than 24 hours since the last sync or template link is null, fetching new templates...");
 
             try {
-
               const fetchResult = await runServerless({
-                name: 'fetchTemplates',
+                name: "fetchTemplates",
                 parameters: {
                   userID: userid,
                   marquserid: marquserid,
-                  refreshToken: currentRefreshToken
-                }
+                  refreshToken: currentRefreshToken,
+                },
               });
 
               // Log the full response object
@@ -227,41 +228,57 @@ const Extension = ({ context, actions, runServerless }) => {
                     const fetchedData = JSON.parse(fetchResult.response.body);
 
                     // Check if the required data is present
-                    if (fetchedData.templatesjsonurl && fetchedData.newRefreshToken) {
+                    if (
+                      fetchedData.templatesjsonurl &&
+                      fetchedData.newRefreshToken
+                    ) {
                       templateLink = fetchedData.templatesjsonurl;
                       currentRefreshToken = fetchedData.newRefreshToken;
 
                       // console.log("Success! Fetched new template link:", templateLink);
                       // console.log("Success! Fetched new refresh token:", currentRefreshToken);
                     } else {
-                      console.error("Error: Missing expected data in response body.", fetchedData);
-                      templateLink = '';
-                      currentRefreshToken = '';
+                      console.error(
+                        "Error: Missing expected data in response body.",
+                        fetchedData
+                      );
+                      templateLink = "";
+                      currentRefreshToken = "";
                     }
                   } catch (jsonError) {
-                    console.error("Error parsing JSON response:", jsonError, fetchResult.response.body);
-                    templateLink = '';
-                    currentRefreshToken = '';
+                    console.error(
+                      "Error parsing JSON response:",
+                      jsonError,
+                      fetchResult.response.body
+                    );
+                    templateLink = "";
+                    currentRefreshToken = "";
                   }
                 } else {
                   // Handle non-200 status codes
-                  console.error("Failed to fetch new template link. Status Code:", statusCode, "Response body:", fetchResult.response.body);
-                  templateLink = '';
-                  currentRefreshToken = '';
+                  console.error(
+                    "Failed to fetch new template link. Status Code:",
+                    statusCode,
+                    "Response body:",
+                    fetchResult.response.body
+                  );
+                  templateLink = "";
+                  currentRefreshToken = "";
                 }
               } else {
                 // Handle missing response
-                console.error("Error: fetchResult or response is undefined or malformed.", fetchResult);
-                templateLink = '';
-                currentRefreshToken = '';
-
+                console.error(
+                  "Error: fetchResult or response is undefined or malformed.",
+                  fetchResult
+                );
+                templateLink = "";
+                currentRefreshToken = "";
               }
 
               try {
-
                 // Call the serverless function to update the user table
                 const updateResult = await runServerless({
-                  name: 'updateUserTable',
+                  name: "updateUserTable",
                   parameters: {
                     userID: userid,
                     refreshToken: currentRefreshToken,
@@ -272,37 +289,59 @@ const Extension = ({ context, actions, runServerless }) => {
                 // Parse the response
                 if (updateResult.statusCode === 200) {
                   // console.log("User table updated successfully:", updateResult);
-                  setResponseMessage('User data and refresh token updated successfully!');
+                  setResponseMessage(
+                    "User data and refresh token updated successfully!"
+                  );
                 } else if (updateResult.statusCode === 400) {
-                  console.error("Invalid request parameters:", updateResult.body);
-                  setResponseMessage('Invalid request. Please check the input parameters.');
+                  console.error(
+                    "Invalid request parameters:",
+                    updateResult.body
+                  );
+                  setResponseMessage(
+                    "Invalid request. Please check the input parameters."
+                  );
                 } else if (updateResult.statusCode === 500) {
                   console.error("Internal server error:", updateResult.body);
-                  setResponseMessage('Server error while updating user data. Please try again later.');
+                  setResponseMessage(
+                    "Server error while updating user data. Please try again later."
+                  );
                 } else {
                   console.error("Unexpected response:", updateResult);
-                  setResponseMessage('An unexpected error occurred. Please try again later.');
+                  setResponseMessage(
+                    "An unexpected error occurred. Please try again later."
+                  );
                 }
-
               } catch (updateError) {
-                console.error("Error occurred while trying to update user table:", updateError);
-                setResponseMessage('A network or server error occurred. Please try again later.');
+                console.error(
+                  "Error occurred while trying to update user table:",
+                  updateError
+                );
+                setResponseMessage(
+                  "A network or server error occurred. Please try again later."
+                );
               } finally {
-
               }
-
             } catch (fetchError) {
-              console.error("Error occurred while fetching new template link:", fetchError);
+              console.error(
+                "Error occurred while fetching new template link:",
+                fetchError
+              );
             }
           }
 
           // console.log("Fetched Template Link:", JSON.stringify(templateLink));
         } else {
           console.error("Failed to create or fetch user table.");
-          console.error('Unexpected structure in createusertable:', JSON.stringify(createusertable));
+          console.error(
+            "Unexpected structure in createusertable:",
+            JSON.stringify(createusertable)
+          );
         }
       } catch (userTableError) {
-        console.error("Error occurred while fetching user table:", userTableError);
+        console.error(
+          "Error occurred while fetching user table:",
+          userTableError
+        );
       }
 
       // Validate that objectType is available
@@ -317,138 +356,173 @@ const Extension = ({ context, actions, runServerless }) => {
       // Fetch config data from 'hubdbHelper'
       try {
         const configDataResponse = await runServerless({
-          name: 'hubdbHelper',
-          parameters: { objectType }
+          name: "hubdbHelper",
+          parameters: { objectType },
         });
 
         if (configDataResponse?.response?.body) {
-          configData = JSON.parse(configDataResponse.response.body).values || {};
-          const fields = configData.textboxFields?.split(',').map(field => field.trim()) || [];
-          const filters = configData.textboxFilters?.split(',').map(filter => filter.trim()) || [];
-          const dataFields = configData.dataFields?.split(',').map(field => field.trim()) || [];
+          configData =
+            JSON.parse(configDataResponse.response.body).values || {};
+          const fields =
+            configData.textboxFields?.split(",").map((field) => field.trim()) ||
+            [];
+          const filters =
+            configData.textboxFilters
+              ?.split(",")
+              .map((filter) => filter.trim()) || [];
+          const dataFields =
+            configData.dataFields?.split(",").map((field) => field.trim()) ||
+            [];
           setFieldsArray(fields);
           setFiltersArray(filters);
           setDataArray(dataFields);
 
-           // Log dataFields for debugging
-          console.log('Pulled dataFields:', dataFields);
+          // Log dataFields for debugging
+          console.log("Pulled dataFields:", dataFields);
 
-          const propertiesToWatch = configData.textboxFields ? configData.textboxFields.split(',').map(field => field.trim()) : [];
+          const propertiesToWatch = configData.textboxFields
+            ? configData.textboxFields.split(",").map((field) => field.trim())
+            : [];
           setpropertiesToWatch(propertiesToWatch);
 
           // Fetch CRM properties if fields are available
           if (fields.length > 0) {
             try {
               const propertiesResponse = await runServerless({
-                name: 'getObjectProperties',
+                name: "getObjectProperties",
                 parameters: {
                   objectId: context.crm.objectId,
                   objectType,
-                  properties: fields
-                }
+                  properties: fields,
+                },
               });
 
               if (propertiesResponse?.response?.body) {
-                propertiesBody = JSON.parse(propertiesResponse.response.body).mappedProperties || {};
+                propertiesBody =
+                  JSON.parse(propertiesResponse.response.body)
+                    .mappedProperties || {};
                 console.log("Fetched CRM Properties:", propertiesBody);
-                if (objectType === 'DEAL') {
+                if (objectType === "DEAL") {
                   setStage(propertiesBody.dealstage);
                 }
               } else {
-                console.error("Failed to fetch CRM properties:", propertiesResponse);
+                console.error(
+                  "Failed to fetch CRM properties:",
+                  propertiesResponse
+                );
               }
             } catch (propertiesError) {
-              console.error("Error occurred while fetching CRM properties:", propertiesError);
+              console.error(
+                "Error occurred while fetching CRM properties:",
+                propertiesError
+              );
             }
           }
 
           // Group dynamic fields by their object types (parsed from dataFields)
-        const objectTypeFieldsMap = {};
+          const objectTypeFieldsMap = {};
 
-        // Dynamically group dataFields by their object types (e.g., deal, contact, etc.)
-        dataFields.forEach(dataField => {
-          const parts = dataField.split('.');  // Split the dataField
-          if (parts.length === 2) {
+          // Dynamically group dataFields by their object types (e.g., deal, contact, etc.)
+          dataFields.forEach((dataField) => {
+            const parts = dataField.split("."); // Split the dataField
+            if (parts.length === 2) {
               const [objectType, field] = parts;
               if (!objectTypeFieldsMap[objectType]) {
-                  objectTypeFieldsMap[objectType] = [];
+                objectTypeFieldsMap[objectType] = [];
               }
               objectTypeFieldsMap[objectType].push(field);
-          } else if (parts.length === 1) {
+            } else if (parts.length === 1) {
               // Handle fields without an explicit objectType
-              const defaultObjectType = context.crm.objectTypeId;  // Get the default objectType from context
+              const defaultObjectType = context.crm.objectTypeId; // Get the default objectType from context
               const field = parts[0];
               if (!objectTypeFieldsMap[defaultObjectType]) {
-                  objectTypeFieldsMap[defaultObjectType] = [];
+                objectTypeFieldsMap[defaultObjectType] = [];
               }
               objectTypeFieldsMap[defaultObjectType].push(field);
-          } else {
+            } else {
               console.error(`Invalid dataField format: ${dataField}`);
-          }
-      });
+            }
+          });
 
-      for (const [objectType, fieldsForObject] of Object.entries(objectTypeFieldsMap)) {
-        try {
-            const dynamicpropertiesResponse = await runServerless({
-                name: 'getObjectProperties',
+          for (const [objectType, fieldsForObject] of Object.entries(
+            objectTypeFieldsMap
+          )) {
+            try {
+              const dynamicpropertiesResponse = await runServerless({
+                name: "getObjectProperties",
                 parameters: {
-                    objectId: context.crm.objectId,
-                    objectType,  // Dynamic objectType
-                    properties: fieldsForObject  // Fields for this objectType
-                }
-            });
+                  objectId: context.crm.objectId,
+                  objectType, // Dynamic objectType
+                  properties: fieldsForObject, // Fields for this objectType
+                },
+              });
 
-            if (dynamicpropertiesResponse?.response?.body) {
-                const responseBody = JSON.parse(dynamicpropertiesResponse.response.body);
-                const dynamicpropertiesBody = responseBody.mappedProperties || {};
+              if (dynamicpropertiesResponse?.response?.body) {
+                const responseBody = JSON.parse(
+                  dynamicpropertiesResponse.response.body
+                );
+                const dynamicpropertiesBody =
+                  responseBody.mappedProperties || {};
 
-                console.log(`Fetched properties for dynamic objectType (${objectType}):`, dynamicpropertiesBody);
+                console.log(
+                  `Fetched properties for dynamic objectType (${objectType}):`,
+                  dynamicpropertiesBody
+                );
 
                 let mappeddynamicproperties = {};
 
                 // Iterate over dataFields and map to mappeddynamicproperties
                 dataFields.forEach((dataField) => {
-                    const parts = dataField.split('.');  // e.g., 'deal.dealstage'
+                  const parts = dataField.split("."); // e.g., 'deal.dealstage'
 
-                    // Only update fields with the correct prefix (e.g., deal.amount for deal objectType)
-                    if (parts.length === 2 && parts[0] === objectType) {
-                        const [objectTypePrefix, field] = parts;
-                        const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
-                        if (fieldValue !== null && fieldValue !== '') {
-                            mappeddynamicproperties[dataField] = fieldValue;  // Only map if value is non-empty
-                        }
-                    } else if (parts.length === 1) {
-                        // Handle fields without an explicit objectType (using default)
-                        const field = parts[0];
-                        const fieldValue = dynamicpropertiesBody[field];  // Get the value for the field
-                        if (fieldValue !== null && fieldValue !== '') {
-                            mappeddynamicproperties[dataField] = fieldValue;  // Only map if value is non-empty
-                        }
+                  // Only update fields with the correct prefix (e.g., deal.amount for deal objectType)
+                  if (parts.length === 2 && parts[0] === objectType) {
+                    const [objectTypePrefix, field] = parts;
+                    const fieldValue = dynamicpropertiesBody[field]; // Get the value for the field
+                    if (fieldValue !== null && fieldValue !== "") {
+                      mappeddynamicproperties[dataField] = fieldValue; // Only map if value is non-empty
                     }
+                  } else if (parts.length === 1) {
+                    // Handle fields without an explicit objectType (using default)
+                    const field = parts[0];
+                    const fieldValue = dynamicpropertiesBody[field]; // Get the value for the field
+                    if (fieldValue !== null && fieldValue !== "") {
+                      mappeddynamicproperties[dataField] = fieldValue; // Only map if value is non-empty
+                    }
+                  }
                 });
 
                 // Merge new properties with the existing ones, but only overwrite if non-empty
                 setDynamicProperties((prevProperties) => ({
-                    ...prevProperties,
-                    ...mappeddynamicproperties
+                  ...prevProperties,
+                  ...mappeddynamicproperties,
                 }));
 
-                console.log("Mapped Dynamic Properties after fetching:", mappeddynamicproperties);
-            } else {
-                console.error(`Failed to fetch properties for dynamic objectType (${objectType})`, dynamicpropertiesResponse);
+                console.log(
+                  "Mapped Dynamic Properties after fetching:",
+                  mappeddynamicproperties
+                );
+              } else {
+                console.error(
+                  `Failed to fetch properties for dynamic objectType (${objectType})`,
+                  dynamicpropertiesResponse
+                );
+              }
+            } catch (error) {
+              console.error(
+                `Error fetching properties for dynamic objectType (${objectType}):`,
+                error
+              );
             }
-        } catch (error) {
-            console.error(`Error fetching properties for dynamic objectType (${objectType}):`, error);
-        }
-    }
+          }
 
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
             console.log("Applying templates");
             try {
               const templatesResponse = await runServerless({
-                name: 'fetchJsonData',
-                parameters: { templateLink }
+                name: "fetchJsonData",
+                parameters: { templateLink },
               });
 
               if (templatesResponse?.response?.body) {
@@ -456,13 +530,27 @@ const Extension = ({ context, actions, runServerless }) => {
                 const fetchedTemplates = data.templatesresponse || [];
                 setfullTemplates(fetchedTemplates);
 
-                if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
-                  const filtered = fetchedTemplates.filter(template => {
+                if (
+                  fields.length &&
+                  filters.length &&
+                  Object.keys(propertiesBody).length > 0
+                ) {
+                  const filtered = fetchedTemplates.filter((template) => {
                     return fields.every((field, index) => {
                       const categoryName = filters[index];
-                      const propertyValue = propertiesBody[field]?.toLowerCase();
-                      const category = template.categories.find(c => c.category_name.toLowerCase() === categoryName.toLowerCase());
-                      return category && category.values.map(v => v.toLowerCase()).includes(propertyValue);
+                      const propertyValue =
+                        propertiesBody[field]?.toLowerCase();
+                      const category = template.categories.find(
+                        (c) =>
+                          c.category_name.toLowerCase() ===
+                          categoryName.toLowerCase()
+                      );
+                      return (
+                        category &&
+                        category.values
+                          .map((v) => v.toLowerCase())
+                          .includes(propertyValue)
+                      );
                     });
                   });
                   console.log("Filtered Templates:", filtered);
@@ -471,7 +559,9 @@ const Extension = ({ context, actions, runServerless }) => {
                   setInitialFilteredTemplates(filtered);
                   setIsLoading(false);
                 } else {
-                  console.warn("Missing data for filtering. Showing all templates.");
+                  console.warn(
+                    "Missing data for filtering. Showing all templates."
+                  );
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
                   setInitialFilteredTemplates(fetchedTemplates);
@@ -481,7 +571,10 @@ const Extension = ({ context, actions, runServerless }) => {
                 console.error("Error fetching templates:", templatesResponse);
               }
             } catch (templatesError) {
-              console.error("Error occurred while fetching templates:", templatesError);
+              console.error(
+                "Error occurred while fetching templates:",
+                templatesError
+              );
             }
           } else {
             console.error("Error: Missing template link to fetch templates.");
@@ -497,7 +590,7 @@ const Extension = ({ context, actions, runServerless }) => {
               actions.addAlert({
                 title: "Error with template sync",
                 variant: "danger",
-                message: `There was an error fetching templates. Please try connecting to Marq again`
+                message: `There was an error fetching templates. Please try connecting to Marq again`,
               });
             }
           }
@@ -505,9 +598,11 @@ const Extension = ({ context, actions, runServerless }) => {
           console.error("Failed to load config data:", configDataResponse);
         }
       } catch (configError) {
-        console.error("Error occurred while fetching config data:", configError);
+        console.error(
+          "Error occurred while fetching config data:",
+          configError
+        );
       }
-
     } catch (error) {
       console.error("Error in fetchConfigCrmPropertiesAndTemplates:", error);
     }
@@ -911,7 +1006,7 @@ const Extension = ({ context, actions, runServerless }) => {
       filtered = allTemplates;
     }
 
-    setInitialFilteredTemplates(filtered); // Store the filtered state
+    // setInitialFilteredTemplates(filtered); // Store the filtered state
     setFilteredTemplates(filtered); // Update filtered templates
     setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
     setCurrentPage(1);
@@ -1926,23 +2021,12 @@ const Extension = ({ context, actions, runServerless }) => {
     fetchObjectType();
   }, [context.crm.objectTypeId, runServerless]);
 
-
   useEffect(() => {
     console.log("FilteredTemplates updated:", filteredTemplates);
   }, [filteredTemplates]);
 
 
-  useEffect(() => {
-    // Call fetchPropertiesAndLoadConfig once when component mounts to get initial templates
-    fetchPropertiesAndLoadConfig(objectType).then(() => {
-      // Set the initial templates after fetching completes
-      setFilteredTemplates(initialFilteredTemplates);
-      setTemplates(initialFilteredTemplates);
-    });
-  }, []); // Empty dependency array to ensure it only runs once on mount
-  
-  // Handle search input and template reset logic
-  const handleSearch = useCallback(async (input) => {
+  const handleSearch = useCallback((input) => {
     let searchValue = "";
   
     // Validate the input
@@ -1954,50 +2038,34 @@ const Extension = ({ context, actions, runServerless }) => {
       console.error("Unexpected input:", input);
       return; // Exit early if input is invalid
     }
-  
-    // Set the search term in state
+
     setSearchTerm(searchValue);
-  
-    // If search input is cleared (empty string), reset to initial filtered templates
-    if (searchValue.trim() === "") {
-      console.log("Search input cleared, resetting to initial filtered templates.");
-  
-      // Reset filtered templates to the initial filtered state
-      setFilteredTemplates(initialFilteredTemplates);
-      setTemplates(initialFilteredTemplates); // Optionally reset the main templates list
-      await fetchPropertiesAndLoadConfig(objectType)
-  
-      setTitle("Relevant Content");
+
+    if (searchValue.trim() === '') {
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setTitle('Relevant Content');
     } else {
-      setTitle("Search Results");
+      setTitle('Search Results');
     }
   }, [initialFilteredTemplates]);
-  
-  // useEffect to handle search and debounce functionality
+
   useEffect(() => {
-    if (searchTerm.trim() !== "") {
+    if (searchTerm.trim() !== '') {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-  
-        // Perform search filtering on the initial filtered templates
-        const searchResults = initialFilteredTemplates.filter(template =>
+
+        const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-  
-        console.log("Search Results after filtering:", searchResults);
-  
-        // Update filtered templates with search results
-        setFilteredTemplates(searchResults);
+
+        // Combine search results with initially filtered templates
+        setFilteredTemplates([...searchResults]);
         setCurrentPage(1); // Reset to first page on search
-      }, 2000); // 2 seconds debounce time
-  
-      return () => clearTimeout(delayDebounceFn); // Cleanup debounce timeout
+      }, 300);
+
+      return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, initialFilteredTemplates]);
-  
-  
-  
-  
+  }, [searchTerm, templates, initialFilteredTemplates]);
 
   // const handleSearch = useCallback((input) => {
   //   let searchValue = '';
