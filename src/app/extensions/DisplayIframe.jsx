@@ -2025,7 +2025,7 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [context.crm.objectTypeId, runServerless]);
 
   useEffect(() => {
-    console.trace("Filtered Templates Updated:", filteredTemplates);
+    console.log("Filtered Templates Updated:", filteredTemplates);
  }, [filteredTemplates]);
  
 
