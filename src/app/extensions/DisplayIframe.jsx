@@ -1655,6 +1655,7 @@ useEffect(() => {
 
   const handleSearch = useCallback((input) => {
     let searchValue = '';
+    
     if (input && input.target) {
       searchValue = input.target.value;
     } else if (input) {
@@ -1665,14 +1666,25 @@ useEffect(() => {
   
     setSearchTerm(searchValue);
   
-    // Reset to initially filtered templates when the search term is cleared
     if (searchValue.trim() === '') {
-      setFilteredTemplates(initialFilteredTemplates); // Use initial filtered templates
-      setTitle('Relevant Content'); // Set title to "Relevant Content"
+      // If search is empty, show initial filtered templates
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setTitle('Relevant Content');
     } else {
+      // Otherwise, the title should reflect search results
       setTitle('Search Results');
+      
+      // Perform search filtering
+      const lowerCaseSearchTerm = searchValue.toLowerCase();
+      const searchResults = fulltemplatelist.filter(template =>
+        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+  
+      // Update the filtered templates with search results
+      setFilteredTemplates(searchResults);
     }
-  }, [initialFilteredTemplates]); // Add initialFilteredTemplates as a dependency
+  }, [initialFilteredTemplates, fulltemplatelist]);
+  
   
 
 
@@ -1685,14 +1697,14 @@ useEffect(() => {
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
   
-        // Set the filtered templates to match search results
         setFilteredTemplates(searchResults);
         setCurrentPage(1); // Reset to first page on search
-      }, 300);
+      }, 300); // 300ms debounce time
   
-      return () => clearTimeout(delayDebounceFn);
+      return () => clearTimeout(delayDebounceFn); // Cleanup timeout on unmount or new search
     }
-  }, [searchTerm, fulltemplatelist]); // No need to depend on initialFilteredTemplates here
+  }, [searchTerm, fulltemplatelist]);
+  
   
 
 
