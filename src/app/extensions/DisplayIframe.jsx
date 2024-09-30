@@ -1932,7 +1932,7 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [filteredTemplates]);
 
 
-  const handleSearch = useCallback((input) => {
+  const handleSearch = useCallback(async (input) => {
     let searchValue = "";
   
     // Validate the input
@@ -1948,25 +1948,26 @@ const Extension = ({ context, actions, runServerless }) => {
   
     // Set the search term in state
     setSearchTerm(searchValue);
-    console.log("initialFilteredTemplates before setting:", initialFilteredTemplates)
   
     // If search input is cleared (empty string), reset to initial filtered templates
     if (searchValue.trim() === "") {
       console.log("Search input cleared, resetting to initial filtered templates.");
   
+      // Fetch properties and reset if needed
+      await fetchPropertiesAndLoadConfig(objectType); // Fetch the data if needed
+  
       // Reset filtered templates to the initial filtered state
       setFilteredTemplates(initialFilteredTemplates);
       setTemplates(initialFilteredTemplates); // If you want to reset the main templates list as well
-      // setInitialFilteredTemplates(initialFilteredTemplates);
-      console.log("initialFilteredTemplates after setting:", initialFilteredTemplates)
-
+      setInitialFilteredTemplates(initialFilteredTemplates);
+  
       setTitle("Relevant Content");
     } else {
       setTitle("Search Results");
     }
   }, [initialFilteredTemplates]);
   
-  // Updated useEffect to handle search and debounce functionality
+  // useEffect to handle search and debounce functionality
   useEffect(() => {
     if (searchTerm.trim() !== "") {
       const delayDebounceFn = setTimeout(() => {
