@@ -2025,7 +2025,6 @@ const Extension = ({ context, actions, runServerless }) => {
     console.log("FilteredTemplates updated:", filteredTemplates);
   }, [filteredTemplates]);
 
-
   const handleSearch = useCallback((input) => {
     let searchValue = "";
   
@@ -2038,35 +2037,41 @@ const Extension = ({ context, actions, runServerless }) => {
       console.error("Unexpected input:", input);
       return; // Exit early if input is invalid
     }
-
+  
     setSearchTerm(searchValue);
-
+  
     if (searchValue.trim() === '') {
-      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      // Reset to the initially filtered templates when the search term is cleared
+      setFilteredTemplates(initialFilteredTemplates);
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
   }, [initialFilteredTemplates]);
-
+  
   useEffect(() => {
-    if (searchTerm.trim() !== '') {
+    if (searchTerm.trim() === '') {
+      // If search term is cleared, reset to initial filtered templates
+      setFilteredTemplates(initialFilteredTemplates);
+      setCurrentPage(1); // Reset to first page
+    } else {
+      // Apply search filtering logic with a debounce
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
+  
         const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-        console.log("searchResults:", searchResults)
-
-        // Combine search results with initially filtered templates
-        setFilteredTemplates([initialFilteredTemplates]);
+        
+        // Update filteredTemplates with the search results
+        setFilteredTemplates(searchResults);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
-
+  
       return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, templates, initialFilteredTemplates]);
+  }, [searchTerm, fulltemplatelist, initialFilteredTemplates]);
+  
 
   // const handleSearch = useCallback((input) => {
   //   let searchValue = '';
