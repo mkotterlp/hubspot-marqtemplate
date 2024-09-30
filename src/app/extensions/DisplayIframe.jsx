@@ -476,42 +476,81 @@ const Extension = ({ context, actions, runServerless }) => {
   
 
 
-
   const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
     let filtered = Array.isArray(allTemplates) ? allTemplates : [];
-
-    // Dynamically extract filters
+  
+    // Dynamically extract filters (category-based)
     const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
-
+  
     // Apply category filters with additional logic to include templates without certain filters
     filtered = filtered.filter(template =>
-        categoryFilters.every(filter =>
-            Array.isArray(template.categories) && template.categories.some(category =>
-                (category.category_name === filter.name && category.values.includes(filter.value)) ||
-                (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
-            )
+      categoryFilters.every(filter =>
+        Array.isArray(template.categories) && template.categories.some(category =>
+          (category.category_name === filter.name && category.values.includes(filter.value)) ||
+          (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
         )
+      )
     );
-
-    // Apply search filter (searching within all templates)
-    if (searchTerm) {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        filtered = filtered.filter(template =>
-            template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-        );
+  
+    // Apply search filter (searching within currently filtered templates, not allTemplates)
+    if (searchTerm && searchTerm.trim() !== '') {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(template =>
+        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+      );
     }
-
+  
+    // If no templates match the filters or search term, you can choose to either show all or keep it empty
     if (filtered.length === 0) {
-      filtered = allTemplates; 
-  }
-
-
-
-
+      filtered = allTemplates; // Optionally show all templates if no match found
+    }
+  
+    // Update filtered templates state and pagination
     setFilteredTemplates(filtered);
     setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
-    setCurrentPage(1); // Reset to first page
-};
+    setCurrentPage(1); // Reset to the first page on any filter change
+  
+    // Update the current filtered state for future reference (outside of search)
+    setCurrentFilteredState(filtered); // Ensure the filtered state is updated after each filtering operation
+  };
+  
+  
+
+//   const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
+//     let filtered = Array.isArray(allTemplates) ? allTemplates : [];
+
+//     // Dynamically extract filters
+//     const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
+
+//     // Apply category filters with additional logic to include templates without certain filters
+//     filtered = filtered.filter(template =>
+//         categoryFilters.every(filter =>
+//             Array.isArray(template.categories) && template.categories.some(category =>
+//                 (category.category_name === filter.name && category.values.includes(filter.value)) ||
+//                 (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
+//             )
+//         )
+//     );
+
+//     // Apply search filter (searching within all templates)
+//     if (searchTerm) {
+//         const lowerCaseSearchTerm = searchTerm.toLowerCase();
+//         filtered = filtered.filter(template =>
+//             template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+//         );
+//     }
+
+//     if (filtered.length === 0) {
+//       filtered = allTemplates; 
+//   }
+
+
+
+
+//     setFilteredTemplates(filtered);
+//     setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
+//     setCurrentPage(1); // Reset to first page
+// };
 
   
 
@@ -1421,41 +1460,16 @@ useEffect(() => {
     }
   
     setSearchTerm(searchValue);
-
-    // If search term is cleared, use the filtered state before the search
+  
     if (searchValue.trim() === '') {
-      setFilteredTemplates(currentFilteredState); // Reset to current filtered state
+      // Reset to currentFilteredState instead of initialFilteredTemplates
+      setFilteredTemplates(currentFilteredState);
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-}, [currentFilteredState]);
-
-
-useEffect(() => {
-  if (searchTerm.trim() !== '') {
-    const delayDebounceFn = setTimeout(() => {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      const searchResults = fulltemplatelist.filter(template =>
-        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-      );
-
-      // Update filteredTemplates with search results
-      setFilteredTemplates([...searchResults]);
-      setCurrentPage(1); // Reset to first page on search
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }
-}, [searchTerm, fulltemplatelist]);
-
-// Ensure filteredTemplates updates with user actions
-useEffect(() => {
-  setCurrentFilteredState(filteredTemplates);
-}, [filteredTemplates]);
-
-
-
+  }, [currentFilteredState]); // Include currentFilteredState as a dependency
+  
 
   // const handleSearch = useCallback((input) => {
   //   let searchValue = '';
@@ -1477,25 +1491,25 @@ useEffect(() => {
   //   }
   // }, [initialFilteredTemplates]);
   
-  // useEffect(() => {
-  //   if (searchTerm.trim() !== '') {
-  //     const delayDebounceFn = setTimeout(() => {
-  //       const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  useEffect(() => {
+    if (searchTerm.trim() !== '') {
+      const delayDebounceFn = setTimeout(() => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
 
-  //       const searchResults = fulltemplatelist.filter(template =>
-  //         template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-  //       );
+        const searchResults = fulltemplatelist.filter(template =>
+          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+        );
    
   
-  //       // Combine search results with initially filtered templates
-  //       setFilteredTemplates([...searchResults]);
-  //       setCurrentPage(1); // Reset to first page on search
-  //     }, 300);
+        // Combine search results with initially filtered templates
+        setFilteredTemplates([...searchResults]);
+        setCurrentPage(1); // Reset to first page on search
+      }, 300);
   
-  //     return () => clearTimeout(delayDebounceFn);
-  //   }
-  // }, [searchTerm, templates, initialFilteredTemplates]);
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchTerm, templates, initialFilteredTemplates]);
   
   
 
