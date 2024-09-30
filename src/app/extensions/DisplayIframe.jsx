@@ -409,12 +409,13 @@ const Extension = ({ context, actions, runServerless }) => {
                 name: 'fetchJsonData',
                 parameters: { templateLink }
               });
-  
+          
               if (templatesResponse?.response?.body) {
                 const data = JSON.parse(templatesResponse.response.body);
                 const fetchedTemplates = data.templatesresponse || [];
                 setfullTemplates(fetchedTemplates);
-  
+          
+                // Only filter if fields, filters, and properties are available
                 if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
                   const filtered = fetchedTemplates.filter(template => {
                     return fields.every((field, index) => {
@@ -424,17 +425,19 @@ const Extension = ({ context, actions, runServerless }) => {
                       return category && category.values.map(v => v.toLowerCase()).includes(propertyValue);
                     });
                   });
+          
+                  // Ensure both filtered and initialFilteredTemplates are set
                   console.log("Filtered Templates:", filtered);   
                   setTemplates(filtered);               
-                  setFilteredTemplates(filtered);
-                  setInitialFilteredTemplates(filtered);
-                  setIsLoading(false);
+                  setFilteredTemplates(filtered); // For use in current filtering
+                  setInitialFilteredTemplates(filtered); // Store initial filtered state
                 } else {
                   console.warn("Missing data for filtering. Showing all templates.");
+                  
+                  // If no filters apply, show all templates
                   setTemplates(fetchedTemplates);
-                  setFilteredTemplates(fetchedTemplates);
-                  setInitialFilteredTemplates(fetchedTemplates);
-                  setIsLoading(false);
+                  setFilteredTemplates(fetchedTemplates); // Display all templates initially
+                  setInitialFilteredTemplates(fetchedTemplates); // Store as initial state
                 }
               } else {
                 console.error("Error fetching templates:", templatesResponse);
@@ -443,6 +446,9 @@ const Extension = ({ context, actions, runServerless }) => {
               console.error("Error occurred while fetching templates:", templatesError);
             }
           } else {
+            console.error("Error: Missing template link to fetch templates.");
+          }
+           else {
             console.error("Error: Missing template link to fetch templates.");
 
             if (currentRefreshToken) {
