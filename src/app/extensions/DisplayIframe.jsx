@@ -966,84 +966,84 @@ const Extension = ({ context, actions, runServerless }) => {
   //   }
   // };
 
-  const filterTemplates = (
-    allTemplates,
-    searchTerm,
-    fieldsArray,
-    filtersArray,
-    properties
-  ) => {
-    let filtered = Array.isArray(allTemplates) ? allTemplates : [];
+  // const filterTemplates = (
+  //   allTemplates,
+  //   searchTerm,
+  //   fieldsArray,
+  //   filtersArray,
+  //   properties
+  // ) => {
+  //   let filtered = Array.isArray(allTemplates) ? allTemplates : [];
 
-    const categoryFilters = extractFiltersFromProperties(
-      fieldsArray,
-      filtersArray,
-      properties
-    );
+  //   const categoryFilters = extractFiltersFromProperties(
+  //     fieldsArray,
+  //     filtersArray,
+  //     properties
+  //   );
 
-    filtered = filtered.filter((template) =>
-      categoryFilters.every(
-        (filter) =>
-          Array.isArray(template.categories) &&
-          template.categories.some(
-            (category) =>
-              (category.category_name === filter.name &&
-                category.values.includes(filter.value)) ||
-              (category.category_name === filter.name &&
-                category.values.length === 0)
-          )
-      )
-    );
-
-    if (searchTerm) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter((template) =>
-        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-      );
-    }
-
-    if (filtered.length === 0) {
-      filtered = allTemplates;
-    }
-
-    // setInitialFilteredTemplates(filtered); // Store the filtered state
-    setFilteredTemplates(filtered); // Update filtered templates
-    setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
-    setCurrentPage(1);
-  };
-
-  //   const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
-  //     let filtered = Array.isArray(allTemplates) ? allTemplates : [];
-
-  //     // Dynamically extract filters
-  //     const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
-
-  //     // Apply category filters with additional logic to include templates without certain filters
-  //     filtered = filtered.filter(template =>
-  //         categoryFilters.every(filter =>
-  //             Array.isArray(template.categories) && template.categories.some(category =>
-  //                 (category.category_name === filter.name && category.values.includes(filter.value)) ||
-  //                 (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
-  //             )
+  //   filtered = filtered.filter((template) =>
+  //     categoryFilters.every(
+  //       (filter) =>
+  //         Array.isArray(template.categories) &&
+  //         template.categories.some(
+  //           (category) =>
+  //             (category.category_name === filter.name &&
+  //               category.values.includes(filter.value)) ||
+  //             (category.category_name === filter.name &&
+  //               category.values.length === 0)
   //         )
+  //     )
+  //   );
+
+  //   if (searchTerm) {
+  //     const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  //     filtered = filtered.filter((template) =>
+  //       template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
   //     );
-
-  //     // Apply search filter (searching within all templates)
-  //     if (searchTerm) {
-  //         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-  //         filtered = filtered.filter(template =>
-  //             template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-  //         );
-  //     }
-
-  //     if (filtered.length === 0) {
-  //       filtered = allTemplates;
   //   }
 
-  //     setFilteredTemplates(filtered);
-  //     setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
-  //     setCurrentPage(1); // Reset to first page
+  //   if (filtered.length === 0) {
+  //     filtered = allTemplates;
+  //   }
+
+  //   // setInitialFilteredTemplates(filtered); // Store the filtered state
+  //   setFilteredTemplates(filtered); // Update filtered templates
+  //   setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
+  //   setCurrentPage(1);
   // };
+
+    const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
+      let filtered = Array.isArray(allTemplates) ? allTemplates : [];
+
+      // Dynamically extract filters
+      const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
+
+      // Apply category filters with additional logic to include templates without certain filters
+      filtered = filtered.filter(template =>
+          categoryFilters.every(filter =>
+              Array.isArray(template.categories) && template.categories.some(category =>
+                  (category.category_name === filter.name && category.values.includes(filter.value)) ||
+                  (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
+              )
+          )
+      );
+
+      // Apply search filter (searching within all templates)
+      if (searchTerm) {
+          const lowerCaseSearchTerm = searchTerm.toLowerCase();
+          filtered = filtered.filter(template =>
+              template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+          );
+      }
+
+      if (filtered.length === 0) {
+        filtered = allTemplates;
+    }
+
+      setFilteredTemplates(filtered);
+      setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
+      setCurrentPage(1); // Reset to first page
+  };
 
   const deleteRecord = async (recordId, objectType) => {
     try {
