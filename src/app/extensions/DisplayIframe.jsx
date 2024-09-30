@@ -2054,7 +2054,7 @@ const Extension = ({ context, actions, runServerless }) => {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-        const searchResults = fulltemplatelist.filter(template =>
+        const searchResults = initialFilteredTemplates.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
         console.log("searchResults:", searchResults)
