@@ -1931,8 +1931,9 @@ const Extension = ({ context, actions, runServerless }) => {
     console.log("FilteredTemplates updated:", filteredTemplates);
   }, [filteredTemplates]);
 
-  
-  const handleSearch = useCallback((input) => {
+
+  const handleSearch = useCallback(
+  (input) => {
     let searchValue = "";
 
     // Validate the input
@@ -1941,7 +1942,6 @@ const Extension = ({ context, actions, runServerless }) => {
     } else if (typeof input === "string") {
       searchValue = input;
       console.log(searchValue);
-      console.log(input);
     } else {
       console.error("Unexpected input:", input);
       return; // Exit early if input is invalid
@@ -1953,26 +1953,19 @@ const Extension = ({ context, actions, runServerless }) => {
     // If search input is cleared (empty string), reset to initial filtered templates
     if (searchValue.trim() === "") {
       console.log("Search input cleared, resetting to initial filtered templates.");
-
-      console.log("initialFilteredTemplates in handleSearch:", initialFilteredTemplates)
       
-      // Reset to initially filtered templates
-      if (initialFilteredTemplates.length > 0) {
-        setFilteredTemplates(initialFilteredTemplates); // Use initial filtered templates
-        console.log("Resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
-      } else {
-        setFilteredTemplates(fulltemplatelist); // Fallback to full list if no initial filtered templates
-        console.log("Fallback to fulltemplatelist:", fulltemplatelist);
-      }
+      // Call the filterTemplates function to reset to the initial filters
+      filterTemplates(fulltemplatelist, "", fieldsArray, filtersArray, propertiesBody); // Reset filtering
 
       setTitle("Relevant Content");
     } else {
       setTitle("Search Results");
-      // The search logic will be handled inside the useEffect
+      // The search logic will be handled by the useEffect or filterTemplates
     }
   },
-  [initialFilteredTemplates, fulltemplatelist] // Ensure initialFilteredTemplates and fulltemplatelist are included in dependencies
+  [fieldsArray, filtersArray, propertiesBody, fulltemplatelist] // Ensure dependencies are up-to-date
 );
+
 
   
   
