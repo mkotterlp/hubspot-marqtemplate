@@ -1932,8 +1932,7 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [filteredTemplates]);
 
 
-  const handleSearch = useCallback(
-  (input) => {
+  const handleSearch = useCallback((input) => {
     let searchValue = "";
 
     // Validate the input
@@ -1949,49 +1948,32 @@ const Extension = ({ context, actions, runServerless }) => {
 
     // Set the search term in state
     setSearchTerm(searchValue);
-    console.log("searchValue", searchValue)
-    console.log("searchTerm", searchTerm)
-    // If search input is cleared (empty string), reset to initial filtered templates
-    if (searchValue.trim() === "") {
-      console.log("Search input cleared, resetting to initial filtered templates.");
-      
-      // Call the filterTemplates function to reset to the initial filters
-      filterTemplates(fulltemplatelist, searchTerm, fieldsArray, filtersArray, propertiesBody); // Reset filtering
 
-      setTitle("Relevant Content");
+    if (searchValue.trim() === '') {
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setTitle('Relevant Content');
     } else {
-      setTitle("Search Results");
-      // The search logic will be handled by the useEffect or filterTemplates
+      setTitle('Search Results');
     }
-  },
-  [fieldsArray, filtersArray, propertiesBody, fulltemplatelist] // Ensure dependencies are up-to-date
-);
+  }, [initialFilteredTemplates]);
 
-
-  
-  
-  
-  
-  
   useEffect(() => {
     if (searchTerm.trim() !== '') {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-  
-        // Perform search filtering on the full template list
+
         const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
-  
-        console.log("Debounced search results:", searchResults);
-  
-        setFilteredTemplates(searchResults);
+
+        // Combine search results with initially filtered templates
+        setFilteredTemplates([...searchResults]);
         setCurrentPage(1); // Reset to first page on search
-      }, 2000); // 2000ms debounce time (2 seconds)
-  
-      return () => clearTimeout(delayDebounceFn); // Cleanup debounce timeout on unmount or new search
+      }, 300);
+
+      return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchTerm, fulltemplatelist]);
+  }, [searchTerm, templates, initialFilteredTemplates]);
   
   
   
