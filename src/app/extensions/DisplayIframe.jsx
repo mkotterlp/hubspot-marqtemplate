@@ -31,8 +31,6 @@ const Extension = ({ context, actions, runServerless }) => {
   const [dynamicProperties, setDynamicProperties] = useState({});
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState('Relevant Content');
-  const [currentFilteredState, setCurrentFilteredState] = useState(initialFilteredTemplates); // Track user-filtered state
-
   const [stageName, setStage] = useState('');
   const [propertiesToWatch, setpropertiesToWatch] = useState([]);
   const [objectType, setObjectType] = useState('');
@@ -476,81 +474,42 @@ const Extension = ({ context, actions, runServerless }) => {
   
 
 
+
   const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
     let filtered = Array.isArray(allTemplates) ? allTemplates : [];
-  
-    // Dynamically extract filters (category-based)
+
+    // Dynamically extract filters
     const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
-  
+
     // Apply category filters with additional logic to include templates without certain filters
     filtered = filtered.filter(template =>
-      categoryFilters.every(filter =>
-        Array.isArray(template.categories) && template.categories.some(category =>
-          (category.category_name === filter.name && category.values.includes(filter.value)) ||
-          (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
+        categoryFilters.every(filter =>
+            Array.isArray(template.categories) && template.categories.some(category =>
+                (category.category_name === filter.name && category.values.includes(filter.value)) ||
+                (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
+            )
         )
-      )
     );
-  
-    // Apply search filter (searching within currently filtered templates, not allTemplates)
-    if (searchTerm && searchTerm.trim() !== '') {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(template =>
-        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-      );
+
+    // Apply search filter (searching within all templates)
+    if (searchTerm) {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        filtered = filtered.filter(template =>
+            template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+        );
     }
-  
-    // If no templates match the filters or search term, you can choose to either show all or keep it empty
+
     if (filtered.length === 0) {
-      filtered = allTemplates; // Optionally show all templates if no match found
-    }
-  
-    // Update filtered templates state and pagination
+      filtered = allTemplates; 
+  }
+
+
+
+
     setFilteredTemplates(filtered);
     setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
-    setCurrentPage(1); // Reset to the first page on any filter change
-  
-    // Update the current filtered state for future reference (outside of search)
-    setCurrentFilteredState(filtered); // Ensure the filtered state is updated after each filtering operation
-  };
-  
-  
-
-//   const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
-//     let filtered = Array.isArray(allTemplates) ? allTemplates : [];
-
-//     // Dynamically extract filters
-//     const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
-
-//     // Apply category filters with additional logic to include templates without certain filters
-//     filtered = filtered.filter(template =>
-//         categoryFilters.every(filter =>
-//             Array.isArray(template.categories) && template.categories.some(category =>
-//                 (category.category_name === filter.name && category.values.includes(filter.value)) ||
-//                 (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
-//             )
-//         )
-//     );
-
-//     // Apply search filter (searching within all templates)
-//     if (searchTerm) {
-//         const lowerCaseSearchTerm = searchTerm.toLowerCase();
-//         filtered = filtered.filter(template =>
-//             template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-//         );
-//     }
-
-//     if (filtered.length === 0) {
-//       filtered = allTemplates; 
-//   }
-
-
-
-
-//     setFilteredTemplates(filtered);
-//     setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
-//     setCurrentPage(1); // Reset to first page
-// };
+    setCurrentPage(1); // Reset to first page
+};
 
   
 
@@ -1462,34 +1421,12 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      // Reset to currentFilteredState instead of initialFilteredTemplates
-      setFilteredTemplates(currentFilteredState);
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [currentFilteredState]); // Include currentFilteredState as a dependency
-  
-
-  // const handleSearch = useCallback((input) => {
-  //   let searchValue = '';
-  //   if (input && input.target) {
-  //     searchValue = input.target.value;
-  //   } else if (input) {
-  //     searchValue = String(input);
-  //   } else {
-  //     console.error('Unexpected input:', input);
-  //   }
-  
-  //   setSearchTerm(searchValue);
-  
-  //   if (searchValue.trim() === '') {
-  //     setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
-  //     setTitle('Relevant Content');
-  //   } else {
-  //     setTitle('Search Results');
-  //   }
-  // }, [initialFilteredTemplates]);
+  }, [initialFilteredTemplates]);
   
   useEffect(() => {
     if (searchTerm.trim() !== '') {
