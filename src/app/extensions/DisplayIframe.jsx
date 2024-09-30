@@ -1850,12 +1850,12 @@ const Extension = ({ context, actions, runServerless }) => {
     console.log("FilteredTemplates updated:", filteredTemplates);
   }, [filteredTemplates]);
   
-
+  
   const handleSearch = useCallback(
     (input) => {
       let searchValue = "";
   
-      // Check if input is valid and handle it
+      // Validate the input
       if (input && input.target && typeof input.target.value === "string") {
         searchValue = input.target.value;
       } else if (typeof input === "string") {
@@ -1872,23 +1872,47 @@ const Extension = ({ context, actions, runServerless }) => {
       console.log("Before search, initialFilteredTemplates:", initialFilteredTemplates);
       console.log("Before search, filteredTemplates:", filteredTemplates);
   
-      // Handle the case when the search input is empty
+      // If search input is cleared, reset to initial filtered templates
       if (searchValue.trim() === "") {
         console.log("No input, resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
-        // Reset to the initial filtered state (should be 8 templates)
-        setFilteredTemplates(initialFilteredTemplates); 
+        
+        // Replicate the filtering logic from the try block
+        if (fields.length && filters.length && Object.keys(propertiesBody).length > 0) {
+          const filtered = fulltemplatelist.filter((template) => {
+            return fields.every((field, index) => {
+              const categoryName = filters[index];
+              const propertyValue = propertiesBody[field]?.toLowerCase();
+              const category = template.categories.find(
+                (c) => c.category_name.toLowerCase() === categoryName.toLowerCase()
+              );
+              return (
+                category &&
+                category.values.map((v) => v.toLowerCase()).includes(propertyValue)
+              );
+            });
+          });
+  
+          console.log("Filtered Templates (after resetting search):", filtered);
+          setFilteredTemplates(filtered); // Reset to filtered templates based on initial filters
+        } else {
+          // If no filtering criteria, use all templates
+          console.log("Showing all templates (no filtering criteria).");
+          setFilteredTemplates(fulltemplatelist); // Fallback to full list if no filtering criteria
+        }
+        
         setTitle("Relevant Content");
       } else {
         setTitle("Search Results");
   
-        // The search logic is debounced in useEffect, so we don't filter here
+        // Debounce and apply the search logic in useEffect, as handled already
       }
   
       // Log the updated state of filteredTemplates after search logic
       console.log("After search, updated filteredTemplates:", filteredTemplates);
     },
-    [initialFilteredTemplates, filteredTemplates]
+    [initialFilteredTemplates, filteredTemplates, fulltemplatelist, fields, filters, propertiesBody]
   );
+  
   
   
   
@@ -1912,8 +1936,19 @@ const Extension = ({ context, actions, runServerless }) => {
       }, 300); // 300ms debounce time
   
       return () => clearTimeout(delayDebounceFn); // Cleanup timeout on unmount or new search
+    } else {
+      // When searchTerm is empty, reset to initialFilteredTemplates or fulltemplatelist
+      console.log("No search term, resetting to initialFilteredTemplates or fulltemplatelist");
+  
+      if (initialFilteredTemplates.length > 0) {
+        setFilteredTemplates(initialFilteredTemplates); // Reset to initial filtered templates
+      } else {
+        setFilteredTemplates(fulltemplatelist); // Fallback to full list
+      }
+      setCurrentPage(1); // Reset to first page when search is cleared
     }
-  }, [searchTerm, fulltemplatelist]);
+  }, [searchTerm, fulltemplatelist, initialFilteredTemplates]);
+  
   
 
   // const handleSearch = useCallback((input) => {
