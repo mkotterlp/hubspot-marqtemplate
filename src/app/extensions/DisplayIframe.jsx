@@ -1955,8 +1955,8 @@ const Extension = ({ context, actions, runServerless }) => {
       
       // Use the same logic as in fetchPropertiesAndLoadConfig to reset the templates
       if (initialFilteredTemplates.length > 0) {
-        setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
-        console.log("Resetting filteredTemplates to initialFilteredTemplates:", initialFilteredTemplates);
+        setFilteredTemplates(filteredTemplates); // Reset to initially filtered templates
+        console.log("Resetting filteredTemplates to initialFilteredTemplates:", filteredTemplates);
       } else {
         setFilteredTemplates(fulltemplatelist); // Fallback to full list if no initial filtered templates
         console.log("Fallback to fulltemplatelist:", fulltemplatelist);
