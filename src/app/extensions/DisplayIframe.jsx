@@ -557,6 +557,7 @@ const Extension = ({ context, actions, runServerless }) => {
                   setTemplates(filtered);
                   setFilteredTemplates(filtered);
                   setInitialFilteredTemplates(filtered);
+                  console.log('Initial Filtered Templates:', initialFilteredTemplates);
                   setIsLoading(false);
                 } else {
                   console.warn(
@@ -565,6 +566,8 @@ const Extension = ({ context, actions, runServerless }) => {
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
                   setInitialFilteredTemplates(fetchedTemplates);
+                  console.log('Initial Filtered Templates:', initialFilteredTemplates);
+
                   setIsLoading(false);
                 }
               } else {
@@ -2042,7 +2045,9 @@ const Extension = ({ context, actions, runServerless }) => {
   
     if (searchValue.trim() === '') {
       // Reset to the initially filtered templates when the search term is cleared
-      setFilteredTemplates(initialFilteredTemplates);
+      setFilteredTemplates([...initialFilteredTemplates]);
+      console.log('Initial Filtered Templates in handleSearch:', initialFilteredTemplates);
+
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
@@ -2052,7 +2057,9 @@ const Extension = ({ context, actions, runServerless }) => {
   useEffect(() => {
     if (searchTerm.trim() === '') {
       // If search term is cleared, reset to initial filtered templates
-      setFilteredTemplates(initialFilteredTemplates);
+      setFilteredTemplates([...initialFilteredTemplates]);
+      console.log('Initial Filtered Templates in useEffect:', initialFilteredTemplates);
+
       setCurrentPage(1); // Reset to first page
     } else {
       // Apply search filtering logic with a debounce
