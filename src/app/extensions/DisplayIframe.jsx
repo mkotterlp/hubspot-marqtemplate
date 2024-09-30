@@ -2042,7 +2042,7 @@ const Extension = ({ context, actions, runServerless }) => {
     setSearchTerm(searchValue);
 
     if (searchValue.trim() === '') {
-      setTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
@@ -2054,13 +2054,13 @@ const Extension = ({ context, actions, runServerless }) => {
       const delayDebounceFn = setTimeout(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-        const searchResults = initialFilteredTemplates.filter(template =>
+        const searchResults = fulltemplatelist.filter(template =>
           template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
         );
         console.log("searchResults:", searchResults)
 
         // Combine search results with initially filtered templates
-        setTemplates([searchResults]);
+        setFilteredTemplates([initialFilteredTemplates]);
         setCurrentPage(1); // Reset to first page on search
       }, 300);
 
