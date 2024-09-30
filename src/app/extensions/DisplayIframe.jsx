@@ -1957,9 +1957,9 @@ const Extension = ({ context, actions, runServerless }) => {
       await fetchPropertiesAndLoadConfig(objectType); // Fetch the data if needed
   
       // Reset filtered templates to the initial filtered state
-      setFilteredTemplates(initialFilteredTemplates);
-      setTemplates(initialFilteredTemplates); // If you want to reset the main templates list as well
-      setInitialFilteredTemplates(initialFilteredTemplates);
+      // setFilteredTemplates(initialFilteredTemplates);
+      // setTemplates(initialFilteredTemplates); // If you want to reset the main templates list as well
+      // setInitialFilteredTemplates(initialFilteredTemplates);
   
       setTitle("Relevant Content");
     } else {
