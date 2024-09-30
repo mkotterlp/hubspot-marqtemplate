@@ -31,6 +31,8 @@ const Extension = ({ context, actions, runServerless }) => {
   const [dynamicProperties, setDynamicProperties] = useState({});
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState('Relevant Content');
+  const [currentFilteredState, setCurrentFilteredState] = useState(initialFilteredTemplates); // Track user-filtered state
+
   const [stageName, setStage] = useState('');
   const [propertiesToWatch, setpropertiesToWatch] = useState([]);
   const [objectType, setObjectType] = useState('');
@@ -1419,34 +1421,81 @@ useEffect(() => {
     }
   
     setSearchTerm(searchValue);
-  
+
+    // If search term is cleared, use the filtered state before the search
     if (searchValue.trim() === '') {
-      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setFilteredTemplates(currentFilteredState); // Reset to current filtered state
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
     }
-  }, [initialFilteredTemplates]);
+}, [currentFilteredState]);
+
+
+useEffect(() => {
+  if (searchTerm.trim() !== '') {
+    const delayDebounceFn = setTimeout(() => {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      const searchResults = fulltemplatelist.filter(template =>
+        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+
+      // Update filteredTemplates with search results
+      setFilteredTemplates([...searchResults]);
+      setCurrentPage(1); // Reset to first page on search
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }
+}, [searchTerm, fulltemplatelist]);
+
+// Ensure filteredTemplates updates with user actions
+useEffect(() => {
+  setCurrentFilteredState(filteredTemplates);
+}, [filteredTemplates]);
+
+
+
+
+  // const handleSearch = useCallback((input) => {
+  //   let searchValue = '';
+  //   if (input && input.target) {
+  //     searchValue = input.target.value;
+  //   } else if (input) {
+  //     searchValue = String(input);
+  //   } else {
+  //     console.error('Unexpected input:', input);
+  //   }
   
-  useEffect(() => {
-    if (searchTerm.trim() !== '') {
-      const delayDebounceFn = setTimeout(() => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  //   setSearchTerm(searchValue);
+  
+  //   if (searchValue.trim() === '') {
+  //     setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+  //     setTitle('Relevant Content');
+  //   } else {
+  //     setTitle('Search Results');
+  //   }
+  // }, [initialFilteredTemplates]);
+  
+  // useEffect(() => {
+  //   if (searchTerm.trim() !== '') {
+  //     const delayDebounceFn = setTimeout(() => {
+  //       const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
 
-        const searchResults = fulltemplatelist.filter(template =>
-          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-        );
+  //       const searchResults = fulltemplatelist.filter(template =>
+  //         template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+  //       );
    
   
-        // Combine search results with initially filtered templates
-        setFilteredTemplates([...searchResults]);
-        setCurrentPage(1); // Reset to first page on search
-      }, 300);
+  //       // Combine search results with initially filtered templates
+  //       setFilteredTemplates([...searchResults]);
+  //       setCurrentPage(1); // Reset to first page on search
+  //     }, 300);
   
-      return () => clearTimeout(delayDebounceFn);
-    }
-  }, [searchTerm, templates, initialFilteredTemplates]);
+  //     return () => clearTimeout(delayDebounceFn);
+  //   }
+  // }, [searchTerm, templates, initialFilteredTemplates]);
   
   
 
