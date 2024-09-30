@@ -1667,14 +1667,17 @@ useEffect(() => {
     setSearchTerm(searchValue);
   
     if (searchValue.trim() === '') {
-      // If search is empty, show initial filtered templates
-      setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      // When search is cleared, reset filteredTemplates to initialFilteredTemplates (like when page refreshes)
+      if (initialFilteredTemplates.length > 0) {
+        setFilteredTemplates(initialFilteredTemplates); // Use the initial filtered state
+      } else {
+        setFilteredTemplates(fulltemplatelist); // Fallback to full list if no initial filter is set
+      }
       setTitle('Relevant Content');
     } else {
-      // Otherwise, the title should reflect search results
       setTitle('Search Results');
       
-      // Perform search filtering
+      // Perform search filtering on the full template list
       const lowerCaseSearchTerm = searchValue.toLowerCase();
       const searchResults = fulltemplatelist.filter(template =>
         template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
@@ -1684,6 +1687,7 @@ useEffect(() => {
       setFilteredTemplates(searchResults);
     }
   }, [initialFilteredTemplates, fulltemplatelist]);
+  
   
   
 
