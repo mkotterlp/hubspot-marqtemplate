@@ -1951,6 +1951,8 @@ const Extension = ({ context, actions, runServerless }) => {
 
     if (searchValue.trim() === '') {
       setFilteredTemplates(initialFilteredTemplates); // Reset to initially filtered templates
+      setTemplates(initialFilteredTemplates);
+      setInitialFilteredTemplates(initialFilteredTemplates);
       setTitle('Relevant Content');
     } else {
       setTitle('Search Results');
