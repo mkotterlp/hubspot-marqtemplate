@@ -64,6 +64,7 @@ const Extension = ({ context, actions, runServerless }) => {
   const [allTemplates, setAllTemplates] = useState([]);
   const [fulltemplatelist, setfullTemplates] = useState([]);
   const [dynamicProperties, setDynamicProperties] = useState({});
+  const [lineitemProperties, setLineitemProperties] = useState({});
   const [isIframeOpen, setIframeOpen] = useState(false);
   const [title, setTitle] = useState("Relevant Content");
 
@@ -516,6 +517,29 @@ const Extension = ({ context, actions, runServerless }) => {
             }
           }
 
+          try {
+            // Check if the object is a 'deal'
+            console.log("Starting deal check for lineItems:");
+            if (objectType === 'DEAL') {
+              // Make your API call to fetch associated line items for the deal
+              const lineItemsResponse = await runServerless({
+                name: "fetchLineItems", 
+                parameters: { dealId: context.crm.objectId },
+              });
+        
+              // Parse the response and return the line items
+              const lineItems = JSON.parse(lineItemsResponse.response.body);
+              console.log("lineItems:", lineItems);
+
+              setLineitemProperties(lineItems);
+
+            } else {
+              console.log("Object type is not a deal, skipping line item fetch.");
+            }
+          } catch (error) {
+            console.error("Error fetching line items:", error);
+          }
+
           // Fetch templates from 'fetchJsonData'
           if (templateLink) {
             console.log("Applying templates");
@@ -553,11 +577,11 @@ const Extension = ({ context, actions, runServerless }) => {
                       );
                     });
                   });
-                  console.log("Filtered Templates:", filtered);
-                  setTemplates(filtered);
-                  setFilteredTemplates(filtered);
-                  setInitialFilteredTemplates(filtered);
-                  console.log('Initial Filtered Templates:', initialFilteredTemplates);
+                  // console.log("Filtered Templates:", filtered);
+                  setTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  // console.log('Initial Filtered Templates:', initialFilteredTemplates);
                   setIsLoading(false);
                 } else {
                   console.warn(
@@ -566,7 +590,7 @@ const Extension = ({ context, actions, runServerless }) => {
                   setTemplates(fetchedTemplates);
                   setFilteredTemplates(fetchedTemplates);
                   setInitialFilteredTemplates(fetchedTemplates);
-                  console.log('Initial Filtered Templates:', initialFilteredTemplates);
+                  // console.log('Initial Filtered Templates:', initialFilteredTemplates);
 
                   setIsLoading(false);
                 }
@@ -1196,14 +1220,75 @@ const Extension = ({ context, actions, runServerless }) => {
   );
 
   const editClick = async (projectId, fileId, encodedoptions) => {
+
+    let editoriframeSrc = "https://info.marq.com/loading";
+
+    // Set iframe to loading
+    setIframeUrl(editoriframeSrc);
+    actions.openIframeModal({
+      uri: editoriframeSrc,
+      height: 1500,
+      width: 1500,
+      title: "Marq",
+    });
+    setIframeOpen(true);
+
     try {
       const userId = context.user.id;
       const contactId = context.crm.objectId;
 
+
+      const createaccounttable = await runServerless({
+        name: "fetchAccountTable",
+        parameters: { objectType: objectType },
+      });
+
+      if (!createaccounttable?.response?.body) {
+        console.error(
+          "No response body from serverless function. Aborting poll."
+        );
+        return;
+      }
+
+      let accountTableResponseBody = {};
+      try {
+        accountTableResponseBody = JSON.parse(createaccounttable.response.body);
+      } catch (err) {
+        console.error("Failed to parse response body as JSON:", err);
+        return;
+      }
+
+      const accountData = accountTableResponseBody?.dataRow?.values || {};
+      const matchedData = accountTableResponseBody?.objectTypeRow?.values || {};
+
+      // console.log('accountData:', accountData);
+
+      // Extract the refresh token
+      currentAccountRefreshToken = accountData?.refreshToken || null;
+      marqAccountId = accountData?.accountId || null;
+      datasetid = matchedData?.datasetid || null;
+      collectionid = matchedData?.collectionid || null;
+
+      if (!marqAccountId) {
+        console.error("marqAccountId is missing, cannot proceed.");
+        return;
+      }
+
+      if (currentAccountRefreshToken) {
+        // console.log("Account refresh token:", currentAccountRefreshToken);
+        // tokenSource = 'account';
+      } else {
+        // console.log("No account refresh token found.");
+      }
+
+      await updateData(currentAccountRefreshToken);
+
       let editorinnerurl = `https://app.marq.com/documents/showIframedEditor/${projectId}/0?embeddedOptions=${encodedoptions}&creatorid=${userId}&contactid=${contactId}&apikey=${apiKey}&objecttype=${objectType}&fileid=${fileId}`;
-      let editoriframeSrc =
+      const baseInnerUrl = `https://app.marq.com/documents/iframe?newWindow=false&returnUrl=${encodeURIComponent(editorinnerurl)}`;
+
+      editoriframeSrc =
         "https://info.marq.com/marqembed?iframeUrl=" +
-        encodeURIComponent(editorinnerurl);
+        encodeURIComponent(baseInnerUrl);
 
       setIframeUrl(editoriframeSrc);
       actions.openIframeModal({
@@ -1417,6 +1502,274 @@ const Extension = ({ context, actions, runServerless }) => {
     }
   };
 
+  const updateData = async (currentAccountRefreshToken) => {
+    console.log("Starting updateData...");
+    console.log("dynamicProperties before merge:", dynamicProperties);
+
+
+    if (currentAccountRefreshToken) {
+      try {
+        const properties = {};
+
+// Merge dynamicProperties into the properties object
+const updatedProperties = { 
+...properties, 
+...dynamicProperties 
+};
+
+const numberOfLineItems = Math.min(10, lineitemProperties.length); // Allow up to 10 line items
+const updatedSchema = [
+{ name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+{
+  name: "Marq User Restriction",
+  fieldType: "STRING",
+  isPrimary: false,
+  order: 2,
+},
+];
+
+// Function to format numbers as currency
+const formatCurrency = (value) => {
+if (!isNaN(value) && value !== "" && value !== "null") {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+return ""; // Return empty string if not a valid number
+};
+
+// Function to capitalize the first letter of a string
+const capitalizeFirstLetter = (string) => {
+return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+const calculateRecurringBillingEndDate = (periodValue, startDateValue, termYears) => {
+// Parse the start date if provided, else default to today
+const startDate = startDateValue ? new Date(startDateValue) : new Date();
+
+// Check if the periodValue is in the expected format and contains "M"
+if (periodValue && typeof periodValue === "string" && periodValue.startsWith("P") && periodValue.includes("M")) {
+  const months = parseInt(periodValue.replace("P", "").replace("M", ""));
+  if (!isNaN(months)) {
+    const endDate = new Date(startDate);
+    endDate.setMonth(startDate.getMonth() + months);
+
+    // Check if the day changes due to the month transition and adjust
+    if (endDate.getDate() !== startDate.getDate()) {
+      endDate.setDate(0); // Move to the last valid day of the previous month if day mismatch occurs
+    }
+
+    return endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  }
+}
+
+// If hs_recurring_billing_period is missing or invalid, use term__years_ as backup
+if (termYears && !isNaN(termYears)) {
+  const endDate = new Date(startDate);
+  endDate.setFullYear(startDate.getFullYear() + parseInt(termYears));
+  return endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+}
+
+// Return an empty string if no valid period or term is found
+return "";
+};
+
+
+
+// Only process line items if the objectType is 'DEAL'
+if (objectType === 'DEAL') {
+for (let i = 0; i < 10; i++) {
+  // Check if the line item exists
+  const lineItem = lineitemProperties[i] || null;
+
+  if (lineItem) {
+    // If the line item exists, populate the properties with real values
+    Object.keys(lineItem.properties).forEach((propertyKey) => {
+      const dynamicFieldName = `lineitem${i + 1}.${propertyKey}`;
+      
+      // Check if the property is a currency-related field
+      if (['price', 'discount', 'tax', 'amount', 'hs_cost_of_goods_sold'].includes(propertyKey)) {
+        updatedProperties[dynamicFieldName] = 
+!isNaN(lineItem.properties[propertyKey]) && lineItem.properties[propertyKey] !== null 
+  ? formatCurrency(lineItem.properties[propertyKey]) 
+  : lineItem.properties[propertyKey] || "";
+      } else {
+        updatedProperties[dynamicFieldName] = 
+typeof lineItem.properties[propertyKey] === 'string' 
+  ? capitalizeFirstLetter(lineItem.properties[propertyKey]) 
+  : lineItem.properties[propertyKey] || "";
+      }
+
+      // Add the property to the schema, capitalize the first letter of the propertyKey
+      updatedSchema.push({
+        name: dynamicFieldName,
+        fieldType: "STRING",
+        isPrimary: false,
+        order: updatedSchema.length + 1,
+      });
+    });
+
+const endDateFieldName = `lineitem${i + 1}.recurring_billing_end_date`;
+
+    // Add calculated recurring_billing_end_date to the properties and schema if hs_recurring_billing_period exists
+    if (lineItem.properties.recurringbillingfrequency) {
+      const recurringBillingEndDate = calculateRecurringBillingEndDate(
+        lineItem.properties.hs_recurring_billing_period, 
+        lineItem.properties.hs_recurring_billing_start_date,
+        lineItem.properties.term__years_
+      );
+          updatedProperties[endDateFieldName] = recurringBillingEndDate;
+} else {
+  updatedProperties[endDateFieldName] = ""; // Set a blank value if it's missing
+}
+
+// Check if recurringbillingfrequency exists, if not, set to "One-time"
+if (!lineItem.properties.recurringbillingfrequency || lineItem.properties.recurringbillingfrequency.trim() === "") {
+updatedProperties[`lineitem${i + 1}.recurringbillingfrequency`] = "One-time";
+}
+
+
+
+updatedSchema.push({
+  name: endDateFieldName,
+  fieldType: "STRING", 
+  isPrimary: false,
+  order: updatedSchema.length + 1,
+});
+
+  } else {
+    // If the line item doesn't exist, populate the schema with real property names but set values to ""
+    Object.keys(lineitemProperties[0].properties).forEach((propertyKey) => {
+      const dynamicFieldName = `lineitem${i + 1}.${propertyKey}`;
+      
+      // Set value to "" for missing line items
+      updatedProperties[dynamicFieldName] = "";
+
+      // Add the property to the schema, capitalize the first letter of the propertyKey
+      updatedSchema.push({
+        name: dynamicFieldName,
+        fieldType: "STRING",
+        isPrimary: false,
+        order: updatedSchema.length + 1,
+      });
+    });
+
+    // Add a blank recurring_billing_end_date to the properties and schema for missing line items
+    const endDateFieldName = `lineitem${i + 1}.recurring_billing_end_date`;
+    updatedProperties[endDateFieldName] = ""; // No value as the line item is missing
+    updatedSchema.push({
+      name: endDateFieldName,
+      fieldType: "STRING",
+      isPrimary: false,
+      order: updatedSchema.length + 1,
+    });
+  }
+}
+}
+
+// Iterate over dynamicProperties and add them to updatedSchema
+Object.keys(dynamicProperties).forEach(propertyKey => {
+const dynamicFieldName = propertyKey;  // Use the property key as the field name
+
+// Update the properties object
+updatedProperties[dynamicFieldName] = dynamicProperties[propertyKey];
+
+// Add this property to the schema if it's not already present
+const alreadyInSchema = updatedSchema.some(item => item.name === capitalizeFirstLetter(dynamicFieldName));
+if (!alreadyInSchema) {
+  updatedSchema.push({
+    name: dynamicFieldName,  // Capitalize the first letter
+    fieldType: "STRING", 
+    isPrimary: false,
+    order: updatedSchema.length + 1,  // Increment the order correctly
+  });
+}
+});
+
+
+
+
+        // Append the Id field to the properties object
+        updatedProperties["Id"] = context.crm.objectId?.toString() || "";
+        updatedProperties["Marq User Restriction"] = context.user.email;
+
+        console.log("updatedProperties", updatedProperties);
+
+        const clientid = "wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa";
+        const clientsecret =
+          "YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX";
+
+        // Call update-data3 function
+        console.log('Starting updateData3');
+        const updateDataResponse = await runServerless({
+          name: "updateData3",
+          parameters: {
+            refresh_token: currentAccountRefreshToken,
+            clientid: clientid,
+            clientsecret: clientsecret,
+            collectionId: collectionid,
+            properties: updatedProperties,
+            schema: updatedSchema,
+            dataSourceId: datasetid,
+          },
+        });
+
+        // Check if the response was successful
+        if (
+          updateDataResponse?.response?.statusCode === 200 ||
+          updateDataResponse?.response?.statusCode === 201
+        ) {
+          console.log('Data updated successfully before project creation');
+
+          // **Parse the response body**
+          let responseBody = updateDataResponse.response.body;
+          if (typeof responseBody === "string") {
+            try {
+              responseBody = JSON.parse(responseBody);
+            } catch (e) {
+              console.error("Failed to parse response body as JSON:", e);
+              responseBody = {};
+            }
+          }
+
+          // Extract the new refresh token from the parsed response
+          const newAccountRefreshToken = responseBody?.new_refresh_token;
+
+          if (newAccountRefreshToken) {
+            // Call updateAccountRefreshToken to update the token in your system
+            await updateAccountRefreshToken(newAccountRefreshToken);
+            // console.log('Account refresh token updated successfully');
+          } else {
+            setIsAccountTokenClicked(false);
+            setShowAccountTokenButton(true);
+            // console.log('No new refresh token found in the response');
+          }
+        } else {
+          console.error(
+            "Failed to update data before project creation",
+            updateDataResponse?.response?.body
+          );
+
+          // If an error occurred, set the refresh token to blank
+          await updateAccountRefreshToken("");
+          setIsAccountTokenClicked(false);
+          setShowAccountTokenButton(true);
+          // console.log('Refresh token set to blank due to failure');
+        }
+      } catch (error) {
+        console.error("Error during update-data3 execution:", error);
+
+        // On error, set the refresh token to blank
+        await updateAccountRefreshToken("");
+        setIsAccountTokenClicked(false);
+        setShowAccountTokenButton(true);
+        console.log('Refresh token set to blank due to error');
+      }
+    }
+  }
+
   const handleClick = async (template) => {
     let iframeSrc = "https://info.marq.com/loading";
 
@@ -1512,8 +1865,8 @@ const Extension = ({ context, actions, runServerless }) => {
       } else {
         // console.log("No account refresh token found.");
       }
-
-      if (tokenSource === "user" && currentRefreshToken) {
+  
+      if (currentRefreshToken) {
         try {
           // console.log("Fetching user refresh token...");
           const createusertable = await runServerless({
@@ -1523,7 +1876,7 @@ const Extension = ({ context, actions, runServerless }) => {
           const responseBody = JSON.parse(createusertable.response.body);
           const userData = responseBody?.row?.values || {};
           refreshTokenToUse = userData?.refreshToken || null;
-
+  
           if (
             !refreshTokenToUse ||
             refreshTokenToUse === "null" ||
@@ -1538,7 +1891,7 @@ const Extension = ({ context, actions, runServerless }) => {
           return;
         }
       }
-
+  
       const clientid = "wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa";
       const clientsecret =
         "YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX";
@@ -1548,103 +1901,7 @@ const Extension = ({ context, actions, runServerless }) => {
       const templateid = template?.id || "";
       const templatetitle = template?.title || "";
 
-      if (currentAccountRefreshToken) {
-        try {
-          const properties = {};
-
-          console.log("dynamicProperties before merge:", dynamicProperties);
-
-          // Merge mappeddynamicproperties into the properties object
-          const updatedProperties = { ...properties, ...dynamicProperties };
-
-          // Append the Id field to the properties object
-          updatedProperties["Id"] = context.crm.objectId?.toString() || "";
-          updatedProperties["Marq User Restriction"] = context.user.email;
-
-          console.log("updatedProperties", updatedProperties);
-
-          const updatedSchema = [
-            { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
-            {
-              name: "Marq User Restriction",
-              fieldType: "STRING",
-              isPrimary: false,
-              order: 2,
-            },
-            ...Object.keys(dynamicProperties).map((key, index) => ({
-              name: key,
-              fieldType: "STRING", // All fields are treated as strings
-              isPrimary: false,
-              order: index + 3, // Order starts after the "Id" field
-            })),
-          ];
-
-          // Call update-data3 function
-          const updateDataResponse = await runServerless({
-            name: "updateData3",
-            parameters: {
-              refresh_token: currentAccountRefreshToken,
-              clientid: clientid,
-              clientsecret: clientsecret,
-              collectionId: collectionid,
-              properties: updatedProperties,
-              schema: updatedSchema,
-              dataSourceId: datasetid,
-            },
-          });
-
-          // Check if the response was successful
-          if (
-            updateDataResponse?.response?.statusCode === 200 ||
-            updateDataResponse?.response?.statusCode === 201
-          ) {
-            // console.log('Data updated successfully before project creation');
-
-            // **Parse the response body**
-            let responseBody = updateDataResponse.response.body;
-            if (typeof responseBody === "string") {
-              try {
-                responseBody = JSON.parse(responseBody);
-              } catch (e) {
-                console.error("Failed to parse response body as JSON:", e);
-                responseBody = {};
-              }
-            }
-
-            // Extract the new refresh token from the parsed response
-            const newAccountRefreshToken = responseBody?.new_refresh_token;
-
-            if (newAccountRefreshToken) {
-              // Call updateAccountRefreshToken to update the token in your system
-              await updateAccountRefreshToken(newAccountRefreshToken);
-              // console.log('Account refresh token updated successfully');
-            } else {
-              setIsAccountTokenClicked(false);
-              setShowAccountTokenButton(true);
-              // console.log('No new refresh token found in the response');
-            }
-          } else {
-            console.error(
-              "Failed to update data before project creation",
-              updateDataResponse?.response?.body
-            );
-
-            // If an error occurred, set the refresh token to blank
-            await updateAccountRefreshToken("");
-            setIsAccountTokenClicked(false);
-            setShowAccountTokenButton(true);
-            // console.log('Refresh token set to blank due to failure');
-          }
-        } catch (error) {
-          console.error("Error during update-data3 execution:", error);
-
-          // On error, set the refresh token to blank
-          await updateAccountRefreshToken("");
-          setIsAccountTokenClicked(false);
-          setShowAccountTokenButton(true);
-          // console.log('Refresh token set to blank due to error');
-        }
-      }
+      await updateData(currentAccountRefreshToken);
 
       // console.log("refreshTokenToUse for creating a project:", refreshTokenToUse)
       // console.log("marqaccountid for creating a project:", marqaccountid)
@@ -2025,7 +2282,7 @@ const Extension = ({ context, actions, runServerless }) => {
   }, [context.crm.objectTypeId, runServerless]);
 
   useEffect(() => {
-    console.log("Filtered Templates Updated:", filteredTemplates);
+    // console.log("Filtered Templates Updated:", filteredTemplates);
  }, [filteredTemplates]);
  
 
@@ -2047,7 +2304,7 @@ const Extension = ({ context, actions, runServerless }) => {
     if (searchValue.trim() === '') {
       // Reset to the initially filtered templates when the search term is cleared
       setFilteredTemplates([...initialFilteredTemplates]);
-      console.log('Initial Filtered Templates in handleSearch:', initialFilteredTemplates);
+      // console.log('Initial Filtered Templates in handleSearch:', initialFilteredTemplates);
 
       setTitle('Relevant Content');
     } else {
@@ -2060,7 +2317,7 @@ const Extension = ({ context, actions, runServerless }) => {
         // Ensure we only set the initial filtered templates if it's not already set
         if (filteredTemplates.length !== initialFilteredTemplates.length) {
             setFilteredTemplates([...initialFilteredTemplates]);
-            console.log('Reset to Initial Filtered Templates:', initialFilteredTemplates);
+            // console.log('Reset to Initial Filtered Templates:', initialFilteredTemplates);
         }
         setCurrentPage(1); // Reset to first page
     } else {
@@ -2373,15 +2630,15 @@ const Extension = ({ context, actions, runServerless }) => {
     const fieldsToWatch = [...cleanedFieldsArray, ...cleanedDynamicFields];
 
     if (fieldsToWatch.length > 0) {
-      console.log(
-        "Registering onCrmPropertiesUpdate for fields:",
-        fieldsToWatch
-      );
+      // console.log(
+      //   "Registering onCrmPropertiesUpdate for fields:",
+      //   fieldsToWatch
+      // );
       actions.onCrmPropertiesUpdate(fieldsToWatch, handlePropertiesUpdate);
     }
 
     return () => {
-      console.log("Cleaning up onCrmPropertiesUpdate listener");
+      // console.log("Cleaning up onCrmPropertiesUpdate listener");
       actions.onCrmPropertiesUpdate([], null);
     };
   }, [

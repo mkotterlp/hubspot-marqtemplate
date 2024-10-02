@@ -3,6 +3,9 @@
     "getApiKey": {
       "file": "getApiKey.js"
     },
+    "fetchLineItems": {
+      "file": "fetchLineItems.js"
+    },
     "fetchAccountTable": {
       "file": "fetchAccountTable.js"
     },
