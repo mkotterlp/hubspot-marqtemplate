@@ -3065,12 +3065,27 @@ const Extension = ({ context, actions, runServerless }) => {
                           objectId: context.crm.objectId,
                         }}
                         variant="secondary"
-                        onClick={(e) => {
-                          handleCopy(matchingProject.fileurl); // First, copy the URL to the clipboard
-                          // The SEND_EMAIL action will still work as expected
+                        onClick={() => {
+                          // Use the Clipboard API to copy the URL
+                          navigator.clipboard
+                            .writeText(matchingProject.fileurl)
+                            .then(() => {
+                              // Show a toast or notification to the user that the URL is copied
+                              actions.addAlert({
+                                type: "success",
+                                message: "Published URL copied to clipboard!",
+                              });
+                              // Email sending action proceeds
+                            })
+                            .catch((err) => {
+                              actions.addAlert({
+                                type: "error",
+                                message: "Failed to copy URL.",
+                              });
+                            });
                         }}
                       >
-                        Send email
+                        Send email (with URL copy)
                       </CrmActionButton>
 
                       <Button
