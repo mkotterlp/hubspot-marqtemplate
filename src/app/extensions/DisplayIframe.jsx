@@ -3065,7 +3065,10 @@ const Extension = ({ context, actions, runServerless }) => {
                           objectId: context.crm.objectId,
                         }}
                         variant="secondary"
-                        onClick={() => handleCopy(matchingProject.fileurl)} // This button also copies the URL
+                        onClick={(e) => {
+                          handleCopy(matchingProject.fileurl); // First, copy the URL to the clipboard
+                          // The SEND_EMAIL action will still work as expected
+                        }}
                       >
                         Send email
                       </CrmActionButton>
