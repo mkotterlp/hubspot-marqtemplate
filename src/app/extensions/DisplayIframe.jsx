@@ -3049,15 +3049,29 @@ const Extension = ({ context, actions, runServerless }) => {
                       >
                         Open
                       </Button>
-                      <CrmActionButton
+                      {/* <CrmActionButton
                         actionType="EXTERNAL_URL"
                         actionContext={{ href: matchingProject.fileurl }}
                         variant="secondary"
-                        onClick={() => handleCopy(matchingProject.fileurl)} // This button copies the URL
                       >
                         Copy Published URL
                       </CrmActionButton>
-
+                      <CrmActionButton
+                        actionType="SEND_EMAIL"
+                        actionContext={{
+                          objectTypeId: context.crm.objectTypeId,
+                          objectId: context.crm.objectId,
+                        }}
+                        variant="secondary"
+                      >
+                        Send email
+                      </CrmActionButton> */}
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleCopy(matchingProject.fileurl)}
+                      >
+                        Copy Published URL
+                      </Button>
                       <CrmActionButton
                         actionType="SEND_EMAIL"
                         actionContext={{
@@ -3066,28 +3080,15 @@ const Extension = ({ context, actions, runServerless }) => {
                         }}
                         variant="secondary"
                         onClick={() => {
-                          // Use the Clipboard API to copy the URL
-                          navigator.clipboard
-                            .writeText(matchingProject.fileurl)
-                            .then(() => {
-                              // Show a toast or notification to the user that the URL is copied
-                              actions.addAlert({
-                                type: "success",
-                                message: "Published URL copied to clipboard!",
-                              });
-                              // Email sending action proceeds
-                            })
-                            .catch((err) => {
-                              actions.addAlert({
-                                type: "error",
-                                message: "Failed to copy URL.",
-                              });
-                            });
+                          actions.addAlert({
+                            type: "info",
+                            message:
+                              "You can now send the email with the copied URL.",
+                          });
                         }}
                       >
-                        Send email (with URL copy)
+                        Send Email
                       </CrmActionButton>
-
                       <Button
                         variant="destructive"
                         onClick={() =>
