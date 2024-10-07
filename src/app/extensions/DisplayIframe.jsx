@@ -2912,7 +2912,7 @@ const Extension = ({ context, actions, runServerless }) => {
 
   const handleCopy = async (text) => {
     try {
-      await navigator.clipboard.writeText(text); // Use navigator.clipboard.writeText
+      await navigator.copyTextToClipboard(text); // Use navigator.clipboard.writeText
       actions.addAlert({
         type: "success",
         message: "URL copied to clipboard.",
