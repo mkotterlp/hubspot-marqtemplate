@@ -153,8 +153,6 @@ const Extension = ({ context, actions, runServerless }) => {
     }
   };
 
-
-
   const fetchPropertiesAndLoadConfig = async (objectType) => {
     try {
       setIsLoading(true);
@@ -520,21 +518,22 @@ const Extension = ({ context, actions, runServerless }) => {
           try {
             // Check if the object is a 'deal'
             console.log("Starting deal check for lineItems:");
-            if (objectType === 'DEAL') {
+            if (objectType === "DEAL") {
               // Make your API call to fetch associated line items for the deal
               const lineItemsResponse = await runServerless({
-                name: "fetchLineItems", 
+                name: "fetchLineItems",
                 parameters: { dealId: context.crm.objectId },
               });
-        
+
               // Parse the response and return the line items
               const lineItems = JSON.parse(lineItemsResponse.response.body);
               console.log("lineItems:", lineItems);
 
               setLineitemProperties(lineItems);
-
             } else {
-              console.log("Object type is not a deal, skipping line item fetch.");
+              console.log(
+                "Object type is not a deal, skipping line item fetch."
+              );
             }
           } catch (error) {
             console.error("Error fetching line items:", error);
@@ -578,9 +577,15 @@ const Extension = ({ context, actions, runServerless }) => {
                     });
                   });
                   // console.log("Filtered Templates:", filtered);
-                  setTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
-                  setFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
-                  setInitialFilteredTemplates(filtered.length > 0 ? filtered : fetchedTemplates);
+                  setTemplates(
+                    filtered.length > 0 ? filtered : fetchedTemplates
+                  );
+                  setFilteredTemplates(
+                    filtered.length > 0 ? filtered : fetchedTemplates
+                  );
+                  setInitialFilteredTemplates(
+                    filtered.length > 0 ? filtered : fetchedTemplates
+                  );
                   // console.log('Initial Filtered Templates:', initialFilteredTemplates);
                   setIsLoading(false);
                 } else {
@@ -1039,37 +1044,52 @@ const Extension = ({ context, actions, runServerless }) => {
   //   setCurrentPage(1);
   // };
 
-    const filterTemplates = (allTemplates, searchTerm, fieldsArray, filtersArray, properties) => {
-      let filtered = Array.isArray(allTemplates) ? allTemplates : [];
+  const filterTemplates = (
+    allTemplates,
+    searchTerm,
+    fieldsArray,
+    filtersArray,
+    properties
+  ) => {
+    let filtered = Array.isArray(allTemplates) ? allTemplates : [];
 
-      // Dynamically extract filters
-      const categoryFilters = extractFiltersFromProperties(fieldsArray, filtersArray, properties);
+    // Dynamically extract filters
+    const categoryFilters = extractFiltersFromProperties(
+      fieldsArray,
+      filtersArray,
+      properties
+    );
 
-      // Apply category filters with additional logic to include templates without certain filters
-      filtered = filtered.filter(template =>
-          categoryFilters.every(filter =>
-              Array.isArray(template.categories) && template.categories.some(category =>
-                  (category.category_name === filter.name && category.values.includes(filter.value)) ||
-                  (category.category_name === filter.name && category.values.length === 0) // Include templates with no values for the category
-              )
+    // Apply category filters with additional logic to include templates without certain filters
+    filtered = filtered.filter((template) =>
+      categoryFilters.every(
+        (filter) =>
+          Array.isArray(template.categories) &&
+          template.categories.some(
+            (category) =>
+              (category.category_name === filter.name &&
+                category.values.includes(filter.value)) ||
+              (category.category_name === filter.name &&
+                category.values.length === 0) // Include templates with no values for the category
           )
+      )
+    );
+
+    // Apply search filter (searching within all templates)
+    if (searchTerm) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter((template) =>
+        template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
       );
-
-      // Apply search filter (searching within all templates)
-      if (searchTerm) {
-          const lowerCaseSearchTerm = searchTerm.toLowerCase();
-          filtered = filtered.filter(template =>
-              template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-          );
-      }
-
-      if (filtered.length === 0) {
-        filtered = allTemplates;
     }
 
-      setFilteredTemplates(filtered);
-      setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
-      setCurrentPage(1); // Reset to first page
+    if (filtered.length === 0) {
+      filtered = allTemplates;
+    }
+
+    setFilteredTemplates(filtered);
+    setTotalPages(Math.ceil(filtered.length / RECORDS_PER_PAGE));
+    setCurrentPage(1); // Reset to first page
   };
 
   const deleteRecord = async (recordId, objectType) => {
@@ -1220,7 +1240,6 @@ const Extension = ({ context, actions, runServerless }) => {
   );
 
   const editClick = async (projectId, fileId, encodedoptions) => {
-
     let editoriframeSrc = "https://info.marq.com/loading";
 
     // Set iframe to loading
@@ -1236,7 +1255,6 @@ const Extension = ({ context, actions, runServerless }) => {
     try {
       const userId = context.user.id;
       const contactId = context.crm.objectId;
-
 
       const createaccounttable = await runServerless({
         name: "fetchAccountTable",
@@ -1506,190 +1524,213 @@ const Extension = ({ context, actions, runServerless }) => {
     console.log("Starting updateData...");
     console.log("dynamicProperties before merge:", dynamicProperties);
 
-
     if (currentAccountRefreshToken) {
       try {
         const properties = {};
 
-// Merge dynamicProperties into the properties object
-const updatedProperties = { 
-...properties, 
-...dynamicProperties 
-};
+        // Merge dynamicProperties into the properties object
+        const updatedProperties = {
+          ...properties,
+          ...dynamicProperties,
+        };
 
-const numberOfLineItems = Math.min(10, lineitemProperties.length); // Allow up to 10 line items
-const updatedSchema = [
-{ name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
-{
-  name: "Marq User Restriction",
-  fieldType: "STRING",
-  isPrimary: false,
-  order: 2,
-},
-];
+        const numberOfLineItems = Math.min(10, lineitemProperties.length); // Allow up to 10 line items
+        const updatedSchema = [
+          { name: "Id", fieldType: "STRING", isPrimary: true, order: 1 },
+          {
+            name: "Marq User Restriction",
+            fieldType: "STRING",
+            isPrimary: false,
+            order: 2,
+          },
+        ];
 
-// Function to format numbers as currency
-const formatCurrency = (value) => {
-if (!isNaN(value) && value !== "" && value !== "null") {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(value);
-}
-return ""; // Return empty string if not a valid number
-};
+        // Function to format numbers as currency
+        const formatCurrency = (value) => {
+          if (!isNaN(value) && value !== "" && value !== "null") {
+            return new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 2,
+            }).format(value);
+          }
+          return ""; // Return empty string if not a valid number
+        };
 
-// Function to capitalize the first letter of a string
-const capitalizeFirstLetter = (string) => {
-return string.charAt(0).toUpperCase() + string.slice(1);
-};
+        // Function to capitalize the first letter of a string
+        const capitalizeFirstLetter = (string) => {
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        };
 
-const calculateRecurringBillingEndDate = (periodValue, startDateValue, termYears) => {
-// Parse the start date if provided, else default to today
-const startDate = startDateValue ? new Date(startDateValue) : new Date();
+        const calculateRecurringBillingEndDate = (
+          periodValue,
+          startDateValue,
+          termYears
+        ) => {
+          // Parse the start date if provided, else default to today
+          const startDate = startDateValue
+            ? new Date(startDateValue)
+            : new Date();
 
-// Check if the periodValue is in the expected format and contains "M"
-if (periodValue && typeof periodValue === "string" && periodValue.startsWith("P") && periodValue.includes("M")) {
-  const months = parseInt(periodValue.replace("P", "").replace("M", ""));
-  if (!isNaN(months)) {
-    const endDate = new Date(startDate);
-    endDate.setMonth(startDate.getMonth() + months);
+          // Check if the periodValue is in the expected format and contains "M"
+          if (
+            periodValue &&
+            typeof periodValue === "string" &&
+            periodValue.startsWith("P") &&
+            periodValue.includes("M")
+          ) {
+            const months = parseInt(
+              periodValue.replace("P", "").replace("M", "")
+            );
+            if (!isNaN(months)) {
+              const endDate = new Date(startDate);
+              endDate.setMonth(startDate.getMonth() + months);
 
-    // Check if the day changes due to the month transition and adjust
-    if (endDate.getDate() !== startDate.getDate()) {
-      endDate.setDate(0); // Move to the last valid day of the previous month if day mismatch occurs
-    }
+              // Check if the day changes due to the month transition and adjust
+              if (endDate.getDate() !== startDate.getDate()) {
+                endDate.setDate(0); // Move to the last valid day of the previous month if day mismatch occurs
+              }
 
-    return endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-  }
-}
+              return endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+            }
+          }
 
-// If hs_recurring_billing_period is missing or invalid, use term__years_ as backup
-if (termYears && !isNaN(termYears)) {
-  const endDate = new Date(startDate);
-  endDate.setFullYear(startDate.getFullYear() + parseInt(termYears));
-  return endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-}
+          // If hs_recurring_billing_period is missing or invalid, use term__years_ as backup
+          if (termYears && !isNaN(termYears)) {
+            const endDate = new Date(startDate);
+            endDate.setFullYear(startDate.getFullYear() + parseInt(termYears));
+            return endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+          }
 
-// Return an empty string if no valid period or term is found
-return "";
-};
+          // Return an empty string if no valid period or term is found
+          return "";
+        };
 
+        // Only process line items if the objectType is 'DEAL'
+        if (objectType === "DEAL") {
+          for (let i = 0; i < 10; i++) {
+            // Check if the line item exists
+            const lineItem = lineitemProperties[i] || null;
 
+            if (lineItem) {
+              // If the line item exists, populate the properties with real values
+              Object.keys(lineItem.properties).forEach((propertyKey) => {
+                const dynamicFieldName = `lineitem${i + 1}.${propertyKey}`;
 
-// Only process line items if the objectType is 'DEAL'
-if (objectType === 'DEAL') {
-for (let i = 0; i < 10; i++) {
-  // Check if the line item exists
-  const lineItem = lineitemProperties[i] || null;
+                // Check if the property is a currency-related field
+                if (
+                  [
+                    "price",
+                    "discount",
+                    "tax",
+                    "amount",
+                    "hs_cost_of_goods_sold",
+                  ].includes(propertyKey)
+                ) {
+                  updatedProperties[dynamicFieldName] =
+                    !isNaN(lineItem.properties[propertyKey]) &&
+                    lineItem.properties[propertyKey] !== null
+                      ? formatCurrency(lineItem.properties[propertyKey])
+                      : lineItem.properties[propertyKey] || "";
+                } else {
+                  updatedProperties[dynamicFieldName] =
+                    typeof lineItem.properties[propertyKey] === "string"
+                      ? capitalizeFirstLetter(lineItem.properties[propertyKey])
+                      : lineItem.properties[propertyKey] || "";
+                }
 
-  if (lineItem) {
-    // If the line item exists, populate the properties with real values
-    Object.keys(lineItem.properties).forEach((propertyKey) => {
-      const dynamicFieldName = `lineitem${i + 1}.${propertyKey}`;
-      
-      // Check if the property is a currency-related field
-      if (['price', 'discount', 'tax', 'amount', 'hs_cost_of_goods_sold'].includes(propertyKey)) {
-        updatedProperties[dynamicFieldName] = 
-!isNaN(lineItem.properties[propertyKey]) && lineItem.properties[propertyKey] !== null 
-  ? formatCurrency(lineItem.properties[propertyKey]) 
-  : lineItem.properties[propertyKey] || "";
-      } else {
-        updatedProperties[dynamicFieldName] = 
-typeof lineItem.properties[propertyKey] === 'string' 
-  ? capitalizeFirstLetter(lineItem.properties[propertyKey]) 
-  : lineItem.properties[propertyKey] || "";
-      }
+                // Add the property to the schema, capitalize the first letter of the propertyKey
+                updatedSchema.push({
+                  name: dynamicFieldName,
+                  fieldType: "STRING",
+                  isPrimary: false,
+                  order: updatedSchema.length + 1,
+                });
+              });
 
-      // Add the property to the schema, capitalize the first letter of the propertyKey
-      updatedSchema.push({
-        name: dynamicFieldName,
-        fieldType: "STRING",
-        isPrimary: false,
-        order: updatedSchema.length + 1,
-      });
-    });
+              const endDateFieldName = `lineitem${i + 1}.recurring_billing_end_date`;
 
-const endDateFieldName = `lineitem${i + 1}.recurring_billing_end_date`;
+              // Add calculated recurring_billing_end_date to the properties and schema if hs_recurring_billing_period exists
+              if (lineItem.properties.recurringbillingfrequency) {
+                const recurringBillingEndDate =
+                  calculateRecurringBillingEndDate(
+                    lineItem.properties.hs_recurring_billing_period,
+                    lineItem.properties.hs_recurring_billing_start_date,
+                    lineItem.properties.term__years_
+                  );
+                updatedProperties[endDateFieldName] = recurringBillingEndDate;
+              } else {
+                updatedProperties[endDateFieldName] = ""; // Set a blank value if it's missing
+              }
 
-    // Add calculated recurring_billing_end_date to the properties and schema if hs_recurring_billing_period exists
-    if (lineItem.properties.recurringbillingfrequency) {
-      const recurringBillingEndDate = calculateRecurringBillingEndDate(
-        lineItem.properties.hs_recurring_billing_period, 
-        lineItem.properties.hs_recurring_billing_start_date,
-        lineItem.properties.term__years_
-      );
-          updatedProperties[endDateFieldName] = recurringBillingEndDate;
-} else {
-  updatedProperties[endDateFieldName] = ""; // Set a blank value if it's missing
-}
+              // Check if recurringbillingfrequency exists, if not, set to "One-time"
+              if (
+                !lineItem.properties.recurringbillingfrequency ||
+                lineItem.properties.recurringbillingfrequency.trim() === ""
+              ) {
+                updatedProperties[
+                  `lineitem${i + 1}.recurringbillingfrequency`
+                ] = "One-time";
+              }
 
-// Check if recurringbillingfrequency exists, if not, set to "One-time"
-if (!lineItem.properties.recurringbillingfrequency || lineItem.properties.recurringbillingfrequency.trim() === "") {
-updatedProperties[`lineitem${i + 1}.recurringbillingfrequency`] = "One-time";
-}
+              updatedSchema.push({
+                name: endDateFieldName,
+                fieldType: "STRING",
+                isPrimary: false,
+                order: updatedSchema.length + 1,
+              });
+            } else {
+              // If the line item doesn't exist, populate the schema with real property names but set values to ""
+              Object.keys(lineitemProperties[0].properties).forEach(
+                (propertyKey) => {
+                  const dynamicFieldName = `lineitem${i + 1}.${propertyKey}`;
 
+                  // Set value to "" for missing line items
+                  updatedProperties[dynamicFieldName] = "";
 
+                  // Add the property to the schema, capitalize the first letter of the propertyKey
+                  updatedSchema.push({
+                    name: dynamicFieldName,
+                    fieldType: "STRING",
+                    isPrimary: false,
+                    order: updatedSchema.length + 1,
+                  });
+                }
+              );
 
-updatedSchema.push({
-  name: endDateFieldName,
-  fieldType: "STRING", 
-  isPrimary: false,
-  order: updatedSchema.length + 1,
-});
+              // Add a blank recurring_billing_end_date to the properties and schema for missing line items
+              const endDateFieldName = `lineitem${i + 1}.recurring_billing_end_date`;
+              updatedProperties[endDateFieldName] = ""; // No value as the line item is missing
+              updatedSchema.push({
+                name: endDateFieldName,
+                fieldType: "STRING",
+                isPrimary: false,
+                order: updatedSchema.length + 1,
+              });
+            }
+          }
+        }
 
-  } else {
-    // If the line item doesn't exist, populate the schema with real property names but set values to ""
-    Object.keys(lineitemProperties[0].properties).forEach((propertyKey) => {
-      const dynamicFieldName = `lineitem${i + 1}.${propertyKey}`;
-      
-      // Set value to "" for missing line items
-      updatedProperties[dynamicFieldName] = "";
+        // Iterate over dynamicProperties and add them to updatedSchema
+        Object.keys(dynamicProperties).forEach((propertyKey) => {
+          const dynamicFieldName = propertyKey; // Use the property key as the field name
 
-      // Add the property to the schema, capitalize the first letter of the propertyKey
-      updatedSchema.push({
-        name: dynamicFieldName,
-        fieldType: "STRING",
-        isPrimary: false,
-        order: updatedSchema.length + 1,
-      });
-    });
+          // Update the properties object
+          updatedProperties[dynamicFieldName] = dynamicProperties[propertyKey];
 
-    // Add a blank recurring_billing_end_date to the properties and schema for missing line items
-    const endDateFieldName = `lineitem${i + 1}.recurring_billing_end_date`;
-    updatedProperties[endDateFieldName] = ""; // No value as the line item is missing
-    updatedSchema.push({
-      name: endDateFieldName,
-      fieldType: "STRING",
-      isPrimary: false,
-      order: updatedSchema.length + 1,
-    });
-  }
-}
-}
-
-// Iterate over dynamicProperties and add them to updatedSchema
-Object.keys(dynamicProperties).forEach(propertyKey => {
-const dynamicFieldName = propertyKey;  // Use the property key as the field name
-
-// Update the properties object
-updatedProperties[dynamicFieldName] = dynamicProperties[propertyKey];
-
-// Add this property to the schema if it's not already present
-const alreadyInSchema = updatedSchema.some(item => item.name === capitalizeFirstLetter(dynamicFieldName));
-if (!alreadyInSchema) {
-  updatedSchema.push({
-    name: dynamicFieldName,  // Capitalize the first letter
-    fieldType: "STRING", 
-    isPrimary: false,
-    order: updatedSchema.length + 1,  // Increment the order correctly
-  });
-}
-});
-
-
-
+          // Add this property to the schema if it's not already present
+          const alreadyInSchema = updatedSchema.some(
+            (item) => item.name === capitalizeFirstLetter(dynamicFieldName)
+          );
+          if (!alreadyInSchema) {
+            updatedSchema.push({
+              name: dynamicFieldName, // Capitalize the first letter
+              fieldType: "STRING",
+              isPrimary: false,
+              order: updatedSchema.length + 1, // Increment the order correctly
+            });
+          }
+        });
 
         // Append the Id field to the properties object
         updatedProperties["Id"] = context.crm.objectId?.toString() || "";
@@ -1702,7 +1743,7 @@ if (!alreadyInSchema) {
           "YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX";
 
         // Call update-data3 function
-        console.log('Starting updateData3');
+        console.log("Starting updateData3");
         const updateDataResponse = await runServerless({
           name: "updateData3",
           parameters: {
@@ -1721,7 +1762,7 @@ if (!alreadyInSchema) {
           updateDataResponse?.response?.statusCode === 200 ||
           updateDataResponse?.response?.statusCode === 201
         ) {
-          console.log('Data updated successfully before project creation');
+          console.log("Data updated successfully before project creation");
 
           // **Parse the response body**
           let responseBody = updateDataResponse.response.body;
@@ -1765,10 +1806,10 @@ if (!alreadyInSchema) {
         await updateAccountRefreshToken("");
         setIsAccountTokenClicked(false);
         setShowAccountTokenButton(true);
-        console.log('Refresh token set to blank due to error');
+        console.log("Refresh token set to blank due to error");
       }
     }
-  }
+  };
 
   const handleClick = async (template) => {
     let iframeSrc = "https://info.marq.com/loading";
@@ -1865,7 +1906,7 @@ if (!alreadyInSchema) {
       } else {
         // console.log("No account refresh token found.");
       }
-  
+
       if (currentRefreshToken) {
         try {
           // console.log("Fetching user refresh token...");
@@ -1876,7 +1917,7 @@ if (!alreadyInSchema) {
           const responseBody = JSON.parse(createusertable.response.body);
           const userData = responseBody?.row?.values || {};
           refreshTokenToUse = userData?.refreshToken || null;
-  
+
           if (
             !refreshTokenToUse ||
             refreshTokenToUse === "null" ||
@@ -1891,7 +1932,7 @@ if (!alreadyInSchema) {
           return;
         }
       }
-  
+
       const clientid = "wfcWQOnE4lEpKqjjML2IEHsxUqClm6JCij6QEXGa";
       const clientsecret =
         "YiO9bZG7k1SY-TImMZQUsEmR8mISUdww2a1nBuAIWDC3PQIOgQ9Q44xM16x2tGd_cAQGtrtGx4e7sKJ0NFVX";
@@ -2283,61 +2324,66 @@ if (!alreadyInSchema) {
 
   useEffect(() => {
     // console.log("Filtered Templates Updated:", filteredTemplates);
- }, [filteredTemplates]);
- 
+  }, [filteredTemplates]);
 
-  const handleSearch = useCallback((input) => {
-    let searchValue = "";
-  
-    // Validate the input
-    if (input && input.target && typeof input.target.value === "string") {
-      searchValue = input.target.value;
-    } else if (typeof input === "string") {
-      searchValue = input;
-    } else {
-      console.error("Unexpected input:", input);
-      return; // Exit early if input is invalid
-    }
-  
-    setSearchTerm(searchValue);
-  
-    if (searchValue.trim() === '') {
-      // Reset to the initially filtered templates when the search term is cleared
-      setFilteredTemplates([...initialFilteredTemplates]);
-      // console.log('Initial Filtered Templates in handleSearch:', initialFilteredTemplates);
+  const handleSearch = useCallback(
+    (input) => {
+      let searchValue = "";
 
-      setTitle('Relevant Content');
-    } else {
-      setTitle('Search Results');
-    }
-  }, [initialFilteredTemplates]);
-  
+      // Validate the input
+      if (input && input.target && typeof input.target.value === "string") {
+        searchValue = input.target.value;
+      } else if (typeof input === "string") {
+        searchValue = input;
+      } else {
+        console.error("Unexpected input:", input);
+        return; // Exit early if input is invalid
+      }
+
+      setSearchTerm(searchValue);
+
+      if (searchValue.trim() === "") {
+        // Reset to the initially filtered templates when the search term is cleared
+        setFilteredTemplates([...initialFilteredTemplates]);
+        // console.log('Initial Filtered Templates in handleSearch:', initialFilteredTemplates);
+
+        setTitle("Relevant Content");
+      } else {
+        setTitle("Search Results");
+      }
+    },
+    [initialFilteredTemplates]
+  );
+
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-        // Ensure we only set the initial filtered templates if it's not already set
-        if (filteredTemplates.length !== initialFilteredTemplates.length) {
-            setFilteredTemplates([...initialFilteredTemplates]);
-            // console.log('Reset to Initial Filtered Templates:', initialFilteredTemplates);
-        }
-        setCurrentPage(1); // Reset to first page
+    if (searchTerm.trim() === "") {
+      // Ensure we only set the initial filtered templates if it's not already set
+      if (filteredTemplates.length !== initialFilteredTemplates.length) {
+        setFilteredTemplates([...initialFilteredTemplates]);
+        // console.log('Reset to Initial Filtered Templates:', initialFilteredTemplates);
+      }
+      setCurrentPage(1); // Reset to first page
     } else {
-        const delayDebounceFn = setTimeout(() => {
-            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      const delayDebounceFn = setTimeout(() => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-            const searchResults = fulltemplatelist.filter(template =>
-                template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
-            );
-            
-            // Update filteredTemplates with the search results
-            setFilteredTemplates(searchResults);
-            setCurrentPage(1); // Reset to first page on search
-        }, 300);
+        const searchResults = fulltemplatelist.filter((template) =>
+          template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
+        );
 
-        return () => clearTimeout(delayDebounceFn);
+        // Update filteredTemplates with the search results
+        setFilteredTemplates(searchResults);
+        setCurrentPage(1); // Reset to first page on search
+      }, 300);
+
+      return () => clearTimeout(delayDebounceFn);
     }
-}, [searchTerm, fulltemplatelist, initialFilteredTemplates, filteredTemplates]);
-
-
+  }, [
+    searchTerm,
+    fulltemplatelist,
+    initialFilteredTemplates,
+    filteredTemplates,
+  ]);
 
   // useEffect(() => {
   //   if (searchTerm.trim() === '') {
@@ -2350,20 +2396,19 @@ if (!alreadyInSchema) {
   //     // Apply search filtering logic with a debounce
   //     const delayDebounceFn = setTimeout(() => {
   //       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-  
+
   //       const searchResults = fulltemplatelist.filter(template =>
   //         template?.title?.toLowerCase().includes(lowerCaseSearchTerm)
   //       );
-        
+
   //       // Update filteredTemplates with the search results
   //       setFilteredTemplates(searchResults);
   //       setCurrentPage(1); // Reset to first page on search
   //     }, 300);
-  
+
   //     return () => clearTimeout(delayDebounceFn);
   //   }
   // }, [searchTerm, fulltemplatelist, initialFilteredTemplates]);
-  
 
   // const handleSearch = useCallback((input) => {
   //   let searchValue = '';
@@ -2865,6 +2910,22 @@ if (!alreadyInSchema) {
     }
   };
 
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text); // Use navigator.clipboard.writeText
+      actions.addAlert({
+        type: "success",
+        message: "URL copied to clipboard.",
+      });
+    } catch (error) {
+      console.error("Error copying text:", error);
+      actions.addAlert({
+        type: "warning",
+        message: "Couldn't copy the URL.",
+      });
+    }
+  };
+
   if (iframeLoading || isLoading) {
     return (
       <Flex direction="column" gap="medium" align="center">
@@ -2992,9 +3053,11 @@ if (!alreadyInSchema) {
                         actionType="EXTERNAL_URL"
                         actionContext={{ href: matchingProject.fileurl }}
                         variant="secondary"
+                        onClick={() => handleCopy(matchingProject.fileurl)} // This button copies the URL
                       >
                         Copy Published URL
                       </CrmActionButton>
+
                       <CrmActionButton
                         actionType="SEND_EMAIL"
                         actionContext={{
@@ -3002,9 +3065,11 @@ if (!alreadyInSchema) {
                           objectId: context.crm.objectId,
                         }}
                         variant="secondary"
+                        onClick={() => handleCopy(matchingProject.fileurl)} // This button also copies the URL
                       >
                         Send email
                       </CrmActionButton>
+
                       <Button
                         variant="destructive"
                         onClick={() =>
