@@ -3066,15 +3066,25 @@ const Extension = ({ context, actions, runServerless }) => {
                       >
                         Send email
                       </CrmActionButton> */}
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          console.log(
+                            "URL to be copied:",
+                            matchingProject.fileurl
+                          ); // Log the URL
+                          handleCopy(matchingProject.fileurl);
+                        }}
+                      >
+                        Copy Published URL
+                      </Button>
                       <CrmActionButton
                         actionType="EXTERNAL_URL"
                         actionContext={{ href: matchingProject.fileurl }}
                         variant="secondary"
-                        onClick={() => handleCopy(matchingProject.fileurl)} // This button copies the URL using the correct method
                       >
-                        Copy Published URL
+                        Go to PDF
                       </CrmActionButton>
-
                       <CrmActionButton
                         actionType="SEND_EMAIL"
                         actionContext={{
@@ -3083,17 +3093,15 @@ const Extension = ({ context, actions, runServerless }) => {
                         }}
                         variant="secondary"
                         onClick={() => {
-                          handleCopy(matchingProject.fileurl); // First copy the URL
                           actions.addAlert({
                             type: "info",
                             message:
-                              "The URL has been copied. You can now send the email.",
+                              "You can now send the email with the copied URL.",
                           });
                         }}
                       >
-                        Send email (with URL copy)
+                        Send Email
                       </CrmActionButton>
-
                       <Button
                         variant="destructive"
                         onClick={() =>
