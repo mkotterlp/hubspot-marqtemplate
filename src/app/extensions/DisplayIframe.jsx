@@ -3068,7 +3068,13 @@ const Extension = ({ context, actions, runServerless }) => {
                       </CrmActionButton> */}
                       <Button
                         variant="secondary"
-                        onClick={() => handleCopy(matchingProject.fileurl)}
+                        onClick={() => {
+                          console.log(
+                            "URL to be copied:",
+                            matchingProject.fileurl
+                          ); // Log the URL
+                          handleCopy(matchingProject.fileurl);
+                        }}
                       >
                         Copy Published URL
                       </Button>
