@@ -3090,27 +3090,17 @@ const Extension = ({ context, actions, runServerless }) => {
                         actionContext={{
                           objectTypeId: context.crm.objectTypeId,
                           objectId: context.crm.objectId,
-                          body: `
-                            Hi there,
-
-                            Here are the details for the project ${matchingProject.name}:
-                            ${matchingProject.fileurl}
-
-                            Regards,
-                            Team
-                          `,
                         }}
                         variant="secondary"
                         onClick={() => {
-                          handleCopy(matchingProject.fileurl); // Copy URL when sending email
                           actions.addAlert({
-                            type: "success",
+                            type: "info",
                             message:
-                              "Published URL copied. Email content updated.",
+                              "You can now send the email with the copied URL.",
                           });
                         }}
-                        >
-                        Send Email (with URL in body)
+                      >
+                        Send Email
                       </CrmActionButton>
                       <Button
                         variant="destructive"
